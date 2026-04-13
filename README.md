@@ -8,6 +8,10 @@ Coco xPaint is a project being developed by me (and God). It will hopefully beco
 a Paint editor, a Script/text editor, a Animation editor and a Video editor. It uses this open source
 "engine" to work. xPaint extends PaintPower files.
 
+# Because of the huge project that is the VM, the repos are separated:
+[PaintPower Engine](http://github.com/CocoBox84/PaintPower-Engine/ "PaintPower Engine")
+[PaintPower VM](http://github.com/CocoBox84/PaintPower-Engine-VM/ "PaintPower Engine VM")
+
 ## Building and running
 
 Think it's a virus? Build it yourself then, if you trust me, you can download the pre-built versions here:
