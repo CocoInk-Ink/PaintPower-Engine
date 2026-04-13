@@ -18,9 +18,11 @@ public class Domain
 
     public string Protocol = string.Empty;
     public string Host = string.Empty; public static string Port = string.Empty;
-    public string Username;
-    public string Password;
+    public string? Username = string.Empty;
+    public string? Password = string.Empty;
     public string domain = string.Empty;
+
+    public string CSRF_Token = string.Empty;
 
     public Domain(string nDomain, string nProtocol = "http", string nName = "", string nHost = "", string nPort = "") {
         // Initalize domain
@@ -31,6 +33,7 @@ public class Domain
         Host = nHost;
         Port = nPort;
         domain = nDomain;
+        Protocol = nProtocol;
     }
 
     public override string ToString()
