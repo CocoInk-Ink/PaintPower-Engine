@@ -28,7 +28,7 @@ public class PaintPower_Engine
 
     public void translateVersion()
     {
-        MajorVersion = $"{Translator.Map("Pre-Alpha")} 1.0.1.0";
+        MajorVersion = $"{Translator.Map("Pre-Alpha")} {versionNumber}";
         version = $"{Translator.Map("Version")}: {MajorVersion} {Translator.Map("build")} {buildTime}";
     }
 
@@ -347,7 +347,7 @@ public class PaintPower_Engine
         if (!doSave) return;
         SetProjectStatus("Uploading Project to Server...");
         window.InvalidateVisual();
-        ProjectSaver.PublishToServer(_project, _editor, server);
+        await ProjectSaver.PublishToServer(_project, _editor, server);
         SetProjectStatus("");
     }
 }

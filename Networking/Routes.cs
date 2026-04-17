@@ -7,21 +7,47 @@ namespace PaintPower.Networking;
 
 public class Routes
 {
+    // Server check routes
+    public static string serverCheck()
+    {
+        return "api/servercheck/";
+    }
+
+    public static string checkActiveServer()
+    {
+        return serverCheck();
+    }
 
     // Upload project routes
-    public string uploadNew() {
+    public static string uploadNew() {
         return "api/projects/new/upload/paintfile/";
     }
 
-    public string uploadUpdate(string id)
+    public static string uploadUpdate(string id)
     {
         return $"api/projects/{id}/upload/paintfile/";
     }
 
     // Download project routes
 
-    public string downloadProject(string id)
+    public static string downloadProject(string id)
     {
         return $"api/projects/{id}/download";
+    }
+
+    // Mystuff routes
+    public static string userProjectsRoute(string username = "")
+    {
+        if (username != string.Empty)
+        {
+            return $"api/list/projects/{username}";
+        }
+        return "api/mystuff/projects";
+    }
+
+    // For testing a custom server.
+    public static string testServerListProjects()
+    {
+        return "api/listProjects/";
     }
 }

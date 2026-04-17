@@ -9,11 +9,17 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using PaintPower;
 
 class Net
 {
     // Shared HttpClient instance (recommended for performance)
     private static readonly HttpClient client = new HttpClient();
+
+    private static async Task<string?> getCSRF_Token()
+    {
+        return PaintPower_Engine.App.server.CurrentDomain?.CSRF_Token;
+    }
 
     // GET request method
     public static async Task<string?> PerformGetRequest(string url)

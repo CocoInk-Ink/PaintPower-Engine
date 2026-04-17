@@ -30,6 +30,12 @@ public class Server
         AllowedDomainsList.Clear();
     }
 
+    // Make a valid url.
+    public string makeUrl(string addon = "")
+    {
+        return $"{URLifyer.URLify(CurrentDomain)}/{addon}";
+    }
+
     // Create, register, and add default domains.
     public void loadDefaultDomains() {
         
@@ -43,13 +49,13 @@ public class Server
         Domain d3 = new Domain("127.0.0.1:5500/f/xPaint");
         Domain d4 = new Domain("127.0.0.1:5000/f/xPaint");
         Domain d5 = new Domain("127.0.0.1:3000/f/xPaint");
+        Domain d12 = new Domain("0.0.0.0:5500/f/xPaint");
         Domain d6 = new Domain("127.0.0.1:8000");
         Domain d7 = new Domain("localhost:5500");
         Domain d8 = new Domain("localhost:5000");
         Domain d9 = new Domain("localhost:8000");
         Domain d10 = new Domain("localhost:3000");
         Domain d11 = new Domain("github.com");
-        Domain d12 = new Domain("render.com");
         Domain d13 = new Domain("paint-website.onrender.com");
         Domain d14 = new Domain("paintpower.cocoink.ink");
         Domain d15 = new Domain("www.cocoink.ink");
@@ -91,7 +97,7 @@ public class Server
         if (!IsDomainAllowed(domain)) throw new UnauthorizedAccessException("Domain not allowed");
 
         try {
-            return await Net.PerformGetRequest(URLifyer.URLify(domain)) == "Ok.";
+            return await Net.PerformGetRequest(makeUrl(Routes.checkActiveServer())) == "Ok.";
         }
         catch
         {
@@ -99,12 +105,12 @@ public class Server
         }
     }
 
-    public async Task<object?> GetFromServer()
+    public async Task<object?> GetFromServer(string url)
     {
         var domain = CurrentDomain;
         if (domain == null) throw new ArgumentNullException(nameof(domain));
         if (!IsDomainAllowed(domain)) throw new UnauthorizedAccessException("Domain not allowed");
-        return await Net.PerformGetRequest(URLifyer.URLify(domain));
+        return await Net.PerformGetRequest(url);
     }
 
     /* Download a project made by the user */
@@ -130,7 +136,7 @@ public class Server
     public async Task UploadProject(PaintProject project)
     {
         #pragma warning disable
-        PaintPower_Engine.App.RunSavingAnimation(); // new helper
+        PaintPower_Engine.App.RunSavingAnimation();
 
         try
         {
@@ -144,6 +150,18 @@ public class Server
         {
             MainWindow.App._isSavingAnimationRunning = false;   
         }
+    }
+
+    // If the user is signed in, then get a list of their projects from the server.
+    public async Task ListUserProjects()
+    {
+        string url =
+        #if DEBUG
+        makeUrl(Routes.testServerListProjects());
+        #else
+        makeUrl(Routes.userProjectsRoute());
+        #endif
+        GetFromServer(url); // Do nothing with the data for now...
     }
 
     public Server() {
