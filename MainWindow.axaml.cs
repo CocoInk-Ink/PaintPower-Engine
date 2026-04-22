@@ -104,6 +104,26 @@ public partial class MainWindow : Window
         // TODO
     }
 
+    private async void OnLogin(object? sender, RoutedEventArgs e)
+    {
+        var dialog = new SignInDialog();
+        var result = await dialog.ShowDialog<bool>(this);
+
+        if (result)
+        {
+            ProjectStatus.Text = $"Logged in as {PaintPower_Engine.App.server.Username}";
+        }
+        else
+        {
+            ProjectStatus.Text = "Login cancelled.";
+        }
+    }
+
+    private async void OnLogout(object? sender, RoutedEventArgs e)
+    {
+        await PaintPower_Engine.App.server.Logout();
+    }
+
     private void OnMakeConnection(object? sender, RoutedEventArgs e)
     {
         // Enable connection to the server

@@ -1,7 +1,6 @@
 ﻿using Avalonia.Threading;
 using PaintPower.Editors;
 using PaintPower.Networking;
-using Avalonia.Threading;
 using System.Threading.Tasks;
 using PaintPower.Logging;
 
@@ -28,6 +27,7 @@ class ProjectSaver {
 
     async public static Task PublishToServer(PaintProject project, EditorBase editor, Server server)
     {
+        if (await PaintPower_Engine.App.server.IsLoggedIn()) {
         Log.QuickLog("Preparing to upload to server...");
         await PaintPower_Engine.App.Save();
         if (await server.checkConnection() && project != null)
@@ -37,6 +37,10 @@ class ProjectSaver {
         } else
         {
             Log.QuickLog("Project is null or server is not available! Not uploading!");
+        }
+        } else
+        {
+            Log.QuickLog("User is not logged in. Don't upload to server.");
         }
     }
 }

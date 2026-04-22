@@ -21,7 +21,6 @@ public class Domain
     public string? Username = string.Empty;
     public string? Password = string.Empty;
     public string domain = string.Empty;
-
     public string CSRF_Token = string.Empty;
 
     public Domain(string nDomain, string nProtocol = "http", string nName = "", string nHost = "", string nPort = "") {

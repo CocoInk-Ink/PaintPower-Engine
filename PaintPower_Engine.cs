@@ -33,8 +33,8 @@ public class PaintPower_Engine
     }
 
     private Editor _editorManager;
-    private PaintProject _project;
     private EditorBase _editor;
+    public PaintProject _project;
     public Server server;
 
     public bool isNewProject = true;
@@ -132,7 +132,8 @@ public class PaintPower_Engine
                     _project.ProjectPath = path;
                 }
             });
-        } else
+        }
+        else
         {
             _project.Load(filePath);
             _project.ProjectPath = filePath;
@@ -213,6 +214,39 @@ public class PaintPower_Engine
 #pragma warning disable
         window.CenterHost.Content = null;
         _editor = null;
+    }
+
+    public async void AskToLinkProject(PaintProject project)
+    {
+        var dialog = new LinkBeforeUploadDialog();
+        var result = await dialog.ShowDialog<string>(MainWindow.window);
+
+        if (result == "cancel")
+            return;
+
+        if (result == "new")
+        {
+            string? id = await server.CreateNewServerProject(project.Metadata.name);
+            if (id != null)
+            {
+                project.Metadata.serverId = id;
+                project.SaveMetadata();
+            }
+            return;
+        }
+
+        if (result == "existing")
+        {
+            var list = await server.ListUserProjects();
+            var selectDialog = new SelectServerProjectDialog(list);
+            var chosenId = await selectDialog.ShowDialog<string>(MainWindow.window);
+
+            if (!string.IsNullOrEmpty(chosenId))
+            {
+                project.Metadata.serverId = chosenId;
+                project.SaveMetadata();
+            }
+        }
     }
 
     public bool _isSavingAnimationRunning = false;
@@ -343,11 +377,89 @@ public class PaintPower_Engine
 
     public async void SaveToServer()
     {
-        var doSave = false;
-        if (!doSave) return;
-        SetProjectStatus("Uploading Project to Server...");
-        window.InvalidateVisual();
-        await ProjectSaver.PublishToServer(_project, _editor, server);
-        SetProjectStatus("");
+        var project = _project;
+        var server = App.server;
+
+        // 1. Must be signed in
+        if (!await server.IsLoggedIn())
+        {
+            new PopupWindowDialog("Upload", "You must sign in before uploading.", "").ShowDialog(MainWindow.window);
+            return;
+        }
+
+        // 2. Project not linked → ask to link
+        if (!project.Metadata.IsLinked)
+        {
+            var linkDialog = new LinkBeforeUploadDialog();
+            var linkChoice = await linkDialog.ShowDialog<string>(MainWindow.window);
+
+            if (linkChoice == "cancel")
+                return;
+
+            if (linkChoice == "new")
+            {
+                string? id = await server.CreateNewServerProject(project.Metadata.name);
+                if (id != null)
+                {
+                    project.Metadata.serverId = id;
+                    project.SaveMetadata();
+                }
+                else
+                {
+                    new PopupWindowDialog("Upload", "Failed to create server project.", "").ShowDialog(MainWindow.window);
+                    return;
+                }
+            }
+            else if (linkChoice == "existing")
+            {
+                var list = await server.ListUserProjects();
+                var selectDialog = new SelectServerProjectDialog(list);
+                var chosenId = await selectDialog.ShowDialog<string>(MainWindow.window);
+
+                if (string.IsNullOrEmpty(chosenId))
+                    return;
+
+                project.Metadata.serverId = chosenId;
+                project.SaveMetadata();
+            }
+        }
+
+        // 3. Project is linked → ask overwrite/unlink
+        if (project.Metadata.IsLinked)
+        {
+            var uploadDialog = new UploadOptionsDialog(project.Metadata.serverId!);
+            var choice = await uploadDialog.ShowDialog<string>(MainWindow.window);
+
+            if (choice == "cancel")
+                return;
+
+            if (choice == "unlink")
+            {
+                project.Metadata.serverId = null;
+                project.SaveMetadata();
+                return;
+            }
+
+            if (choice == "overwrite")
+            {
+                await server.UploadProject(project);
+                return;
+            }
+        }
+    }
+
+    public async Task login(string username, string password)
+    {
+        bool ok = await Net.Login(username, password);
+
+        if (ok)
+        {
+            SetProjectStatus($"Logged in as {username}");
+        }
+        else
+        {
+            SetProjectStatus("Login failed.");
+        }
+
     }
 }

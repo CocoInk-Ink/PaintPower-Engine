@@ -98,6 +98,11 @@ public class PaintProject
             Metadata = new ProjectMetadata();
         }
 
+        if (PaintPower_Engine.App.server.Username != "" && !Metadata.IsLinked)
+        {
+            PaintPower_Engine.App.AskToLinkProject(this);
+        }
+
         // Now that the project is loaded
         LoadSprites();
     }
@@ -105,7 +110,7 @@ public class PaintProject
     // -------------------------
     // SAVE PROJECT
     // -------------------------
-    public async Task SaveToDisk()
+    public async Task SaveToDisk(string tempPath = "")
     {
         // Always update metadata first
         SaveMetadata();
@@ -128,14 +133,22 @@ public class PaintProject
         // Run ZIP creation on background thread
         await Task.Run(() =>
         {
+            if (tempPath != "")
+            {
+                if (File.Exists(tempPath))
+                File.Delete(tempPath);
+
+            ZipFile.CreateFromDirectory(Workspace.Root, tempPath);
+            } else {
             if (File.Exists(ProjectPath))
                 File.Delete(ProjectPath);
 
             ZipFile.CreateFromDirectory(Workspace.Root, ProjectPath);
+            }
         });
     }
 
-    private void SaveMetadata()
+    public void SaveMetadata()
     {
         string json = JsonSerializer.Serialize(Metadata, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(Path.Combine(Workspace.Root, "project.json"), json);
@@ -169,4 +182,8 @@ public class ProjectMetadata
 {
     public string name { get; set; } = "Untitled Project";
     public string? OpenFile { get; set; }
+
+    // For online options.
+    public string? serverId { get; set; }
+    public bool IsLinked => !string.IsNullOrEmpty(serverId);
 }

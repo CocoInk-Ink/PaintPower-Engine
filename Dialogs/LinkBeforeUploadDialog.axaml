@@ -1,0 +1,40 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PaintPower.Dialogs.LinkBeforeUploadDialog"
+        Width="360"
+        Height="180"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+
+    <Border Background="#222" Padding="20" CornerRadius="8">
+        <StackPanel Spacing="12">
+
+            <TextBlock Text="This project is not linked."
+                       Foreground="White"
+                       FontSize="16"
+                       HorizontalAlignment="Center"/>
+
+            <TextBlock Text="Link before uploading?"
+                       Foreground="White"
+                       HorizontalAlignment="Center"/>
+
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Spacing="10">
+
+                <Button x:Name="CreateNewButton"
+                        Content="Create New"
+                        Width="100"/>
+
+                <Button x:Name="LinkExistingButton"
+                        Content="Link Existing"
+                        Width="100"/>
+
+                <Button x:Name="CancelButton"
+                        Content="Cancel"
+                        Width="80"/>
+            </StackPanel>
+
+        </StackPanel>
+    </Border>
+</Window>

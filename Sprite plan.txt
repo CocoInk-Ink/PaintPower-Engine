@@ -1,0 +1,203 @@
+﻿Ok so let's build the definition of a sprite before we acually build a sprite.
+
+A sprite should be a folder inside of the project's "items" folder.
+In case you don't remember, a project file (*.xPaint) is a zip file with a project.json file,
+a header.json file, and a "items", "compiled", and now a sprites folder inside of the items folder.
+In the "sprites" folder there should be, well... Sprites. So anyway a sprite is a folder (inside of the sprites folder) containing
+the following:
+
+Sprite.json (Attributes), Sprite.wxa (Animation or images), Sprite.png (Thumbnail), and Sprite.pss (PaintScript), then next to those files
+should be a items folder. When opening a sprite in the editor this is what the explorer should show,
+the root of the items folder in the sprite folder, no longer the "items" folder in the root of
+the project.
+
+So when a sprite is exported, it's just a zip file containing everthing (*.pSprite).
+
+Just to be clear, what I mean by opening a sprite is selecting a sprite in the sprite manager area.
+When you do that, the explorer and editor should then show, and the workspace directory will change
+depending on the sprite, but of course the root of the full project stays the same.
+
+using System;
+using System.IO;
+
+namespace PaintPower.ProjectSystem;
+
+public class TempWorkspace
+{
+    public string Root { get; }
+    public string ItemsDir => Path.Combine(Root, "items");
+
+    public TempWorkspace()
+    {
+        Root = Path.Combine(Path.GetTempPath(), "PaintPower_" + Guid.NewGuid());
+        Directory.CreateDirectory(Root);
+        Directory.CreateDirectory(ItemsDir);
+    }
+
+    public string MapToTemp(string projectRelativePath)
+    {
+        return Path.Combine(ItemsDir, projectRelativePath.Replace("/", "\\"));
+    }
+
+    public void ImportFile(string sourcePath, string relativePath)
+    {
+        string dest = MapToTemp(relativePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+        File.Copy(sourcePath, dest, overwrite: true);
+    }
+
+    public void SaveFile(string relativePath, string content)
+    {
+        string dest = MapToTemp(relativePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+        File.WriteAllText(dest, content);
+    }
+
+    public void SaveBinary(string relativePath, byte[] data)
+    {
+        string dest = MapToTemp(relativePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+        File.WriteAllBytes(dest, data);
+    }
+
+    public byte[] LoadBinary(string relativePath)
+    {
+        string path = MapToTemp(relativePath);
+        return File.Exists(path) ? File.ReadAllBytes(path) : Array.Empty<byte>();
+    }
+
+    public string LoadText(string relativePath)
+    {
+        string path = MapToTemp(relativePath);
+        return File.Exists(path) ? File.ReadAllText(path) : "";
+    }
+
+    public void Delete(string relativePath)
+    {
+        string path = MapToTemp(relativePath);
+        if (File.Exists(path))
+            File.Delete(path);
+    }
+
+    public void Cleanup()
+    {
+        if (Directory.Exists(Root))
+            Directory.Delete(Root, recursive: true);
+    }
+}
+
+using System;
+using System.IO;
+using System.IO.Compression;
+using System.Text.Json;
+
+namespace PaintPower.ProjectSystem;
+
+public class PaintProject
+{
+    public string ProjectPath { get; set; } = ""; // Path to zip file.
+    public TempWorkspace Workspace { get; }
+    public ProjectMetadata Metadata { get; private set; }
+
+    public string ProjectName { get; private set; } = string.Empty;
+
+    public PaintProject()
+    {
+        Workspace = new TempWorkspace();
+        Metadata = new ProjectMetadata();
+    }
+
+    // -------------------------
+    // CREATE NEW PROJECT
+    // -------------------------
+    public void CreateNew(string projectPath, string Name)
+    {
+        ProjectPath = projectPath;
+        Metadata = new ProjectMetadata
+        {
+            name = Name,
+            OpenFile = null
+        };
+
+        SaveMetadata();
+        SaveToDisk();
+    }
+
+    // -------------------------
+    // LOAD EXISTING PROJECT
+    // -------------------------
+    public void Load(string projectPath)
+    {
+        ProjectPath = projectPath;
+
+        if (Directory.Exists(Workspace.Root)) { }
+
+        // Extract ZIP into temp workspace
+        ZipFile.ExtractToDirectory(projectPath, Workspace.Root, overwriteFiles: true);
+
+        // Load metadata
+        string metaPath = Path.Combine(Workspace.Root, "project.json");
+        if (File.Exists(metaPath))
+        {
+            string json = File.ReadAllText(metaPath);
+            Metadata = JsonSerializer.Deserialize<ProjectMetadata>(json) ?? new ProjectMetadata();
+        }
+        else
+        {
+            Metadata = new ProjectMetadata();
+        }
+    }
+
+    // -------------------------
+    // SAVE PROJECT AS ZIP
+    // -------------------------
+    public void SaveToZip()
+    {
+        if (string.IsNullOrWhiteSpace(ProjectPath))
+            throw new Exception("ProjectPath is not set.");
+
+        // Update metadata file
+        SaveMetadata();
+
+        // Recreate ZIP
+        if (File.Exists(ProjectPath))
+            File.Delete(ProjectPath);
+
+        ZipFile.CreateFromDirectory(Workspace.Root, Path.Combine(Workspace.Root, "..", "Paintfile", "file.zip"));
+    }
+    public void ClearTempZip() {
+        File.Delete(Path.Combine(Workspace.Root, "..", "Paintfile", "file.zip"));
+    }
+    // -------------------------
+    // SAVE PROJECT
+    // -------------------------
+    public void SaveToDisk()
+    {
+        if (string.IsNullOrWhiteSpace(ProjectPath))
+            throw new Exception("ProjectPath is not set.");
+
+        // Update metadata file
+        SaveMetadata();
+
+        // Recreate ZIP
+        if (File.Exists(ProjectPath))
+            File.Delete(ProjectPath);
+
+        ZipFile.CreateFromDirectory(Workspace.Root, ProjectPath);
+    }
+
+    private void SaveMetadata()
+    {
+        string json = JsonSerializer.Serialize(Metadata, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(Path.Combine(Workspace.Root, "project.json"), json);
+    }
+}
+
+// -------------------------
+// PROJECT METADATA STRUCT
+// -------------------------
+public class ProjectMetadata
+{
+    public string name { get; set; } = "Untitled Project";
+    public string? OpenFile { get; set; }
+}

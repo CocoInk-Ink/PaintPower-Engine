@@ -1,0 +1,11 @@
+When loading a project from disk, we should ask the user if they want to attach it to their account,
+if yes, do they want it as a new project on the server, or they can select an
+existing project on the server to override. If they select an existing project from their account, get the id,
+then set the project id to that project in the C# side.
+
+Then if upload project is clicked, ask if they want to unlink, create a new project on the server, 
+or overwrite the old one on the server.
+
+If the project is unlinked and a user clicks upload, then ask if they want to link.
+
+If they are not signed in and they click upload, tell them no.

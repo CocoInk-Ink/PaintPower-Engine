@@ -3,18 +3,28 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using PaintPower;
+using PaintPower.Logging;
 
-class Net
+public class Net
 {
+    private static readonly HttpClientHandler handler = new HttpClientHandler
+    {
+        UseCookies = true,
+        CookieContainer = new CookieContainer(),
+        AllowAutoRedirect = true
+    };
+
     // Shared HttpClient instance (recommended for performance)
-    private static readonly HttpClient client = new HttpClient();
+    private static readonly HttpClient client = new HttpClient(handler);
 
     private static async Task<string?> getCSRF_Token()
     {
@@ -30,36 +40,41 @@ class Net
             response.EnsureSuccessStatusCode(); // Throws if not 2xx
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            Console.WriteLine("GET Response:");
-            Console.WriteLine(responseBody);
+            Log.QuickLog("GET Response:");
+            Log.QuickLog(responseBody);
             return responseBody;
         }
         catch (HttpRequestException e)
         {
-            Console.WriteLine($"GET request error: {e.Message}");
+            Log.QuickLog($"GET request error: {e.Message}");
             return null;
         }
     }
 
     // POST request method
-    public static async Task PerformPostRequest<T>(string url, T data)
+    public static async Task<object?> PerformPostRequest<T>(string url, T data)
     {
         try
         {
             string json = JsonSerializer.Serialize(data);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
+            Log.QuickLog($"Body: {content}");
+
             HttpResponseMessage response = await client.PostAsync(url, content);
             response.EnsureSuccessStatusCode();
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            Console.WriteLine("POST Response:");
-            Console.WriteLine(responseBody);
+            Log.QuickLog("POST Response:");
+            Log.QuickLog(responseBody);
+
+            return responseBody;
         }
         catch (HttpRequestException e)
         {
-            Console.WriteLine($"POST request error: {e.Message}");
+            Log.QuickLog($"POST request error: {e.Message}");
         }
+        return null;
     }
 
     public static async Task DownloadFileAsync(string url, string destinationPath)
@@ -99,6 +114,21 @@ class Net
             fileContent.Headers.ContentType =
                 new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
 
+            // If project is not saved on disk, then get a random directory, save in in this random directory.
+            // Save the project, upload it, then put it back to normal.
+
+            if (filePath == string.Empty)
+            {
+                string tempFolder = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString());
+                string tempFile = Path.Join(tempFolder, Guid.NewGuid().ToString() + ".temp.xPaint");
+                if (!Directory.Exists(tempFolder))
+                {
+                    Directory.CreateDirectory(tempFolder);
+                }
+                await PaintPower_Engine.App._project.SaveToDisk(tempFile);
+                filePath = tempFile;
+            }
+
             // File field (multer expects "file")
             form.Add(fileContent, "file", Path.GetFileName(filePath));
 
@@ -113,6 +143,39 @@ class Net
         catch (Exception ex)
         {
             Debug.WriteLine($"Upload error: {ex.Message}");
+        }
+    }
+
+    public static async Task<bool> Login(string username, string password)
+    {
+        try
+        {
+            var data = new Dictionary<string, string>
+        {
+            { "username", username },
+            { "password", password }
+        };
+
+            var content = new FormUrlEncodedContent(data);
+
+            var response = await client.PostAsync(
+                PaintPower_Engine.App.server.makeUrl("login"),
+                content
+            );
+
+            Log.QuickLog($"Login status: {response.GetHashCode()}");
+
+            // If login fails, server returns 400 with text
+            if (!response.IsSuccessStatusCode)
+                return false;
+
+            // If login succeeds, server redirects to "/"
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.QuickLog($"Login error: {ex.Message}");
+            return false;
         }
     }
 }

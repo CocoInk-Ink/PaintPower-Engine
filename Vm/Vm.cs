@@ -24,6 +24,7 @@ public class Vm
     // If 3D processing is enabled, use the system's processing power to run the VM.
     public bool usingSystemProcessing = false;
 
+    #pragma warning disable
     public Vm(string id = null)
     {
         Id = id ?? Guid.NewGuid().ToString();

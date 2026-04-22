@@ -1,95 +1,482 @@
-﻿Ok so let's build the definition of a sprite before we acually build a sprite.
+/*
+    File containing routes for the interweb, if you want to create your own server,
+    then use these routes or modify them for your server.
+*/
 
-A sprite should be a folder inside of the project's "items" folder.
-In case you don't remember, a project file (*.xPaint) is a zip file with a project.json file,
-a header.json file, and a "items", "compiled", and now a sprites folder inside of the items folder.
-In the "sprites" folder there should be, well... Sprites. So anyway a sprite is a folder (inside of the sprites folder) containing
-the following:
+namespace PaintPower.Networking;
 
-Sprite.json (Attributes), Sprite.wxa (Animation or images), Sprite.png (Thumbnail), and Sprite.pss (PaintScript), then next to those files
-should be a items folder. When opening a sprite in the editor this is what the explorer should show,
-the root of the items folder in the sprite folder, no longer the "items" folder in the root of
-the project.
-
-So when a sprite is exported, it's just a zip file containing everthing (*.pSprite).
-
-Just to be clear, what I mean by opening a sprite is selecting a sprite in the sprite manager area.
-When you do that, the explorer and editor should then show, and the workspace directory will change
-depending on the sprite, but of course the root of the full project stays the same.
-
-using System;
-using System.IO;
-
-namespace PaintPower.ProjectSystem;
-
-public class TempWorkspace
+public class Routes
 {
-    public string Root { get; }
-    public string ItemsDir => Path.Combine(Root, "items");
-
-    public TempWorkspace()
+    // Server check routes
+    public static string serverCheck()
     {
-        Root = Path.Combine(Path.GetTempPath(), "PaintPower_" + Guid.NewGuid());
-        Directory.CreateDirectory(Root);
-        Directory.CreateDirectory(ItemsDir);
+        return "api/servercheck/";
     }
 
-    public string MapToTemp(string projectRelativePath)
+    public static string checkActiveServer()
     {
-        return Path.Combine(ItemsDir, projectRelativePath.Replace("/", "\\"));
+        return serverCheck();
     }
 
-    public void ImportFile(string sourcePath, string relativePath)
+    // Create a new project without uploading it.
+    public static string createNew()
     {
-        string dest = MapToTemp(relativePath);
-        Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
-        File.Copy(sourcePath, dest, overwrite: true);
+        return "api/projects/create";
     }
 
-    public void SaveFile(string relativePath, string content)
-    {
-        string dest = MapToTemp(relativePath);
-        Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
-        File.WriteAllText(dest, content);
+    // Upload project routes
+    public static string uploadNew() {
+        return "api/projects/new/upload/paintfile/";
     }
 
-    public void SaveBinary(string relativePath, byte[] data)
+    public static string uploadUpdate(string id)
     {
-        string dest = MapToTemp(relativePath);
-        Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
-        File.WriteAllBytes(dest, data);
+        return $"api/projects/{id}/upload/paintfile/";
     }
 
-    public byte[] LoadBinary(string relativePath)
+    // Download project routes
+
+    public static string downloadProject(string id)
     {
-        string path = MapToTemp(relativePath);
-        return File.Exists(path) ? File.ReadAllBytes(path) : Array.Empty<byte>();
+        return $"api/projects/{id}/download";
     }
 
-    public string LoadText(string relativePath)
+    // Mystuff routes
+    public static string userProjectsRoute(string username = "")
     {
-        string path = MapToTemp(relativePath);
-        return File.Exists(path) ? File.ReadAllText(path) : "";
+        if (username != string.Empty)
+        {
+            return $"api/list/projects/{username}";
+        }
+        return "api/mystuff/projects";
     }
 
-    public void Delete(string relativePath)
+    // For testing a custom server.
+    public static string testServerListProjects()
     {
-        string path = MapToTemp(relativePath);
-        if (File.Exists(path))
-            File.Delete(path);
-    }
-
-    public void Cleanup()
-    {
-        if (Directory.Exists(Root))
-            Directory.Delete(Root, recursive: true);
+        return "api/listProjects/";
     }
 }
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Net.Http;
+using PaintPower.ProjectSystem;
+using PaintPower.Logging;
+
+namespace PaintPower.Networking;
+
+// Networking class for the PaintPower Engine.
+// Mainly to be used for the 'Coco xPaint Project', but it will lie
+// here in the engine because it's open source. So anyone can create their own server.
+public class Server
+{
+    //*--- Domain security. ---*//
+    private static List<Domain> AllowedDomainsList = new List<Domain>();
+    private bool isConnected = false;
+    public void AllowDomain(Domain domain) => AllowedDomainsList.Add(domain);
+    public bool IsDomainAllowed(Domain domain) => AllowedDomainsList.Contains(domain);
+
+    public void ClearAllowedDomains() => AllowedDomainsList.Clear();
+
+    public void RemoveDomain(Domain domain) { AllowedDomainsList.Remove(domain); }
+
+    public Domain CurrentDomain = new Domain("www.cocoink.ink/f/PaintPower");
+
+    public void closeAllConnections()
+    {
+        AllowedDomainsList.Clear();
+    }
+
+    // Make a valid url.
+    public string makeUrl(string addon = "")
+    {
+        string url = $"{URLifyer.URLify(CurrentDomain)}{addon}";
+        Log.QuickLog($"Url made: {url}");
+        return url;
+    }
+
+    // Create, register, and add default domains.
+    public void loadDefaultDomains()
+    {
+
+        // Clear old list
+        AllowedDomainsList.Clear();
+
+        // Create Coco links, Paint links, random links, and more!
+        // Creating a custom server? Make a issue on GitHub and I'll add it here!
+        Domain d1 = new Domain("xpaint.cocoink.ink");
+        Domain d2 = new Domain("paint.cocoink.ink");
+        Domain d3 = new Domain("127.0.0.1:5500/f/xPaint");
+        Domain d4 = new Domain("127.0.0.1:5000/f/xPaint");
+        Domain d5 = new Domain("127.0.0.1:3000/f/xPaint");
+        Domain d12 = new Domain("0.0.0.0:5500/f/xPaint");
+        Domain d6 = new Domain("127.0.0.1:8000");
+        Domain d7 = new Domain("localhost:5500");
+        Domain d8 = new Domain("localhost:5000");
+        Domain d9 = new Domain("localhost:8000");
+        Domain d10 = new Domain("localhost:3000");
+        Domain d11 = new Domain("github.com");
+        Domain d13 = new Domain("paint-website.onrender.com");
+        Domain d14 = new Domain("paintpower.cocoink.ink");
+        Domain d15 = new Domain("www.cocoink.ink");
+        Domain d16 = new Domain("www.cocoink.ink/f/xPaint");
+        Domain d17 = new Domain("www.cocoink.ink/f/Paint");
+        Domain d18 = new Domain("www.cocoink.ink/f/PaintPower");
+        Domain d19 = new Domain("negro.org");
+        Domain d20 = new Domain("example.com");
+
+        // Add to list
+        AllowDomain(d1); AllowDomain(d2); AllowDomain(d3); AllowDomain(d4); AllowDomain(d5);
+        AllowDomain(d6); AllowDomain(d7); AllowDomain(d8); AllowDomain(d9); AllowDomain(d10);
+        AllowDomain(d11); AllowDomain(d12); AllowDomain(d13); AllowDomain(d14); AllowDomain(d15);
+        AllowDomain(d16); AllowDomain(d17); AllowDomain(d18); AllowDomain(d19); AllowDomain(d20);
+
+#if DEBUG
+        setActiveDomain(d3);
+#else
+        setActiveDomain(d16);
+#endif
+    }
+
+    public void setActiveDomain(Domain domain)
+    {
+        CurrentDomain = domain;
+    }
+
+    //*--- Networking ---*//
+    public async Task InitServer()
+    {
+        loadDefaultDomains();
+        isConnected = await checkConnection();
+    }
+
+    public async Task<bool> checkConnection()
+    {
+        var domain = CurrentDomain;
+        if (domain == null) throw new ArgumentNullException(nameof(domain));
+
+        if (!IsDomainAllowed(domain)) throw new UnauthorizedAccessException("Domain not allowed");
+
+        try
+        {
+            return await Net.PerformGetRequest(makeUrl(Routes.checkActiveServer())) == "Ok.";
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<object?> GetFromServer(string url)
+    {
+        var domain = CurrentDomain;
+        if (domain == null) throw new ArgumentNullException(nameof(domain));
+        if (!IsDomainAllowed(domain)) throw new UnauthorizedAccessException("Domain not allowed");
+        return await Net.PerformGetRequest(url);
+    }
+
+    /* Download a project made by the user */
+    public async Task DownloadProject(string savePath)
+    {
+        string url = URLifyer.URLify(CurrentDomain);
+        await Net.DownloadFileAsync(url, savePath);
+    }
+
+    /* Save the project and load it into the editor. */
+    public async Task DownloadProjectAndLoad(string savePath)
+    {
+        try
+        {
+            await DownloadProject(savePath);
+        }
+        catch (Exception e)
+        {
+            Log.QuickLog(e.Message);
+        }
+
+        PaintPower_Engine.App.OpenProjectFile(savePath);
+    }
+
+    public async Task UploadProject(PaintProject project)
+    {
+#pragma warning disable
+        PaintPower_Engine.App.RunSavingAnimation();
+
+        try
+        {
+            await Net.UploadFileAsync(
+                 $"{URLifyer.URLify(CurrentDomain)}api/upload/projects/1/",
+                 project.ProjectPath,
+                 project.Metadata.name // send project title
+             );
+        }
+        finally
+        {
+            MainWindow.App._isSavingAnimationRunning = false;
+        }
+    }
+
+    // If the user is signed in, then get a list of their projects from the server.
+    public async Task ListUserProjects()
+    {
+        string url =
+#if DEBUG
+        makeUrl(Routes.testServerListProjects());
+#else
+        makeUrl(Routes.userProjectsRoute());
+#endif
+        GetFromServer(url); // Do nothing with the data for now...
+    }
+
+    public string Username { get; set; }
+
+    public async Task<bool> Login(string username, string password)
+    {
+        if (await IsLoggedIn()) await Logout();
+        await Net.Login(username, password);
+        if (await IsLoggedIn()) Username = username;
+        return await IsLoggedIn();
+    }
+
+    public async Task Logout()
+    {
+        if (await IsLoggedIn()) await Net.PerformPostRequest(PaintPower_Engine.App.server.makeUrl("logout"), new Dictionary<string, bool> {{ "redirect", false }});
+        if (!await IsLoggedIn()) Username = "";
+    }
+
+    public async Task<bool> IsLoggedIn()
+    {
+        var response = await Net.PerformGetRequest(makeUrl("api/whoami"));
+        return response != null && !response.Contains("Not logged in");
+    }
+
+    public Server()
+    {
+        InitServer();
+    }
+}
+
+/*
+    Actual networking
+*/
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+using PaintPower;
+using PaintPower.Logging;
+
+public class Net
+{
+    private static readonly HttpClientHandler handler = new HttpClientHandler
+    {
+        UseCookies = true,
+        CookieContainer = new CookieContainer(),
+        AllowAutoRedirect = true
+    };
+
+    // Shared HttpClient instance (recommended for performance)
+    private static readonly HttpClient client = new HttpClient(handler);
+
+    private static async Task<string?> getCSRF_Token()
+    {
+        return PaintPower_Engine.App.server.CurrentDomain?.CSRF_Token;
+    }
+
+    // GET request method
+    public static async Task<string?> PerformGetRequest(string url)
+    {
+        try
+        {
+            HttpResponseMessage response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode(); // Throws if not 2xx
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("GET Response:");
+            Console.WriteLine(responseBody);
+            return responseBody;
+        }
+        catch (HttpRequestException e)
+        {
+            Console.WriteLine($"GET request error: {e.Message}");
+            return null;
+        }
+    }
+
+    // POST request method
+    public static async Task PerformPostRequest<T>(string url, T data)
+    {
+        try
+        {
+            string json = JsonSerializer.Serialize(data);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            Log.QuickLog($"Body: {content}");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            response.EnsureSuccessStatusCode();
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("POST Response:");
+            Console.WriteLine(responseBody);
+        }
+        catch (HttpRequestException e)
+        {
+            Console.WriteLine($"POST request error: {e.Message}");
+        }
+    }
+
+    public static async Task DownloadFileAsync(string url, string destinationPath)
+    {
+        try
+        {
+            using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
+
+            await using var stream = await response.Content.ReadAsStreamAsync();
+            await using var fileStream = File.Create(destinationPath);
+
+            byte[] buffer = new byte[81920]; // 80 KB chunks
+            int bytesRead;
+
+            while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            {
+                await fileStream.WriteAsync(buffer, 0, bytesRead);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Download error: {ex.Message}");
+        }
+    }
+
+    public static async Task UploadFileAsync(string url, string filePath, string projectTitle)
+    {
+        Debug.WriteLine(url);
+
+        try
+        {
+            using var form = new MultipartFormDataContent();
+            await using var fileStream = File.OpenRead(filePath);
+
+            var fileContent = new StreamContent(fileStream);
+            fileContent.Headers.ContentType =
+                new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+
+            // File field (multer expects "file")
+            form.Add(fileContent, "file", Path.GetFileName(filePath));
+
+            // Add project title
+            form.Add(new StringContent(projectTitle, Encoding.UTF8), "title");
+
+            using var response = await client.PostAsync(url, form);
+            response.EnsureSuccessStatusCode();
+
+            Debug.WriteLine("Upload complete.");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Upload error: {ex.Message}");
+        }
+    }
+
+    public static async Task<bool> Login(string username, string password)
+    {
+        try
+        {
+            var data = new Dictionary<string, string>
+        {
+            { "username", username },
+            { "password", password }
+        };
+
+            var content = new FormUrlEncodedContent(data);
+
+            var response = await client.PostAsync(
+                PaintPower_Engine.App.server.makeUrl("login"),
+                content
+            );
+
+            Log.QuickLog($"Login status: {response.GetHashCode()}");
+
+            // If login fails, server returns 400 with text
+            if (!response.IsSuccessStatusCode)
+                return false;
+
+            // If login succeeds, server redirects to "/"
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.QuickLog($"Login error: {ex.Message}");
+            return false;
+        }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace PaintPower.Networking;
+
+// A class for a domain.
+public class Domain
+{
+    public bool IsConnected { get; set; }
+    public bool IsDisconnected { get; set; }
+    public bool IsAllowed { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty;
+
+    public string Protocol = string.Empty;
+    public string Host = string.Empty; public static string Port = string.Empty;
+    public string? Username = string.Empty;
+    public string? Password = string.Empty;
+    public string domain = string.Empty;
+    public string CSRF_Token = string.Empty;
+
+    public Domain(string nDomain, string nProtocol = "http", string nName = "", string nHost = "", string nPort = "") {
+        // Initalize domain
+        IsAllowed = false;
+        IsConnected = false;
+        IsDisconnected = false;
+        Name = nName;
+        Host = nHost;
+        Port = nPort;
+        domain = nDomain;
+        Protocol = nProtocol;
+    }
+
+    public override string ToString()
+    {
+        return $"Domain: {Name} ({Protocol}://{Host}:{Port})";
+    }
+}
+
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
+using PaintPower.Dialogs;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace PaintPower.ProjectSystem;
 
@@ -97,7 +484,9 @@ public class PaintProject
 {
     public string ProjectPath { get; set; } = ""; // Path to zip file.
     public TempWorkspace Workspace { get; }
-    public ProjectMetadata Metadata { get; private set; }
+    public ProjectMetadata Metadata { get; set; }
+
+    public List<PaintSprite> Sprites { get; private set; } = new(); // Sprite list
 
     public string ProjectName { get; private set; } = string.Empty;
 
@@ -110,17 +499,48 @@ public class PaintProject
     // -------------------------
     // CREATE NEW PROJECT
     // -------------------------
-    public void CreateNew(string projectPath, string Name)
+    public void CreateNew()
     {
-        ProjectPath = projectPath;
-        Metadata = new ProjectMetadata
-        {
-            name = Name,
-            OpenFile = null
-        };
+        var loader = new ProjectLoader();
+        loader.LoadDefaultProject(this);
 
+        // ProjectPath stays empty → user must Save As
+        ProjectPath = "";
+
+        Metadata = new ProjectMetadata { name = "Untitled", OpenFile = null };
         SaveMetadata();
-        SaveToDisk();
+    }
+
+    // -------------------------
+    // SAVE NEW PROJECT
+    // -------------------------
+    public async Task<ProjectLoaderResult> SaveNewProject(Window owner)
+    {
+        var savePicker = await owner.StorageProvider.SaveFilePickerAsync(
+            new FilePickerSaveOptions
+            {
+                Title = "Create New Project",
+                DefaultExtension = "xPaint",
+                SuggestedFileName = $"{Metadata.name}.xPaint",
+                ShowOverwritePrompt = true
+            });
+
+        if (savePicker == null)
+        {
+            return new ProjectLoaderResult
+            {
+                Mode = ProjectLoaderMode.New,
+                Path = string.Empty
+            };
+        }
+
+        PaintPower_Engine.window.Title = $"PaintPower - {Metadata.name}";
+
+        return new ProjectLoaderResult
+        {
+            Mode = ProjectLoaderMode.New,
+            Path = savePicker.Path.LocalPath
+        };
     }
 
     // -------------------------
@@ -146,50 +566,68 @@ public class PaintProject
         {
             Metadata = new ProjectMetadata();
         }
+
+        // Now that the project is loaded
+        LoadSprites();
     }
 
-    // -------------------------
-    // SAVE PROJECT AS ZIP
-    // -------------------------
-    public void SaveToZip()
-    {
-        if (string.IsNullOrWhiteSpace(ProjectPath))
-            throw new Exception("ProjectPath is not set.");
-
-        // Update metadata file
-        SaveMetadata();
-
-        // Recreate ZIP
-        if (File.Exists(ProjectPath))
-            File.Delete(ProjectPath);
-
-        ZipFile.CreateFromDirectory(Workspace.Root, Path.Combine(Workspace.Root, "..", "Paintfile", "file.zip"));
-    }
-    public void ClearTempZip() {
-        File.Delete(Path.Combine(Workspace.Root, "..", "Paintfile", "file.zip"));
-    }
     // -------------------------
     // SAVE PROJECT
     // -------------------------
-    public void SaveToDisk()
+    public async Task SaveToDisk()
     {
-        if (string.IsNullOrWhiteSpace(ProjectPath))
-            throw new Exception("ProjectPath is not set.");
-
-        // Update metadata file
+        // Always update metadata first
         SaveMetadata();
 
-        // Recreate ZIP
-        if (File.Exists(ProjectPath))
-            File.Delete(ProjectPath);
+        // If no path yet -> ask user where to save
+        if (string.IsNullOrWhiteSpace(ProjectPath))
+        {
+            PaintPower_Engine.App.isNewProject = true; // Keep isNewProject checks
 
-        ZipFile.CreateFromDirectory(Workspace.Root, ProjectPath);
+            var result = await SaveNewProject(MainWindow.window);
+
+            if (string.IsNullOrWhiteSpace(result.Path))
+                return; // user cancelled
+
+            ProjectPath = result.Path;
+            PaintPower_Engine.App.isNewProject = false;
+        }
+
+        // Recreate ZIP
+        // Run ZIP creation on background thread
+        await Task.Run(() =>
+        {
+            if (File.Exists(ProjectPath))
+                File.Delete(ProjectPath);
+
+            ZipFile.CreateFromDirectory(Workspace.Root, ProjectPath);
+        });
     }
 
     private void SaveMetadata()
     {
         string json = JsonSerializer.Serialize(Metadata, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(Path.Combine(Workspace.Root, "project.json"), json);
+    }
+
+
+    public void LoadSprites()
+    {
+        string spritesDir = Path.Combine(Workspace.ItemsDir, "sprites");
+
+        if (!Directory.Exists(spritesDir))
+            return;
+
+        foreach (var dir in Directory.GetDirectories(spritesDir))
+        {
+            var sprite = new PaintSprite
+            {
+                Name = Path.GetFileName(dir),
+                SpriteFolder = dir
+            };
+
+            Sprites.Add(sprite);
+        }
     }
 }
 

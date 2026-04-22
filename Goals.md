@@ -87,10 +87,10 @@
 	- Compile messages
 	- Compile and export Sprites (contains: scripts, inner sprites, images, sounds, videos, other media)
 - ### xPaint Website and the internet
-	- Implement login, get CSRF security tokens
-    - Project upload to user's mystuff
-    - Download projects from user's mystuff
+	- [x] Implement login, get CSRF security tokens
+    - [ ] Project upload to user's mystuff within the editor
+    - [ ] Download projects from user's mystuff within the editor
 
-    - See views, comments, and reply to comments within the editor
-    - Make it extendable and easy for contributors to create their own custom server
-	- Easy project collaboration
+    - [ ] See views, comments, and reply to comments within the editor
+    - [ ] Make it extendable and easy for contributors to create their own custom server
+	- [ ] Easy project collaboration

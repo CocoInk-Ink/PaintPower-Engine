@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using PaintPower.ProjectSystem;
 using PaintPower.Logging;
+using System.Text.Json;
 
 namespace PaintPower.Networking;
 
@@ -16,7 +17,7 @@ public class Server
 {
     //*--- Domain security. ---*//
     private static List<Domain> AllowedDomainsList = new List<Domain>();
-    private bool isConnected = false; 
+    private bool isConnected = false;
     public void AllowDomain(Domain domain) => AllowedDomainsList.Add(domain);
     public bool IsDomainAllowed(Domain domain) => AllowedDomainsList.Contains(domain);
 
@@ -26,19 +27,23 @@ public class Server
 
     public Domain CurrentDomain = new Domain("www.cocoink.ink/f/PaintPower");
 
-    public void closeAllConnections() {
+    public void closeAllConnections()
+    {
         AllowedDomainsList.Clear();
     }
 
     // Make a valid url.
     public string makeUrl(string addon = "")
     {
-        return $"{URLifyer.URLify(CurrentDomain)}/{addon}";
+        string url = $"{URLifyer.URLify(CurrentDomain)}{addon}";
+        Log.QuickLog($"Url made: {url}");
+        return url;
     }
 
     // Create, register, and add default domains.
-    public void loadDefaultDomains() {
-        
+    public void loadDefaultDomains()
+    {
+
         // Clear old list
         AllowedDomainsList.Clear();
 
@@ -71,11 +76,11 @@ public class Server
         AllowDomain(d11); AllowDomain(d12); AllowDomain(d13); AllowDomain(d14); AllowDomain(d15);
         AllowDomain(d16); AllowDomain(d17); AllowDomain(d18); AllowDomain(d19); AllowDomain(d20);
 
-        #if DEBUG
+#if DEBUG
         setActiveDomain(d3);
-        #else
+#else
         setActiveDomain(d16);
-        #endif
+#endif
     }
 
     public void setActiveDomain(Domain domain)
@@ -90,13 +95,15 @@ public class Server
         isConnected = await checkConnection();
     }
 
-    public async Task<bool> checkConnection() {
+    public async Task<bool> checkConnection()
+    {
         var domain = CurrentDomain;
         if (domain == null) throw new ArgumentNullException(nameof(domain));
 
         if (!IsDomainAllowed(domain)) throw new UnauthorizedAccessException("Domain not allowed");
 
-        try {
+        try
+        {
             return await Net.PerformGetRequest(makeUrl(Routes.checkActiveServer())) == "Ok.";
         }
         catch
@@ -123,9 +130,11 @@ public class Server
     /* Save the project and load it into the editor. */
     public async Task DownloadProjectAndLoad(string savePath)
     {
-        try {
+        try
+        {
             await DownloadProject(savePath);
-        } catch(Exception e)
+        }
+        catch (Exception e)
         {
             Log.QuickLog(e.Message);
         }
@@ -135,7 +144,7 @@ public class Server
 
     public async Task UploadProject(PaintProject project)
     {
-        #pragma warning disable
+#pragma warning disable
         PaintPower_Engine.App.RunSavingAnimation();
 
         try
@@ -148,23 +157,68 @@ public class Server
         }
         finally
         {
-            MainWindow.App._isSavingAnimationRunning = false;   
+            MainWindow.App._isSavingAnimationRunning = false;
         }
     }
 
     // If the user is signed in, then get a list of their projects from the server.
-    public async Task ListUserProjects()
+    public async Task<List<ProjectInfo>> ListUserProjects()
     {
-        string url =
-        #if DEBUG
-        makeUrl(Routes.testServerListProjects());
-        #else
-        makeUrl(Routes.userProjectsRoute());
-        #endif
-        GetFromServer(url); // Do nothing with the data for now...
+        string url = makeUrl(Routes.userProjectsRoute());
+        string? response = await Net.PerformGetRequest(url);
+
+        if (response == null) return new List<ProjectInfo>();
+
+        Log.QuickLog(response);
+
+        List<ProjectInfo> list = new List<ProjectInfo>();
+
+        try
+        {
+            list = JsonSerializer.Deserialize<List<ProjectInfo>>(response) ?? new List<ProjectInfo>();
+        }
+        catch { Log.QuickLog("Threw at JSON."); };
+
+        return list;
     }
 
-    public Server() {
+
+    public async Task<string?> CreateNewServerProject(string title)
+    {
+        string url = makeUrl(Routes.createNew());
+        var payload = new { title = title };
+
+        string? response = (string)await Net.PerformPostRequest(url, payload);
+        if (response == null) return null;
+
+        var json = JsonSerializer.Deserialize<Dictionary<string, string>>(response);
+        return json?["id"];
+    }
+
+    public string Username { get; set; }
+
+    public async Task<bool> Login(string username, string password)
+    {
+        if (await IsLoggedIn()) await Logout();
+        await Net.Login(username, password);
+        if (await IsLoggedIn()) Username = username;
+        return await IsLoggedIn();
+    }
+
+    public async Task Logout()
+    {
+        if (await IsLoggedIn()) await Net.PerformPostRequest(PaintPower_Engine.App.server.makeUrl("logout"), new Dictionary<string, bool> { { "redirect", false } });
+        if (!await IsLoggedIn()) Username = "";
+    }
+
+    public async Task<bool> IsLoggedIn()
+    {
+        var response = await Net.PerformGetRequest(makeUrl("api/whoami"));
+        return response != null && !response.Contains("Not logged in");
+    }
+
+    public Server()
+    {
         InitServer();
     }
 }

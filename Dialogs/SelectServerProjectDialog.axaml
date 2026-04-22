@@ -1,0 +1,36 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PaintPower.Dialogs.SelectServerProjectDialog"
+        Width="400"
+        Height="300"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+
+    <Border Background="#222" Padding="20" CornerRadius="8">
+        <StackPanel Spacing="12">
+
+            <TextBlock Text="Select a project to link:"
+                       Foreground="White"
+                       FontSize="16"/>
+
+            <ListBox x:Name="ProjectList"
+                     Background="#333"
+                     Foreground="White"
+                     Height="180"/>
+
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="10">
+
+                <Button x:Name="CancelButton"
+                        Content="Cancel"
+                        Width="80"/>
+
+                <Button x:Name="SelectButton"
+                        Content="Select"
+                        Width="80"/>
+            </StackPanel>
+
+        </StackPanel>
+    </Border>
+</Window>

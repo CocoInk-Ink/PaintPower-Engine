@@ -18,6 +18,12 @@ public class Routes
         return serverCheck();
     }
 
+    // Create a new project without uploading it.
+    public static string createNew()
+    {
+        return "api/projects/create";
+    }
+
     // Upload project routes
     public static string uploadNew() {
         return "api/projects/new/upload/paintfile/";
