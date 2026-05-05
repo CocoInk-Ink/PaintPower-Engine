@@ -1,0 +1,65 @@
+@@! Example pre-bytecode:
+
+@@! <- Single line comment.
+
+@@!! <- Multiline comment. -> !!@@
+
+@@! External calls definitions:
+
+#external: []
+
+@@! Definition for a sprite
+[#define sprite "SpriteName"] {
+    #images: [
+        "links/to/images",
+        "links/to/images"
+    ];
+    #spriteuniqueid: "unique item id";
+    #mop: "oldmap";
+    #scripts: ["list", "of", "unique", "id's"]
+}
+[#define image "unique item id"] #mop: oldmap;
+
+@@! Compiled Script:
+[#define cscript "unique item id", "script name"] {
+    #mop: oldmap;
+    InstructionKit: "link/to/instruction/kit";
+}
+
+@@! An interpreted script:
+[#define iscript "unique item id"] {
+    InstructionKit: "link/to/instruction/kit";
+}
+
+@@! Example InstructionKit for a compiled script:
+
+##this "location/to/file/in/an/uncompiled/project/"
+
+#define block toplevel {
+    @@! Variable creation for this block.
+    #define vars [var1, var2];
+    #define consts [var3, var4];
+    #define types [type1, type2:type1 @@!! Extend type1 !!@@, type3];
+    #define varsFromTypes [type1 var5, type1 var6, type2 var7, type2 var8 type2 var9, type3 var10];
+
+    var1:var;
+    var2:var;
+    var3:const;
+    ...
+
+    type1 {
+        [#function @constructor (params) {
+            [#builtin #instruction toplevelapplication.print]("Hello, World!");
+        }];
+    }
+
+    type2 : type1 {
+        ...whatever...
+    }
+
+    #define block "unique id" {
+        ...Stuff in this block...
+    }
+}
+
+@@!! Pre-bytecode then turns into bytecode !!@@

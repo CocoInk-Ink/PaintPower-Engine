@@ -1,0 +1,24 @@
+Let's clean it up a bit. Here is the syntax for PreBytecode:
+
+[#{instruction type} {params...} ]
+
+Like in a command line, first keyword is the name of the instruction,
+everything after is an argument.
+
+Example:
+
+[#define var "id" "var name"]
+
+Explanation:
+
+The #define keyword takes two parameters, typename and the uniqueid.
+Extra params can be defined by a typename. Like in this case the var name.
+
+[#call "uniqueid"](params);
+
+To get a uniqueid from a known function, do this:
+
+[#call PopularIds.functions.print]("Hello, World!");
+
+This is now called KiteScript. The PreBytecode code will be in PaintPower.Compiler.PreBytecode.
+This should be enough for a simple program.

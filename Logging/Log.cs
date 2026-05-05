@@ -15,9 +15,9 @@ public static class Log
         }
     }
     // Made to just log something real quick
-    public static void QuickLog(string message) {
+    public static void QuickLog(object? message) {
         Info(message);
-        Debug.WriteLine(message);
+        Debug(message);
     }
     private static void LogToServer(string message, bool serverError = true) {
         if (serverError)
@@ -27,5 +27,6 @@ public static class Log
         // TODO: Add server logging logic.
     }
     public static void Error(Exception ex) => Console.WriteLine(ex.ToString());
-    public static void Info(string msg) => Console.WriteLine(msg);
+    public static void Info(object? msg) => Console.WriteLine(msg);
+    public static void Debug(object? msg) => System.Diagnostics.Debug.WriteLine(msg);
 }

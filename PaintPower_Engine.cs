@@ -193,6 +193,7 @@ public class PaintPower_Engine
 
         // Set up translation
         setupTranslation();
+        new Vm.Vm();
     }
 
     /*public void OpenEditor(EditorBase editor)
