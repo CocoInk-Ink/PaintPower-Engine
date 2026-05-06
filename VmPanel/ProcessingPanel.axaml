@@ -1,0 +1,13 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="clr-namespace:PaintPower.VMPanel" x:Class="PaintPower.VMPanel.ProcessingPanel">
+    <Grid>
+        <Border Background="#90000000" CornerRadius="8">
+            <Border Width="250" Height="130" BorderBrush="gray" Background="white" BorderThickness="3" CornerRadius="8" Padding="10" BoxShadow="0 4 12 0 #80000000" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="12" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <vm:LoadingBar x:Name="Loader" />
+                    <TextBlock Text="Loading Project..." FontSize="16" FontWeight="SemiBold" Foreground="#5c5d5f" HorizontalAlignment="Center" x:Name="HeaderText" />
+                    <TextBlock Text="29449 of 398484 assets loaded" FontSize="11" FontWeight="SemiBold" Foreground="#5c5d5f" HorizontalAlignment="Center" x:Name="SubHeaderText" />
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>

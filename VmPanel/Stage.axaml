@@ -1,0 +1,7 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PaintPower.VMPanel.Stage">
+    <StackPanel>
+        <Border Width="480" Height="350" BorderBrush="gray" Background="white" BorderThickness="3" CornerRadius="8" Padding="10" />
+    </StackPanel>
+</UserControl>

@@ -26,6 +26,8 @@ public class PaintPower_Engine
     public static string MajorVersion = $"{Translator.Map(devStatus)} {versionNumber}";
     public static string version = $"{Translator.Map("Version")}: {MajorVersion} {Translator.Map("build")} {buildTime}";
 
+    public static bool PlayerOnly = false;
+
     public void translateVersion()
     {
         MajorVersion = $"{Translator.Map("Pre-Alpha")} {versionNumber}";

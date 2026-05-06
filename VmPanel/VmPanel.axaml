@@ -1,29 +1,22 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="PaintPower.VMPanel.VmPanel">
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="PaintPower.VMPanel.VmPanel" xmlns:vm="clr-namespace:PaintPower.VMPanel">
 	<Grid>
 		<Grid.Background>
-			<ImageBrush Source="avares://PaintPower/Assets/Background Dark.png"
-						Stretch="None"
-						TileMode="Tile"
-						DestinationRect="0,0,10,10" />
+			<ImageBrush Source="avares://PaintPower/Assets/Background Dark.png" Stretch="None" TileMode="Tile" DestinationRect="0,0,10,10" />
 		</Grid.Background>
-
-		<Rectangle Fill="#80000000"/>
+		<Rectangle Fill="#80000000" />
 		<Border Padding="10">
-			<StackPanel>
-				<TextBlock x:Name="VMPanelText" Text="VM Panel"
-						   FontSize="20"
-						   Foreground="White"
-						   Margin="0 0 0 10"/>
-				<Border Width="300" Height="300"  BorderBrush="gray" Background="white" BorderThickness="3" CornerRadius="8" Padding="10"/>
+			<StackPanel Background="White">
+				<TextBlock x:Name="VMPanelText" Text="VM Panel" FontSize="20" Foreground="Black" Margin="0 0 0 10" />
+				<Grid MaxWidth="480" MaxHeight="450">
+					<vm:Stage />
+					<vm:ProcessingPanel x:Name="LoadingPart"></vm:ProcessingPanel>
+				</Grid>
 				<StackPanel Orientation="Horizontal">
-					<Button x:Name="PlayButton" Classes="gray" Content="Play" Margin="0 5"/>
-					<Button x:Name="StopButton" Classes="gray" Content="Stop" Margin="0 5"/>
-					<Button x:Name="BuildAndRunButton" Classes="gray" Content="Build and Run" Margin="0 5"/>
+					<Button x:Name="PlayButton" Classes="gray" Content="Play" Margin="0 5" />
+					<Button x:Name="StopButton" Classes="gray" Content="Stop" Margin="0 5" />
+					<Button x:Name="BuildAndRunButton" Classes="gray" Content="Build and Run" Margin="0 5" />
 				</StackPanel>
 			</StackPanel>
 		</Border>
 	</Grid>
-
 </UserControl>
