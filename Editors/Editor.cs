@@ -8,7 +8,7 @@ using PaintPower.ProjectSystem;
 public class Editor
 {
     private readonly TempWorkspace _workspace;
-    private static EditorBase ActiveEditor = null;
+    private static EditorBase? ActiveEditor = null;
 
     public Editor(TempWorkspace workspace)
     {
@@ -35,7 +35,7 @@ public class Editor
 
     // Save items in the editor to the temp directory.
     public static void SaveEditor() {
-        ActiveEditor.Save();
+        ActiveEditor?.Save();
     }
 
     public void TranslateGUI()
