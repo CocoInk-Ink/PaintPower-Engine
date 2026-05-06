@@ -19,10 +19,10 @@ public class EditorTypes
     public static string[] Animation = { ".wxa" };
     public static string[] Video = { ".mp4", ".mov", ".flv", ".wxv" };
 
-    // Find editor from list of supported file extentions.
+    // Find editor from list of supported file extensions.
     public static string FindEditorFromExt(string ext)
     {
-        // Check each list for the extention.
+        // Check each list for the extension.
 
         ext = ext.ToLower();
 
@@ -57,7 +57,7 @@ public class EditorTypes
                 result = "?";
             }
         }
-        catch (Exception ex) {
+        catch {
             result = "?";
         }
 
