@@ -1,0 +1,77 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:explorer="clr-namespace:PaintPower.FileExplorer" xmlns:editors="clr-namespace:PaintPower.Editors" xmlns:vm="clr-namespace:PaintPower.VMPanel" xmlns:sprite="clr-namespace:PaintPower.SpriteEditor" x:Class="PaintPower.EditorPart">
+	<Grid RowDefinitions="50,*">
+		<!-- HEADER Background="#e0e0e0" -->
+		<Border Grid.Row="0" Background="#a3a3a3">
+			<Grid ColumnDefinitions="200,*,300" VerticalAlignment="Center">
+				<!-- LEFT: App title -->
+				<TextBlock Text="PaintPower" VerticalAlignment="Center" Margin="12,0" FontSize="20" Foreground="#333" />
+				<TextBlock Text="" Margin="17,-10" FontSize="10" Foreground="black" x:Name="VersionInfoTextBlock" />
+				<!-- CENTER: Menu buttons -->
+				<StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Spacing="16" Grid.Column="1" Margin="12,0">
+					<Menu Grid.Column="1" Margin="12,0">
+						<MenuItem x:Name="FileMenu" Header="File">
+							<MenuItem x:Name="FileNew" Header="New" Click="OnFileNew" />
+							<MenuItem x:Name="FileOpen" Header="Open..." Click="OnFileOpen" />
+							<MenuItem x:Name="FileSave" Header="Save" Click="OnFileSave" />
+							<MenuItem x:Name="FileSaveAs" Header="Save As..." Click="OnFileSaveAs" />
+							<MenuItem x:Name="FileExit" Header="Exit" Click="OnFileExit" />
+						</MenuItem>
+						<MenuItem x:Name="EditMenu" Header="Edit">
+							<MenuItem x:Name="EditUndo" Header="Undo" Click="OnEditUndo" />
+							<MenuItem x:Name="EditRedo" Header="Redo" Click="OnEditRedo" />
+							<MenuItem x:Name="EditCut" Header="Cut" Click="OnEditCut" />
+							<MenuItem x:Name="EditCopy" Header="Copy" Click="OnEditCopy" />
+							<MenuItem x:Name="EditPaste" Header="Paste" Click="OnEditPaste" />
+						</MenuItem>
+						<MenuItem x:Name="ServerMenu" Header="Server">
+							<MenuItem x:Name="MakeConnection" Header="Make Connection" Click="OnMakeConnection" />
+							<MenuItem x:Name="UploadProject" Header="Upload Project to server!" Click="OnUploadProject" />
+							<MenuItem x:Name="DownloadProject" Header="Download project from server" Click="OnDownloadProjectFromServer" />
+							<MenuItem x:Name="OpenCollaborators" Header="Open collaborators" />
+							<MenuItem Header="Login" Click="OnLogin" />
+							<MenuItem Header="Logout" Click="OnLogout" />
+						</MenuItem>
+						<MenuItem x:Name="LanguageDropdown" Header="Language" />
+					</Menu>
+				</StackPanel>
+				<!-- RIGHT: Status area -->
+				<StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Spacing="16" Grid.Column="2" Margin="0,0,12,0">
+					<TextBlock Text="" VerticalAlignment="Center" x:Name="ProjectStatus" />
+					<TextBlock x:Name="UserStatus" Text="Not connected, not logged in." VerticalAlignment="Center" Foreground="#437" />
+					<Menu Grid.Column="1" Margin="12,0">
+						<MenuItem x:Name="HelpMenu" Header="Help">
+							<MenuItem x:Name="HelpDocumentation" Header="Documentation" Click="OnHelpDocumentation" />
+							<MenuItem x:Name="HelpReportBug" Header="Report a Bug" Click="OnHelpReportBug" />
+							<MenuItem x:Name="HelpAbout" Header="About" Click="OnHelpAbout" />
+						</MenuItem>
+					</Menu>
+					<!--User
+					dropdown menu.-->
+					<Menu></Menu>
+				</StackPanel>
+			</Grid>
+		</Border>
+		<!-- MAIN CONTENT -->
+		<Grid Grid.Row="1" ColumnDefinitions="260,5,*,">
+			<!-- BACKGROUND -->
+			<Grid.Background>
+				<ImageBrush Source="avares://PaintPower/Assets/Background.png" Stretch="None" TileMode="Tile" AlignmentX="Left" AlignmentY="Top" DestinationRect="0,0,10,10" />
+			</Grid.Background>
+			<!-- OUTER LEFT: Sprite Manager + Sprite Properties -->
+			<Grid Grid.Column="0" RowDefinitions="*,5,*">
+				<!-- SPRITE MANAGER -->
+				<sprite:SpriteManagerView Grid.Row="0" x:Name="SpriteManager" Margin="0,0,0,5" />
+				<GridSplitter Grid.Row="1" Height="5" Background="#505050" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext" />
+				<!-- SPRITE PROPERTIES -->
+				<Border Grid.Row="2" Background="#252525">
+					<TextBlock Text="Sprite Properties" Foreground="White" Margin="8" />
+					<!-- TODO: Replace with your SpriteProperties control -->
+				</Border>
+			</Grid>
+			<!-- SPLITTER between LEFT and CENTER -->
+			<GridSplitter Grid.Column="1" Width="5" Background="#505050" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" />
+			<!-- OUTER CENTER: Sprite Editor Host -->
+			<ContentControl x:Name="CenterHost" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+		</Grid>
+	</Grid>
+</UserControl>

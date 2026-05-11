@@ -16,6 +16,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using PaintPower.Accessibility.Translation;
 using System.Reflection;
+using PaintPower.VMPanel;
 namespace PaintPower;
 
 public class PaintPower_Engine
@@ -25,6 +26,8 @@ public class PaintPower_Engine
     public static readonly string devStatus = "Pre-Alpha";
     public static string MajorVersion = $"{Translator.Map(devStatus)} {versionNumber}";
     public static string version = $"{Translator.Map("Version")}: {MajorVersion} {Translator.Map("build")} {buildTime}";
+
+    public Vm.Vm vm;
 
     public static bool PlayerOnly = false;
 
@@ -38,6 +41,8 @@ public class PaintPower_Engine
     private EditorBase _editor;
     public PaintProject _project;
     public Server server;
+    public VmPanel vmAreaPart;
+    public EditorPart editorGui;
 
     public bool isNewProject = true;
 
@@ -79,13 +84,18 @@ public class PaintPower_Engine
                 Translator.load(code);
             };
 
-            window.LanguageDropdown.Items.Add(item);
+            editorGui.LanguageDropdown.Items.Add(item);
         }
     }
 
     public void attachWindow(MainWindow w)
     {
         window = w;
+    }
+
+    public void attachEditorPart(EditorPart p)
+    {
+        editorGui = p;
     }
 
     public void StatusClicked(object sender, EventArgs e)
@@ -99,9 +109,39 @@ public class PaintPower_Engine
 
     public string SetProjectStatus(string status)
     {
-        window.ProjectStatus.Text = status;
-        window.InvalidateVisual();
+        editorGui.ProjectStatus.Text = status;
+        editorGui.InvalidateVisual();
         return status;
+    }
+
+    public string NetworkStatus = "Not connected";
+    public string UserStatus = "not logged in.";
+
+    public string SetNetworkStatus(string status)
+    {
+        NetworkStatus = status;
+        FixUserStatus();
+        return status;
+    }
+
+    public string SetUserStatus(string status)
+    {
+        UserStatus = status;
+        FixUserStatus();
+        return status;
+    }
+
+    public async void FixUserStatus()
+    {
+        if (await server.IsLoggedIn())
+        {
+            editorGui.UserStatus.Text = server.Username;
+        }
+        else
+        {
+            editorGui.UserStatus.Text = $"{NetworkStatus}, {UserStatus}";
+        }
+        editorGui.InvalidateVisual();
     }
 
     private void OnSpriteSelected(PaintSprite sprite)
@@ -110,37 +150,40 @@ public class PaintPower_Engine
         _spriteEditorView = new SpriteEditorView(sprite, _project.Workspace);
 
         // Replace the center panel with the sprite editor
-        window.CenterHost.Content = _spriteEditorView;
+        editorGui.CenterHost.Content = _spriteEditorView;
 
         SetProjectStatus($"{Translator.Translate("Editing Sprite:")} {sprite.Name}");
     }
 
-    public void OpenProjectFile(string filePath = "")
+    public async Task OpenProjectFile(string filePath = "")
     {
-        if (filePath == "")
+        if (string.IsNullOrWhiteSpace(filePath))
         {
-            var openPicker = window.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-            {
-                Title = Translator.Map("Open PaintPower Project"),
-                AllowMultiple = false,
-                FileTypeFilter = new[] { new FilePickerFileType(Translator.Map("PaintPower Project")) { Patterns = new[] { "*.xPaint" } } }
-            }).ContinueWith(async t =>
-            {
-                var result = await t;
-                if (result.Count > 0)
+            var result = await window.StorageProvider.OpenFilePickerAsync(
+                new FilePickerOpenOptions
                 {
-                    string path = result[0].Path.LocalPath;
-                    _project.Load(path);
-                    _project.ProjectPath = path;
-                }
-            });
-        }
-        else
-        {
-            _project.Load(filePath);
-            _project.ProjectPath = filePath;
+                    Title = Translator.Map("Open PaintPower Project"),
+                    AllowMultiple = false,
+                    FileTypeFilter = new[]
+                    {
+                    new FilePickerFileType(Translator.Map("PaintPower Project"))
+                    {
+                        Patterns = new[] { "*.xPaint" }
+                    }
+                    }
+                });
+
+            if (result.Count == 0)
+                return; // user cancelled
+
+            filePath = result[0].Path.LocalPath;
         }
 
+        // Load project
+        _project.Load(filePath);
+        _project.ProjectPath = filePath;
+
+        // Update window title
         window.Title = $"{Translator.Map("PaintPower")} - {_project.Metadata.name}";
     }
 
@@ -177,7 +220,7 @@ public class PaintPower_Engine
         Start();
     }
 
-    public async void Start()
+    public virtual async void Start()
     {
 
         await Task.Yield();
@@ -190,12 +233,14 @@ public class PaintPower_Engine
 
         SetProjectStatus(Translator.Translate("Not edited yet."));
 
-        window.SpriteManager.Initialize(_project);
-        window.SpriteManager.SpriteSelected += OnSpriteSelected;
+        editorGui.SpriteManager.Initialize(_project);
+        editorGui.SpriteManager.SpriteSelected += OnSpriteSelected;
+
+        MainWindow.window.InvalidateVisual();
 
         // Set up translation
         setupTranslation();
-        new Vm.Vm();
+        //vm = new Vm.Vm();
     }
 
     /*public void OpenEditor(EditorBase editor)
@@ -214,8 +259,7 @@ public class PaintPower_Engine
 
     public void CloseEditor()
     {
-#pragma warning disable
-        window.CenterHost.Content = null;
+        editorGui.CenterHost.Content = null;
         _editor = null;
     }
 
@@ -243,7 +287,6 @@ public class PaintPower_Engine
             var list = await server.ListUserProjects();
             var selectDialog = new SelectServerProjectDialog(list);
             var chosenId = await selectDialog.ShowDialog<string>(MainWindow.window);
-
             if (!string.IsNullOrEmpty(chosenId))
             {
                 project.Metadata.serverId = chosenId;
@@ -261,11 +304,11 @@ public class PaintPower_Engine
 
         string[] frames = new[]
         {
-        "Saving Project",
-        "Saving Project.",
-        "Saving Project..",
-        "Saving Project..."
-    };
+            "Saving Project",
+            "Saving Project.",
+            "Saving Project..",
+            "Saving Project..."
+        };
 
         int index = 0;
 
@@ -457,12 +500,39 @@ public class PaintPower_Engine
 
         if (ok)
         {
-            SetProjectStatus($"Logged in as {username}");
+            SetUserStatus($"Logged in as {username}");
         }
         else
         {
-            SetProjectStatus("Login failed.");
+            SetUserStatus("Login failed");
         }
 
+    }
+
+    public async Task DownloadProjectFromServer()
+    {
+
+
+        var savePicker = await window.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = $"Save {_project.Metadata.name} As",
+            DefaultExtension = "xPaint",
+            SuggestedFileName = $"{_project.Metadata.name}.xPaint",
+            ShowOverwritePrompt = true
+        });
+
+        if (savePicker == null)
+            return;
+
+        string path = savePicker.Path.LocalPath;
+
+        var list = await server.ListUserProjects();
+        var selectDialog = new SelectServerProjectDialog(list);
+        var chosenId = await selectDialog.ShowDialog<string>(MainWindow.window);
+
+        if (string.IsNullOrEmpty(chosenId))
+            return;
+
+        server.DownloadProject(path, Convert.ToInt32(chosenId));
     }
 }

@@ -14,7 +14,7 @@ public class EditorTypes
     public static string[] Script = { ".xPaint", ".paint", ".Paint", ".pxml", ".pxs", ".psf", ".pss", ".c", ".cs", ".c#", ".h", ".cpp", ".c++", ".hpp", ".lua", ".py",
         ".json", ".xml", ".yaml", ".yml", ".md", ".txt", ".spk", ".sxml", ".xss", ".xs", 
         ".Coco", ".coco", ".script", "CocoScript", ".cocoscript", ".jav", ".java", ".html", ".htm", ".xml", ".xaml", ".axaml", 
-        ".css", ".js", ".jsx", ".ts", ".m", ".json", ".jsonc", ".wxc" };
+        ".css", ".js", ".jsx", ".ts", ".m", ".json", ".jsonc", ".wxc", ".asm", ".s" };
 
     public static string[] Animation = { ".wxa" };
     public static string[] Video = { ".mp4", ".mov", ".flv", ".wxv" };

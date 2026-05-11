@@ -10,8 +10,8 @@ public partial class LinkBeforeUploadDialog : Window
     {
         InitializeComponent();
 
-        CreateNewButton.Click += (_, __) => Close("new");
-        LinkExistingButton.Click += (_, __) => Close("existing");
-        CancelButton.Click += (_, __) => Close("cancel");
+        if (CreateNewButton != null) CreateNewButton.Click += (_, __) => this.Close("new");
+        if (LinkExistingButton != null) LinkExistingButton.Click += (_, __) => this.Close("existing");
+        if (CancelButton != null) CancelButton.Click += (_, __) => this.Close("cancel");
     }
 }

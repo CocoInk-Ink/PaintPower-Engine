@@ -91,7 +91,14 @@ public class PaintProject
         if (File.Exists(metaPath))
         {
             string json = File.ReadAllText(metaPath);
-            Metadata = JsonSerializer.Deserialize<ProjectMetadata>(json) ?? new ProjectMetadata();
+            try
+            {
+                Metadata = JsonSerializer.Deserialize<ProjectMetadata>(json) ?? new ProjectMetadata();
+            }
+            catch
+            {
+                Metadata = new ProjectMetadata();
+            }
         }
         else
         {
@@ -136,14 +143,16 @@ public class PaintProject
             if (tempPath != "")
             {
                 if (File.Exists(tempPath))
-                File.Delete(tempPath);
+                    File.Delete(tempPath);
 
-            ZipFile.CreateFromDirectory(Workspace.Root, tempPath);
-            } else {
-            if (File.Exists(ProjectPath))
-                File.Delete(ProjectPath);
+                ZipFile.CreateFromDirectory(Workspace.Root, tempPath);
+            }
+            else
+            {
+                if (File.Exists(ProjectPath))
+                    File.Delete(ProjectPath);
 
-            ZipFile.CreateFromDirectory(Workspace.Root, ProjectPath);
+                ZipFile.CreateFromDirectory(Workspace.Root, ProjectPath);
             }
         });
     }
@@ -180,7 +189,7 @@ public class PaintProject
 // -------------------------
 public class ProjectMetadata
 {
-    public string name { get; set; } = "Untitled Project";
+    public string? name { get; set; } = "Untitled Project";
     public string? OpenFile { get; set; }
 
     // For online options.

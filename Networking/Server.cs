@@ -30,6 +30,7 @@ public class Server
     public void closeAllConnections()
     {
         AllowedDomainsList.Clear();
+        PaintPower_Engine.App.SetNetworkStatus("Not connected");
     }
 
     // Make a valid url.
@@ -104,10 +105,13 @@ public class Server
 
         try
         {
-            return await Net.PerformGetRequest(makeUrl(Routes.checkActiveServer())) == "Ok.";
+            bool c = await Net.PerformGetRequest(makeUrl(Routes.checkActiveServer())) == "Ok.";
+            PaintPower_Engine.App.SetNetworkStatus(c ? "Connected" : "Not connected");
+            return c;
         }
         catch
         {
+            PaintPower_Engine.App.SetNetworkStatus("Not connected");
             return false;
         }
     }
@@ -121,25 +125,24 @@ public class Server
     }
 
     /* Download a project made by the user */
-    public async Task DownloadProject(string savePath)
+    public async Task DownloadProject(string savePath, int id)
     {
-        string url = URLifyer.URLify(CurrentDomain);
+        string url = makeUrl($"{id}");
         await Net.DownloadFileAsync(url, savePath);
     }
 
     /* Save the project and load it into the editor. */
-    public async Task DownloadProjectAndLoad(string savePath)
+    public async Task DownloadProjectAndLoad(string savePath, int id)
     {
         try
         {
-            await DownloadProject(savePath);
+            await DownloadProject(savePath, id);
+            PaintPower_Engine.App.OpenProjectFile(savePath);
         }
         catch (Exception e)
         {
             Log.QuickLog(e.Message);
         }
-
-        PaintPower_Engine.App.OpenProjectFile(savePath);
     }
 
     public async Task UploadProject(PaintProject project)

@@ -1,5 +1,4 @@
 <UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="clr-namespace:PaintPower.VMPanel" x:Class="PaintPower.VMPanel.StageAreaPart">
-    <!-- Viewbox scales the entire stage area, but don't use uniform stretching -->
     <Viewbox Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" StretchDirection="DownOnly">
         <!-- This Grid stays at its natural size -->
         <Grid Width="640" Height="450" RowDefinitions="Auto,*">

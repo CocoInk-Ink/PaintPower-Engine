@@ -1,8 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="PaintPower.Dialogs.LinkBeforeUploadDialog"
-        Width="360"
-        Height="180"
+        Width="390"
+        Height="192"
         WindowStartupLocation="CenterOwner"
         CanResize="False">
 
@@ -31,8 +31,8 @@
                         Width="100"/>
 
                 <Button x:Name="CancelButton"
-                        Content="Cancel"
-                        Width="80"/>
+                        Content="Cancel/Don't Link"
+                        Width="130"/>
             </StackPanel>
 
         </StackPanel>

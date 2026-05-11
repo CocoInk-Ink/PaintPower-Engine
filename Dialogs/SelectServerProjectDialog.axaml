@@ -9,7 +9,7 @@
     <Border Background="#222" Padding="20" CornerRadius="8">
         <StackPanel Spacing="12">
 
-            <TextBlock Text="Select a project to link:"
+            <TextBlock Text="Select a project from your MyStuff folder:"
                        Foreground="White"
                        FontSize="16"/>
 
