@@ -17,11 +17,12 @@ using System.Threading.Tasks;
 using PaintPower.Accessibility.Translation;
 using System.Reflection;
 using PaintPower.VMPanel;
+using PaintPower.Templates.FileTemplates;
 namespace PaintPower;
 
 public class PaintPower_Engine
 {
-    public static readonly string versionNumber = "1.0.1.0";
+    public static readonly string versionNumber = "1.0.1.1";
     public static readonly string buildTime = new Date().getBuildTimestamp();
     public static readonly string devStatus = "Pre-Alpha";
     public static string MajorVersion = $"{Translator.Map(devStatus)} {versionNumber}";
@@ -179,9 +180,19 @@ public class PaintPower_Engine
             filePath = result[0].Path.LocalPath;
         }
 
+        // Reset current project/editor
+        CloseEditor();
+
+        // Clear existing sprites to avoid duplicates when loading.
+        _project.Sprites.Clear();
+
         // Load project
         _project.Load(filePath);
         _project.ProjectPath = filePath;
+
+        RefreshSession(false);
+
+        MainWindow.window.InvalidateVisual();
 
         // Update window title
         window.Title = $"{Translator.Map("PaintPower")} - {_project.Metadata.name}";
@@ -220,12 +231,36 @@ public class PaintPower_Engine
         Start();
     }
 
+    public virtual async void RefreshSession(bool makeNew = true)
+    {
+        CloseEditor();
+
+        _project = makeNew ? new PaintProject() : _project;
+        _editorManager = new Editor(_project.Workspace);
+        _editor = null;
+
+        window.Title = $"{Translator.Map("PaintPower")} - {_project.Metadata.name}";
+
+        editorGui.SpriteManager.Initialize(_project);
+        editorGui.SpriteManager.SpriteSelected -= OnSpriteSelected;
+        editorGui.SpriteManager.SpriteSelected += OnSpriteSelected;
+
+        MainWindow.window.InvalidateVisual();
+
+        // Set up translation
+        setupTranslation();
+    }
+
     public virtual async void Start()
     {
 
         await Task.Yield();
 
         CloseEditor();
+
+        _project = new PaintProject();
+        _editorManager = new Editor(_project.Workspace);
+        _editor = null;
 
         _project.CreateNew();
 

@@ -1,32 +1,35 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="PaintPower.FileExplorer.ExplorerView">
-
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="PaintPower.FileExplorer.ExplorerView">
 	<Border Background="#99000000">
 		<Grid RowDefinitions="Auto,Auto,*" Margin="8">
-
-			<!-- Toolbar -->
-			<StackPanel Orientation="Horizontal" Spacing="6">
-				<Button x:Name="NewFileButton" Classes="white" Content="New" Click="OnNewFile"/>
-				<Button x:Name="NewFolderButton" Classes="white" Content="New Folder" Click="OnNewFolder"/>
-				<Button x:Name="GoRootButton" Classes="white" Content="Go to Root" Click="OnGoRoot"/>
-				<Button x:Name="GoUpButton" Classes="white" Content="Go Up" Click="OnGoUp"/>
-			</StackPanel>
-
+			<!-- Menubar -->
+			<Menu>
+				<MenuItem Header="File">
+					<MenuItem x:Name="NewFileButton" Header="New File" Click="OnNewFile" />
+					<MenuItem x:Name="NewFolderButton" Header="New Folder" Click="OnNewFolder" />
+					<Separator />
+					<MenuItem x:Name="ImportButton" Header="Import" Click="OnImport" />
+					<MenuItem x:Name="ExportButton" Header="Export" Click="OnExport" />
+				</MenuItem>
+				<MenuItem Header="Navigation">
+					<MenuItem x:Name="GoRootButton" Header="Go to Root" Click="OnGoRoot" />
+					<MenuItem x:Name="GoUpButton" Header="Go Up" Click="OnGoUp" />
+				</MenuItem>
+				<MenuItem Header="Edit">
+					<MenuItem x:Name="CopyButton" Header="Copy" Click="OnCopy" />
+					<MenuItem x:Name="CutButton" Header="Cut" Click="OnCut" />
+					<MenuItem x:Name="PasteButton" Header="Paste" Click="OnPaste" />
+					<Separator />
+					<MenuItem x:Name="DeleteButton" Header="Delete" Click="OnDelete" />
+					<MenuItem x:Name="RenameButton" Header="Rename" Click="OnRename" />
+					<MenuItem x:Name="DuplicateButton" Header="Duplicate" Click="OnDuplicate" />
+				</MenuItem>
+			</Menu>
 			<!-- Current Path -->
-			<TextBlock x:Name="PathLabel"
-                       Grid.Row="1"
-                       FontSize="14"
-                       Margin="4"
-                       Foreground="White"/>
-
+			<TextBlock x:Name="PathLabel" Grid.Row="1" FontSize="14" Margin="4" Foreground="White" />
 			<!-- File List -->
 			<Border Background="#20202020" Grid.Row="2">
-				<ListBox x:Name="FileList"
-                         DoubleTapped="OnItemDoubleTapped"
-                         SelectionChanged="OnSelectionChanged"/>
+				<ListBox x:Name="FileList" DoubleTapped="OnItemDoubleTapped" SelectionChanged="OnSelectionChanged" />
 			</Border>
-
 		</Grid>
 	</Border>
 </UserControl>

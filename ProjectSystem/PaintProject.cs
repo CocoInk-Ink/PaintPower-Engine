@@ -81,7 +81,12 @@ public class PaintProject
     {
         ProjectPath = projectPath;
 
-        if (Directory.Exists(Workspace.Root)) { }
+        // Clear any old temp workspace content before extracting a new project.
+        if (Directory.Exists(Workspace.Root))
+            Directory.Delete(Workspace.Root, recursive: true);
+
+        Directory.CreateDirectory(Workspace.Root);
+        Directory.CreateDirectory(Workspace.ItemsDir);
 
         // Extract ZIP into temp workspace
         ZipFile.ExtractToDirectory(projectPath, Workspace.Root, overwriteFiles: true);
@@ -111,6 +116,7 @@ public class PaintProject
         }
 
         // Now that the project is loaded
+        Sprites.Clear();
         LoadSprites();
     }
 
@@ -166,6 +172,7 @@ public class PaintProject
 
     public void LoadSprites()
     {
+        Sprites.Clear();
         string spritesDir = Path.Combine(Workspace.ItemsDir, "sprites");
 
         if (!Directory.Exists(spritesDir))

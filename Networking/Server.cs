@@ -137,7 +137,9 @@ public class Server
         try
         {
             await DownloadProject(savePath, id);
+            #pragma warning disable
             PaintPower_Engine.App.OpenProjectFile(savePath);
+            #pragma warning restore
         }
         catch (Exception e)
         {

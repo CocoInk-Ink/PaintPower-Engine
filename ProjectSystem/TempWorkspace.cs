@@ -18,6 +18,11 @@ public class TempWorkspace
     public TempWorkspace()
     {
         Root = Path.Combine(Path.GetTempPath(), "PaintPower_" + Guid.NewGuid());
+
+        // Delete the directory if it already exists because TempWorkspace might be reused for multiple projects
+        if (Directory.Exists(Root))
+            Directory.Delete(Root, recursive: true);
+
         Directory.CreateDirectory(Root);
 
         Directory.CreateDirectory(ItemsDir);

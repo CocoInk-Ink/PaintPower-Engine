@@ -228,3 +228,27 @@ msgstr "Detener"
 
 msgid "Build and Run"
 msgstr "Compilar y Ejecutar"
+
+msgid "Copy"
+msgstr "Copiar"
+
+msgid "Cut"
+msgstr "Cortar"
+
+msgid "Paste"
+msgstr "Pegar"
+
+msgid "Delete"
+msgstr "Eliminar"
+
+msgid "Rename"
+msgstr "Renombrar"
+
+msgid "Duplicate"
+msgstr "Duplicar"
+
+msgid "Import"
+msgstr "Importar"
+
+msgid "Export"
+msgstr "Exportar"

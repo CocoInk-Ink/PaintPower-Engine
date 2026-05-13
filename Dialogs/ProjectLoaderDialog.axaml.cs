@@ -10,8 +10,6 @@ namespace PaintPower.Dialogs;
 
 public partial class ProjectLoaderDialog : Window
 {
-    private TaskCompletionSource<ProjectLoaderResult?> _tcs;
-
     public ProjectLoaderDialog() {
         AvaloniaXamlLoader.Load(this);
         Translator.LanguageChanged += TranslateGUI;
@@ -19,8 +17,7 @@ public partial class ProjectLoaderDialog : Window
 
     public Task<ProjectLoaderResult?> ShowAsync(Window parent)
     {
-        ShowDialog(parent);
-        return _tcs.Task;
+        return this.ShowDialog<ProjectLoaderResult?>(parent);
     }
 
     private async void OnNewProject(object? sender, RoutedEventArgs e)
@@ -68,12 +65,6 @@ public partial class ProjectLoaderDialog : Window
             Close(r);
         }
     }
-
-    private void SetResultAndClose(ProjectLoaderResult r)
-    {
-        _tcs.TrySetResult(r);
-        Close();
-    } 
 
     public void TranslateGUI()
     {
