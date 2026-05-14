@@ -1,52 +1,39 @@
 using System;
 using System.IO;
-using PaintPower.Tools.Math;
+using NAudio.Wave;
 using PaintPower.Tools.Media;
 using PaintPower.Tools.Media.Player;
-using PaintPower.Tools.Media.Sound;
-using PaintPower.Tools.Media.Sound.Player.Backends;
 
 namespace PaintPower.Tools.Media.Sound.Player;
 
 public class SoundPlayer : MediaPlayer, IDisposable
 {
-    private IAudioBackend backend;
-    private bool isPaused = false;
+    private IWavePlayer? output;
+    private AudioFileReader? reader;
 
-    private float _volume = 1f;
-    private bool _loop = false;
+    private bool isPaused = false;
+    private bool loop = false;
 
     public float Volume
     {
-        get => _volume;
+        get => reader?.Volume ?? 1f;
         set
         {
-            _volume = System.Math.Clamp(value, 0f, 1f);
-            backend.SetVolume(_volume);
+            if (reader != null)
+                reader.Volume = System.Math.Clamp(value, 0f, 1f);
         }
     }
 
     public bool Loop
     {
-        get => _loop;
-        set
-        {
-            _loop = value;
-            backend.SetLooping(_loop);
-        }
+        get => loop;
+        set => loop = value;
     }
 
-    public SoundPlayer()
+    public SoundPlayer(Media? media = null) : base()
     {
-#if WINDOWS
-        backend = new WindowsAudioBackend();
-#elif MACOS
-        backend = new MacOSAudioBackend();
-#elif LINUX
-        backend = new LinuxAudioBackend();
-#else
-        backend = new DummyAudioBackend();
-#endif
+        if (media != null)
+            LoadMedia(media);
     }
 
     public override void LoadMedia(Media media)
@@ -56,50 +43,73 @@ public class SoundPlayer : MediaPlayer, IDisposable
         if (media.FilePath == null)
             throw new InvalidOperationException("Sound must have a file path.");
 
-        byte[] wav = File.ReadAllBytes(media.FilePath);
+        output?.Stop();
+        output?.Dispose();
+        reader?.Dispose();
 
-        int channels = BitConverter.ToInt16(wav, 22);
-        int sampleRate = BitConverter.ToInt32(wav, 24);
-        int bitsPerSample = BitConverter.ToInt16(wav, 34);
+        reader = new AudioFileReader(media.FilePath);
+        output = new WaveOutEvent();
+        output.Init(reader);
 
-        int dataOffset = BitConverter.ToInt32(wav, 16) + 20;
-        int dataSize = wav.Length - dataOffset;
-
-        byte[] pcm = new byte[dataSize];
-        Array.Copy(wav, dataOffset, pcm, 0, dataSize);
-
-        backend.LoadPcm(pcm, channels, sampleRate, bitsPerSample);
-        backend.SetVolume(_volume);
-        backend.SetLooping(_loop);
+        output.PlaybackStopped += (s, e) =>
+        {
+            if (loop && reader != null)
+            {
+                reader.Position = 0;
+                output?.Play();
+            }
+        };
     }
 
     public override void Play()
     {
-        backend.Play();
+        if (output == null || reader == null)
+            return;
+
+        reader.Position = 0;
+        output.Play();
         isPaused = false;
     }
 
     public override void Pause()
     {
-        backend.Pause();
+        if (output == null)
+            return;
+
+        output.Pause();
         isPaused = true;
     }
 
     public override void Resume()
     {
-        if (!isPaused) return;
-        backend.Resume();
+        if (output == null || !isPaused)
+            return;
+
+        output.Play();
         isPaused = false;
     }
 
     public override void Stop()
     {
-        backend.Stop();
+        if (output == null)
+            return;
+
+        output.Stop();
         isPaused = false;
+    }
+
+    public override void Seek(TimeSpan position)
+    {
+        if (reader == null)
+            return;
+
+        reader.CurrentTime = position;
     }
 
     public void Dispose()
     {
-        backend.Dispose();
+        output?.Stop();
+        output?.Dispose();
+        reader?.Dispose();
     }
 }

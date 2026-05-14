@@ -26,6 +26,7 @@
     <PackageReference Include="AvaloniaEdit.TextMate" Version="11.4.1" />
     <PackageReference Include="Classic.Avalonia.Theme.ColorPicker" Version="11.3.0.3" />
     <PackageReference Include="Classic.CommonControls.Avalonia" Version="11.3.0.3" />
+    <PackageReference Include="NAudio" Version="2.3.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,7 +55,7 @@
   <ItemGroup>
     <None Include="Assets\Untitled.xPaint" CopyToOutputDirectory="Always" />
     <None Include="Assets\lang\**\*" CopyToOutputDirectory="Always" />
-    <None Include="Assets\KiteScript\**\*" CopyToOutputDirectory="Always"/>
-    <None Include="Assets\Sound\**\*" CopyToOutputDirectory="Always"/>
+    <None Include="Assets\KiteScript\**\*" CopyToOutputDirectory="Always" />
+    <None Include="Assets\Sound\**\*" CopyToOutputDirectory="Always" />
   </ItemGroup>
 </Project>
