@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using NAudio.Wave;
+using PaintPower.Logging;
 using PaintPower.Tools.Media;
 using PaintPower.Tools.Media.Player;
 
@@ -11,7 +12,7 @@ public class SoundPlayer : MediaPlayer, IDisposable
     private IWavePlayer? output;
     private AudioFileReader? reader;
 
-    private bool isPaused = false;
+    public bool isPaused = false;
     private bool loop = false;
 
     public float Volume
@@ -43,6 +44,7 @@ public class SoundPlayer : MediaPlayer, IDisposable
         if (media.FilePath == null)
             throw new InvalidOperationException("Sound must have a file path.");
 
+        try {
         output?.Stop();
         output?.Dispose();
         reader?.Dispose();
@@ -59,12 +61,24 @@ public class SoundPlayer : MediaPlayer, IDisposable
                 output?.Play();
             }
         };
+        } catch (Exception ex)
+        {
+            Log.Error(new Exception("Failed to load sound: " + ex.Message));
+            output = null;
+            reader = null;
+        }
     }
 
     public override void Play()
     {
-        if (output == null || reader == null)
+        Log.Info("Playing sound.");
+
+        if (output == null || reader == null) {
+            Log.QuickLog("No sound loaded to play.");
             return;
+        }
+
+        Log.Info("Sound loaded, starting playback.");
 
         reader.Position = 0;
         output.Play();

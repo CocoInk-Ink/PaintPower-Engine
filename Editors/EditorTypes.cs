@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PaintPower.Tools.Media.Sound;
 
 namespace PaintPower.Editors;
 
@@ -19,10 +20,12 @@ public class EditorTypes
     public static string[] Animation = { ".wxa" };
     public static string[] Video = { ".mp4", ".mov", ".flv", ".wxv" };
 
+    public static string[] Sound = { ".mp3", ".wav", ".ogg", ".flac", ".aac", ".wxs" };
+
     // These are files that can only be opened in a special viewer, like binary files, project files, etc. They can't be edited in the traditional sense, but they can be viewed in a special viewer.
     public static string[] SpecialViewerFiles = { ".wasm", ".bin", ".rar", ".dat", ".project", ".pproj", ".pprj", ".pprojx", ".pprjx", ".class", ".jar", ".swf", ".zip" };
 
-    public static string[] All = Paint.Concat(Script).Concat(Animation).Concat(Video).ToArray();
+    public static string[] All = Paint.Concat(Script).Concat(Animation).Concat(Video).Concat(Sound).Concat(SpecialViewerFiles).ToArray();
 
     // Find editor from list of supported file extensions.
     public static string FindEditorFromExt(string ext)
@@ -55,6 +58,11 @@ public class EditorTypes
             else if (Video.Contains(ext))
             {
                 result = "Video";
+            }
+            // Sound Player
+            else if (Sound.Contains(ext))
+            {
+                result = "Sound";
             }
             // Something else was put.
             else

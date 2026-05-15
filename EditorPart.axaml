@@ -36,7 +36,7 @@
 				</StackPanel>
 				<!-- RIGHT: Status area -->
 				<StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Spacing="16" Grid.Column="2" Margin="0,0,12,0">
-					<TextBlock Text="" VerticalAlignment="Center" x:Name="ProjectStatus" />
+					<TextBlock Text="" VerticalAlignment="Center" x:Name="ProjectStatus" PointerPressed="StatusClicked" />
 					<TextBlock x:Name="UserStatus" Text="Not connected, not logged in." VerticalAlignment="Center" Foreground="#437" />
 					<Menu Grid.Column="1" Margin="12,0">
 						<MenuItem x:Name="HelpMenu" Header="Help">

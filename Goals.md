@@ -96,3 +96,10 @@
     - [ ] See views, comments, and reply to comments within the editor
     - [ ] Make it extendable and easy for contributors to create their own custom server
 	- [ ] Easy project collaboration
+
+- ### General features:
+	- [x] Import/Export assets
+	- [ ] WASM Support
+	- [x] Paint Editor. Is Finished?: [ ]
+	- [ ] Video Editor. Is Finished?: [ ]
+	- [x] Sound Player. Is Finished?: [ ]

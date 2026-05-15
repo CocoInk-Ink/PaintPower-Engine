@@ -23,6 +23,9 @@ public static class Translator
         if (!string.IsNullOrWhiteSpace(preferredLanguage))
             lang = preferredLanguage;
 
+        langList.Clear();
+        langDict.Clear();
+
         try
         {
             Log.QuickLog("Getting Lang-list");
@@ -208,6 +211,7 @@ public static class Translator
             throw new FileNotFoundException("Language file not found", path);
 
         langList.Clear();
+        langDict.Clear();
 
         var lines = File.ReadAllLines(path);
 

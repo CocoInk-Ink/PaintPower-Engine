@@ -3,6 +3,7 @@ using PaintPower.Accessibility.Translation;
 using PaintPower.Editors;
 using PaintPower.Logging;
 using PaintPower.ProjectSystem;
+using PaintPower.Tools.SoundEffects;
 using System.IO;
 
 namespace PaintPower.SpriteEditor;
@@ -30,6 +31,7 @@ public partial class SpriteEditorView : UserControl
 
     public void OpenEditor(EditorBase editor, string fullPath)
     {
+        SoundEffects.Click.Play();
         TranslateGUI();
         var relative = MakeSpriteRelative(fullPath);
         editor.SetRelativePath(relative);

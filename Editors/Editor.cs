@@ -29,6 +29,7 @@ public class Editor
             "Script" => new ScriptEditor(relative, _workspace),
             "Animation" => new AnimationEditor(relative, _workspace),
             "Video" => new VideoEditor(relative, _workspace),
+            "Sound" => new SoundPlayer(relative, _workspace),
             _ => new EditorBase().addText(new TextBlock { Text = $"Unsupported file: {ext}" })
         };
     }

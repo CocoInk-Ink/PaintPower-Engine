@@ -57,18 +57,24 @@ public partial class ScriptEditor : EditorBase
         var scope = _registryOptions.GetScopeByExtension(ext);
 
         // Add custom language support like .pxml, .pxs, .pss, etc.
-        // For now, because we don't have TextMate grammars for those, we'll just use html, css and C# grammar as a placeholder.
+        // For now, because we don't have TextMate grammars for those, we'll just use html, css, js, java, and C# grammar as a placeholder.
 
         // .pxml -> xml
-        // .pxs -> css
-        // .pss -> csharp
-
-            if (ext == ".pxml")
+        // .pss, psf -> css
+        // .pxs -> csharp
+            if (ext == ".Coco" || ext == ".coco")
+                scope = _registryOptions.GetScopeByExtension(".cs");
+            else if (ext == ".CocoScript" || ext == ".cocoscript")
+                scope = _registryOptions.GetScopeByExtension(".js");
+            else if (ext == ".pxml")
                 scope = _registryOptions.GetScopeByExtension(".xml");
-            else if (ext == ".pxs")
+            if (ext == ".psf")
                 scope = _registryOptions.GetScopeByExtension(".css");
             else if (ext == ".pss")
+                scope = _registryOptions.GetScopeByExtension(".css");
+            else if (ext == ".pxs")
                 scope = _registryOptions.GetScopeByExtension(".cs");
+            
 
         // NOW add bracket colorizer
         _bracketColorizer = new RainbowBracketColorizer(editor.Document);

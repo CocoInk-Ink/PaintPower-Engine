@@ -56,6 +56,6 @@
     <None Include="Assets\Untitled.xPaint" CopyToOutputDirectory="Always" />
     <None Include="Assets\lang\**\*" CopyToOutputDirectory="Always" />
     <None Include="Assets\KiteScript\**\*" CopyToOutputDirectory="Always" />
-    <None Include="Assets\Sound\**\*" CopyToOutputDirectory="Always" />
+    <None Include="Assets\Sounds\**\*" CopyToOutputDirectory="Always" />
   </ItemGroup>
 </Project>

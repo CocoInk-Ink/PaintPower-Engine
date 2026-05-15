@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using PaintPower.Accessibility.Translation;
 using PaintPower.VMPanel;
+using PaintPower.Tools.SoundEffects;
 namespace PaintPower;
 
 public partial class EditorPart : UserControl
@@ -43,58 +44,75 @@ public partial class EditorPart : UserControl
         return this;
     }
 
+    public void StatusClicked(object sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        App.Save();
+    }
+
     private void OnFileNew(object? sender, RoutedEventArgs e)
     {
+        SoundEffects.Click.Play();
         App.newProject();
     }
 
     private void OnFileOpen(object? sender, RoutedEventArgs e)
     {
+        SoundEffects.Click.Play();
         App.OpenProjectFile();
     }
 
     private void OnFileSave(object? sender, RoutedEventArgs e)
     {
+        SoundEffects.Click.Play();
         App.Save();
     }
 
     private void OnFileSaveAs(object? sender, RoutedEventArgs e)
     {
+        SoundEffects.Click.Play();
         App.SaveAs();
     }
 
     private void OnFileExit(object? sender, RoutedEventArgs e)
     {
+        SoundEffects.Click.Play();
         MainWindow.window.Close();
     }
 
     private void OnEditUndo(object? sender, RoutedEventArgs e)
     {
+        SoundEffects.Click.Play();
         // TODO: hook into editor undo
     }
 
     private void OnEditRedo(object? sender, RoutedEventArgs e)
     {
+        SoundEffects.Click.Play();
         // TODO: hook into editor redo
     }
 
     private void OnEditCut(object? sender, RoutedEventArgs e)
     {
+        SoundEffects.Click.Play();
         // TODO
     }
 
     private void OnEditCopy(object? sender, RoutedEventArgs e)
     {
+        SoundEffects.Click.Play();
         // TODO
     }
 
     private void OnEditPaste(object? sender, RoutedEventArgs e)
     {
+        SoundEffects.Click.Play();
         // TODO
     }
 
     private async void OnLogin(object? sender, RoutedEventArgs e)
     {
+        SoundEffects.Click.Play();
         var dialog = new SignInDialog();
         var result = await dialog.ShowDialog<bool>(MainWindow.window);
 
@@ -106,11 +124,13 @@ public partial class EditorPart : UserControl
 
     private async void OnLogout(object? sender, RoutedEventArgs e)
     {
+        SoundEffects.Click.Play();
         await PaintPower_Engine.App.server.Logout();
     }
 
     private void OnMakeConnection(object? sender, RoutedEventArgs e)
     {
+        SoundEffects.Click.Play();
         #pragma warning disable
         // Enable connection to the server
         App.server.checkConnection();
@@ -118,16 +138,19 @@ public partial class EditorPart : UserControl
 
     private void OnUploadProject(object? sender, RoutedEventArgs e)
     {
+        SoundEffects.Click.Play();
         App.SaveToServer();
     }
 
     private void OnDownloadProjectFromServer(object? sender, RoutedEventArgs e)
     {
+        SoundEffects.Click.Play();
         App.DownloadProjectFromServer();
     }
 
     private void OnHelpDocumentation(object? sender, RoutedEventArgs e)
     {
+        SoundEffects.Click.Play();
         // Open documentation in default browser
         Process.Start(new ProcessStartInfo
         {
@@ -138,6 +161,7 @@ public partial class EditorPart : UserControl
 
     private void OnHelpReportBug(object? sender, RoutedEventArgs e)
     {
+        SoundEffects.Click.Play();
         // Open bug report page in default browser
         Process.Start(new ProcessStartInfo
         {
@@ -148,6 +172,7 @@ public partial class EditorPart : UserControl
 
     private void OnHelpAbout(object? sender, RoutedEventArgs e)
     {
+        SoundEffects.Click.Play();
         // Show about dialog
         var aboutDialog = new PopupWindowDialog("About PaintPower", $"PaintPower Engine  {PaintPower_Engine.version}", "Created by CocoBox84 and collaborators: http://github.com/CocoBox84/PaintPower-Engine/");
         aboutDialog.ShowDialog(MainWindow.window);
@@ -155,6 +180,7 @@ public partial class EditorPart : UserControl
 
     public void RefreshTranslations()
     {
+        SoundEffects.Click.Play();
         if (!Translator.refreshNeeded) return;
 
         // Window title

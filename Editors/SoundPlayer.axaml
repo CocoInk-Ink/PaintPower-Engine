@@ -1,0 +1,13 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PaintPower.Editors.SoundPlayer">
+
+    <StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="5">
+            <Button Content="Play" Click="PlayButton_Click" Margin="5" />
+            <Button Content="Pause" Click="PauseButton_Click" Margin="5" />
+            <Button Content="Stop" Click="StopButton_Click" Margin="5" />
+            <CheckBox x:Name="LoopCheckBox" Content="Loop" Margin="5" />
+        </StackPanel>
+    </StackPanel>
+</UserControl>

@@ -18,11 +18,12 @@ using PaintPower.Accessibility.Translation;
 using System.Reflection;
 using PaintPower.VMPanel;
 using PaintPower.Templates.FileTemplates;
+using PaintPower.Tools.SoundEffects;
 namespace PaintPower;
 
 public class PaintPower_Engine
 {
-    public static readonly string versionNumber = "1.0.1.1";
+    public static readonly string versionNumber = "1.0.1.2";
     public static readonly string buildTime = new Date().getBuildTimestamp();
     public static readonly string devStatus = "Pre-Alpha";
     public static string MajorVersion = $"{Translator.Map(devStatus)} {versionNumber}";
@@ -99,15 +100,6 @@ public class PaintPower_Engine
         editorGui = p;
     }
 
-    public void StatusClicked(object sender, EventArgs e)
-    {
-        if (_project != null && saveNeeded)
-        {
-#pragma warning disable
-            Save();
-        }
-    }
-
     public string SetProjectStatus(string status)
     {
         editorGui.ProjectStatus.Text = status;
@@ -147,6 +139,7 @@ public class PaintPower_Engine
 
     private void OnSpriteSelected(PaintSprite sprite)
     {
+        SoundEffects.Click.Play();
         // Create the sprite editor panel
         _spriteEditorView = new SpriteEditorView(sprite, _project.Workspace);
 
@@ -158,6 +151,8 @@ public class PaintPower_Engine
 
     public async Task OpenProjectFile(string filePath = "")
     {
+        SoundEffects.Click.Play();
+
         if (string.IsNullOrWhiteSpace(filePath))
         {
             var result = await window.StorageProvider.OpenFilePickerAsync(
@@ -286,14 +281,35 @@ public class PaintPower_Engine
 
     public void OpenFile(string path)
     {
+        Log.Info("Opening file: " + path);
+        Log.Info("Closing current editor.");
+        CloseCurrentEditor(); // Close current editor if open...
+        Log.Info("Getting new editor for file type...");
         var editor = _editorManager.GetEditorFromFileType(path);
+
+        _editor = editor;
 
         if (_spriteEditorView != null)
             _spriteEditorView.OpenEditor(editor, path);
     }
 
+    public void CloseCurrentEditor()
+    {
+        if (_editor != null)
+        {
+            Log.Info("Closing current editor.");
+            _editor.Close();
+            _editor = null;
+        } else
+        {
+            Log.Info("No editor to close.");
+        }
+    }
+
     public void CloseEditor()
     {
+        Log.Info("Closing current editor.");
+        _editor?.Close();
         editorGui.CenterHost.Content = null;
         _editor = null;
     }

@@ -166,10 +166,10 @@ public partial class PaintEditor : EditorBase
         using var fs = File.Open(fullPath, FileMode.Create);
         _bitmap.Save(fs);
 
-        if (!MainWindow.App.saveNeeded)
+        if (!PaintPower_Engine.App.saveNeeded)
         {
-            MainWindow.App.SetProjectStatus("Save Project");
-            MainWindow.App.saveNeeded = true;
+            PaintPower_Engine.App.SetProjectStatus("Save Project");
+            PaintPower_Engine.App.saveNeeded = true;
         }
     }
 
@@ -184,10 +184,10 @@ public partial class PaintEditor : EditorBase
         if (_tool == ToolMode.Hand)
             return;
 
-        if (!MainWindow.App.saveNeeded)
+        if (!PaintPower_Engine.App.saveNeeded)
         {
-            MainWindow.App.SetProjectStatus("Save Project");
-            MainWindow.App.saveNeeded = true;
+            PaintPower_Engine.App.SetProjectStatus("Save Project");
+            PaintPower_Engine.App.saveNeeded = true;
         }
 
         _undoStack.Push(CloneBitmap(_bitmap));
@@ -230,10 +230,10 @@ public partial class PaintEditor : EditorBase
         if (!_isDrawing || _tool == ToolMode.Hand)
             return;
 
-        if (!MainWindow.App.saveNeeded)
+        if (!PaintPower_Engine.App.saveNeeded)
         {
-            MainWindow.App.SetProjectStatus("Save Project");
-            MainWindow.App.saveNeeded = true;
+            PaintPower_Engine.App.SetProjectStatus("Save Project");
+            PaintPower_Engine.App.saveNeeded = true;
         }
 
         var point = ToBitmapSpace(e);
@@ -362,15 +362,15 @@ public partial class PaintEditor : EditorBase
         return clone;
     }
 
-    private void Undo()
+    public override void Undo()
     {
         if (_undoStack.Count == 0)
             return;
 
-        if (!MainWindow.App.saveNeeded)
+        if (!PaintPower_Engine.App.saveNeeded)
         {
-            MainWindow.App.SetProjectStatus("Save Project");
-            MainWindow.App.saveNeeded = true;
+            PaintPower_Engine.App.SetProjectStatus("Save Project");
+            PaintPower_Engine.App.saveNeeded = true;
         }
 
         _redoStack.Push(CloneBitmap(_bitmap));
@@ -380,15 +380,15 @@ public partial class PaintEditor : EditorBase
         CanvasImage.InvalidateVisual();
     }
 
-    private void Redo()
+    public override void Redo()
     {
         if (_redoStack.Count == 0)
             return;
 
-        if (!MainWindow.App.saveNeeded)
+        if (!PaintPower_Engine.App.saveNeeded)
         {
-            MainWindow.App.SetProjectStatus("Save Project");
-            MainWindow.App.saveNeeded = true;
+            PaintPower_Engine.App.SetProjectStatus("Save Project");
+            PaintPower_Engine.App.saveNeeded = true;
         }
 
         _undoStack.Push(CloneBitmap(_bitmap));
@@ -414,10 +414,10 @@ public partial class PaintEditor : EditorBase
                 fb.RowBytes * fb.Size.Height);
         }
 
-        if (!MainWindow.App.saveNeeded)
+        if (!PaintPower_Engine.App.saveNeeded)
         {
-            MainWindow.App.SetProjectStatus("Save Project");
-            MainWindow.App.saveNeeded = true;
+            PaintPower_Engine.App.SetProjectStatus("Save Project");
+            PaintPower_Engine.App.saveNeeded = true;
         }
 
         CanvasImage.InvalidateVisual();
@@ -459,10 +459,10 @@ public partial class PaintEditor : EditorBase
             e.Pointer.Capture(scroll);
         }
 
-        if (!MainWindow.App.saveNeeded)
+        if (!PaintPower_Engine.App.saveNeeded)
         {
-            MainWindow.App.SetProjectStatus("Save Project");
-            MainWindow.App.saveNeeded = true;
+            PaintPower_Engine.App.SetProjectStatus("Save Project");
+            PaintPower_Engine.App.saveNeeded = true;
         }
     }
 
