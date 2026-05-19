@@ -105,7 +105,7 @@ public class PaintPower_Engine
     public string SetProjectStatus(string status)
     {
         editorGui.ProjectStatus.Text = status;
-        editorGui.InvalidateVisual();
+        FixUserStatus();
         return status;
     }
 
@@ -128,14 +128,7 @@ public class PaintPower_Engine
 
     public async void FixUserStatus()
     {
-        if (await server.IsLoggedIn())
-        {
-            editorGui.UserStatus.Text = server.Username;
-        }
-        else
-        {
-            editorGui.UserStatus.Text = $"{NetworkStatus}, {UserStatus}";
-        }
+        editorGui.StatusBarText.Text = $"{NetworkStatus} | {((await server.IsLoggedIn()) ? $"Logged in as {server.Username}" : UserStatus)} | {editorGui.ProjectStatus.Text}";
         editorGui.InvalidateVisual();
     }
 

@@ -37,7 +37,6 @@
 				<!-- RIGHT: Status area -->
 				<StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Spacing="16" Grid.Column="2" Margin="0,0,12,0">
 					<TextBlock Text="" VerticalAlignment="Center" x:Name="ProjectStatus" PointerPressed="StatusClicked" />
-					<TextBlock x:Name="UserStatus" Text="Not connected, not logged in." VerticalAlignment="Center" Foreground="#437" />
 					<Menu Grid.Column="1" Margin="12,0">
 						<MenuItem x:Name="HelpMenu" Header="Help">
 							<MenuItem x:Name="HelpDocumentation" Header="Documentation" Click="OnHelpDocumentation" />
@@ -70,8 +69,16 @@
 			</Grid>
 			<!-- SPLITTER between LEFT and CENTER -->
 			<GridSplitter Grid.Column="1" Width="5" Background="#505050" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" />
-			<!-- OUTER CENTER: Sprite Editor Host -->
-			<ContentControl x:Name="CenterHost" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+			<Grid Grid.Row="2" RowDefinitions="30,*" Grid.Column="2">
+				<!-- Status Bar -->
+				<Border Grid.Row="0" Background="#c4c4c4" Margin="3">
+					<StackPanel Orientation="Horizontal" Margin="2" Background="#e0e0e0">
+						<TextBlock x:Name="StatusBarText" Text="Ready" Grid.Column="0" Margin="3" />
+					</StackPanel>
+				</Border>
+				<!-- OUTER CENTER: Sprite Editor Host -->
+				<ContentControl x:Name="CenterHost" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+			</Grid>
 		</Grid>
 	</Grid>
 </UserControl>
