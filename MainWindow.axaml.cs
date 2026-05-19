@@ -1,4 +1,6 @@
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using System;
 
 namespace PaintPower;
@@ -33,11 +35,19 @@ public partial class MainWindow : Window
         App.attachEditorPart(editorPart.attachPaintPower(App));
         App.Start();
 
+        AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
+
         // Load project if opened via double-click
         if (!string.IsNullOrWhiteSpace(StartupProjectPath))
         {
             PaintPower_Engine.App.OpenProjectFile(StartupProjectPath);
         }
+    }
+
+
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        PaintPower_Engine.App.HandleKeyDown(e);
     }
 
 }

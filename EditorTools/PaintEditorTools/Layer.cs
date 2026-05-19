@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace PaintPower.Editors;
+namespace PaintPower.EditorTools.PaintEditorTools;
 
 public class Layer : INotifyPropertyChanged
 {

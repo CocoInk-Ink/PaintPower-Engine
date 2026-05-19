@@ -1,0 +1,14 @@
+This is the definition of the WXA format:
+
+The WXA file is a .rar file that includes these contents:
+
+[
+    "settings.xml",
+    "settings.json",
+    "items": {
+        Scenes: [scene1.was, scene2.was]
+    }
+    timeline: ...
+]
+
+Ok, I have no idea what I'm doing.

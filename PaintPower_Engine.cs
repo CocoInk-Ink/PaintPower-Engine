@@ -19,6 +19,7 @@ using System.Reflection;
 using PaintPower.VMPanel;
 using PaintPower.Templates.FileTemplates;
 using PaintPower.Tools.SoundEffects;
+using Avalonia.Input;
 namespace PaintPower;
 
 public class PaintPower_Engine
@@ -589,5 +590,16 @@ public class PaintPower_Engine
             return;
 
         server.DownloadProject(path, Convert.ToInt32(chosenId));
+    }
+
+   public void HandleKeyDown(KeyEventArgs e)
+    {
+    /*if (e.KeyModifiers == KeyModifiers.Control)
+    {
+        if (e.Key == Key.Z) Undo();
+        if (e.Key == Key.Y) Redo();
+        if (e.Key == Key.S) Save();
+    }*/
+
     }
 }

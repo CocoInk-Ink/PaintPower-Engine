@@ -4,7 +4,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using System;
 
-namespace PaintPower.Editors;
+namespace PaintPower.EditorTools.PaintEditorTools;
 
 public class SVPicker : Control
 {

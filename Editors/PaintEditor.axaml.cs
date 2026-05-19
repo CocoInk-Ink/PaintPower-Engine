@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using System.IO;
 
 using PaintPower.Accessibility.Translation;
+using PaintPower.EditorTools.PaintEditorTools;
+using System.Runtime.CompilerServices;
 
 namespace PaintPower.Editors;
 
@@ -218,8 +220,9 @@ public partial class PaintEditor : EditorBase
         if (BrushCursor.IsVisible)
         {
             // Offset so the tip of the pencil matches the brush point
-            double offsetX = -5;
-            double offsetY = -54;
+            double radius = BrushSizeSlider.Value;
+            double offsetX = -radius;
+            double offsetY = -radius;
 
             BrushCursor.Margin = new Thickness(
                 pos.X + offsetX,
@@ -261,9 +264,20 @@ public partial class PaintEditor : EditorBase
                     int py = (int)p.Y + y;
 
                     if (px < 0 || py < 0 || px >= width || py >= height)
-                        continue;
+                            continue;
 
-                    ptr[py * width + px] = color;
+                    // May change to a global variable later to allow switching between square and circular brushes
+                    bool isSquareBrush = false; // Change to true for a square brush
+
+                    if (isSquareBrush)
+                    {
+                        ptr[py * width + px] = color;
+                    }
+                    else
+                    {
+                        if (x * x + y * y <= size * size)
+                            ptr[py * width + px] = color;
+                    }
                 }
             }
         }
@@ -273,7 +287,7 @@ public partial class PaintEditor : EditorBase
 
     private void DrawLine(Avalonia.Point a, Avalonia.Point b)
     {
-        int steps = (int)Math.Max(Math.Abs(b.X - a.X), Math.Abs(b.Y - a.Y));
+        int steps = (int)(Math.Max(Math.Abs(b.X - a.X), Math.Abs(b.Y - a.Y)) * 1.5);
 
         for (int i = 0; i < steps; i++)
         {
@@ -404,14 +418,10 @@ public partial class PaintEditor : EditorBase
         _redoStack.Clear();
 
         using var fb = _bitmap.Lock();
+
         unsafe
         {
-            Buffer.MemoryCopy(
-                new byte[_bitmap.PixelSize.Width * _bitmap.PixelSize.Height * 4]
-                    .AsSpan().ToArray().AsMemory().Pin().Pointer,
-                fb.Address.ToPointer(),
-                fb.RowBytes * fb.Size.Height,
-                fb.RowBytes * fb.Size.Height);
+            Unsafe.InitBlock(fb.Address.ToPointer(), 0, (uint)(fb.RowBytes * fb.Size.Height));
         }
 
         if (!PaintPower_Engine.App.saveNeeded)

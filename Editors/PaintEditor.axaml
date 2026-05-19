@@ -1,7 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="PaintPower.Editors.PaintEditor"
-			 xmlns:local="clr-namespace:PaintPower.Editors">
+			 xmlns:local="clr-namespace:PaintPower.Editors"
+			 xmlns:tools="clr-namespace:PaintPower.EditorTools.PaintEditorTools">
 
 	<Grid RowDefinitions="60,*">
 
@@ -44,7 +45,7 @@
 					<LayoutTransformControl x:Name="CheckerZoom"
 											HorizontalAlignment="Left"
 											VerticalAlignment="Top">
-						<local:Checkerboard x:Name="Checkerboard"
+						<tools:Checkerboard x:Name="Checkerboard"
                     TileSize="16"
                     LightColor="#FFF0F0F0"
                     DarkColor="#FFD0D0D0"
@@ -150,7 +151,7 @@
 										Width="150"/>
 
 								<!-- Saturation/Value square -->
-								<local:SVPicker x:Name="SVPicker"
+								<tools:SVPicker x:Name="SVPicker"
 												Width="150" Height="150"/>
 
 								<!-- Opacity slider -->
