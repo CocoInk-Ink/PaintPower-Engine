@@ -31,6 +31,8 @@ public partial class MainWindow : Window
     {
         base.OnOpened(e);
 
+        Tools.Keyboard.KeyPress.init(); // Initialize the key mapping
+
         App.attachWindow(this);
         App.attachEditorPart(editorPart.attachPaintPower(App));
         App.Start();

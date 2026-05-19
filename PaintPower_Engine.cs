@@ -20,6 +20,7 @@ using PaintPower.VMPanel;
 using PaintPower.Templates.FileTemplates;
 using PaintPower.Tools.SoundEffects;
 using Avalonia.Input;
+using PaintPower.Tools.Keyboard;
 namespace PaintPower;
 
 public class PaintPower_Engine
@@ -594,12 +595,11 @@ public class PaintPower_Engine
 
    public void HandleKeyDown(KeyEventArgs e)
     {
-    /*if (e.KeyModifiers == KeyModifiers.Control)
-    {
-        if (e.Key == Key.Z) Undo();
-        if (e.Key == Key.Y) Redo();
-        if (e.Key == Key.S) Save();
-    }*/
+        KeyPress p = new KeyPress(e);
 
+        if (p.isPressed("s") && p.isPressed("ctrl"))
+        {
+            Save();
+        }
     }
 }

@@ -1,12 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
+
+    <!-- Enable modern C# features even on .NET 6 -->
+    <LangVersion>12.0</LangVersion>
+
+    <!-- Cross‑platform publishing -->
+    <RuntimeIdentifiers>
+      win-x64;win-arm64;
+      linux-x64;linux-arm64;
+      osx-x64;osx-arm64
+    </RuntimeIdentifiers>
+
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
   <ItemGroup>
     <AvaloniaXaml Remove="Dialogs\PopupDialog.axaml" />
   </ItemGroup>
@@ -16,13 +29,12 @@
     <PackageReference Include="Avalonia.Desktop" Version="11.3.12" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.12" />
-    <!--Condition
-    below is needed to remove Avalonia.Diagnostics package from build output in Release
-    configuration.-->
+
     <PackageReference Include="Avalonia.Diagnostics" Version="11.3.12">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
+
     <PackageReference Include="AvaloniaEdit.TextMate" Version="11.4.1" />
     <PackageReference Include="Classic.Avalonia.Theme.ColorPicker" Version="11.3.0.3" />
     <PackageReference Include="Classic.CommonControls.Avalonia" Version="11.3.0.3" />
@@ -37,7 +49,6 @@
   <ItemGroup>
     <Reference Include="AvaloniaEdit">
       <HintPath>..\AvaloniaEdit\net6.0\AvaloniaEdit.dll</HintPath>
-
     </Reference>
   </ItemGroup>
 
@@ -63,4 +74,5 @@
     <None Include="Assets\KiteScript\**\*" CopyToOutputDirectory="Always" />
     <None Include="Assets\Sounds\**\*" CopyToOutputDirectory="Always" />
   </ItemGroup>
+
 </Project>
