@@ -1,3 +1,5 @@
+WXA format.txt
+
 This is the definition of the WXA format:
 
 The WXA file is a .rar file that includes these contents:

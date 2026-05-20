@@ -130,10 +130,17 @@ public class PaintPower_Engine
     {
         editorGui.StatusBarText.Text = $"{NetworkStatus} | {((await server.IsLoggedIn()) ? $"Logged in as {server.Username}" : UserStatus)} | {editorGui.ProjectStatus.Text}";
         editorGui.InvalidateVisual();
+        MainWindow.window.InvalidateVisual();
     }
 
     private void OnSpriteSelected(PaintSprite sprite)
     {
+        if (_project == null)
+        {
+            editorGui.SpriteManager.SpriteList.ItemsSource = null;
+            MainWindow.window.InvalidateVisual();
+            return;
+        }
         SoundEffects.Click.Play();
         // Create the sprite editor panel
         _spriteEditorView = new SpriteEditorView(sprite, _project.Workspace);
@@ -142,6 +149,34 @@ public class PaintPower_Engine
         editorGui.CenterHost.Content = _spriteEditorView;
 
         SetProjectStatus($"{Translator.Translate("Editing Sprite:")} {sprite.Name}");
+    }
+
+    public void CloseProject()
+    {
+        MainWindow.window.Title = "The PaintPower Engine";
+
+        SetProjectStatus(Translator.Map("Select or create a project to get started."));
+
+        saveNeeded = false;
+        
+        Translator.load(null); // reset translation to default (in case project has different language)
+
+        // Reset current project/editor
+        CloseCurrentEditor();
+
+        // Clear existing sprites to avoid duplicates when loading.
+        _project.Sprites.Clear();
+
+        editorGui.SpriteManager.SpriteList.ItemsSource = null;
+
+        CloseEditor();
+        _project = null;
+        _editorManager = null;
+        _editor = null;
+        server = null;
+
+        MainWindow.window.InvalidateVisual();
+
     }
 
     public async Task OpenProjectFile(string filePath = "")
@@ -159,7 +194,7 @@ public class PaintPower_Engine
                     {
                     new FilePickerFileType(Translator.Map("PaintPower Project"))
                     {
-                        Patterns = new[] { "*.xPaint" }
+                        Patterns = new[] { "*.xPaint", "*.zip" }
                     }
                     }
                 });
@@ -173,13 +208,19 @@ public class PaintPower_Engine
         Translator.load(null); // reset translation to default (in case project has different language)
 
         // Reset current project/editor
-        CloseEditor();
+        CloseCurrentEditor();
 
         // Clear existing sprites to avoid duplicates when loading.
         _project.Sprites.Clear();
 
+        MainWindow.window.InvalidateVisual();
+
         // Load project
-        _project.Load(filePath);
+        await AnimateStatus(
+            Translator.Map("Loading Project"),
+            () => Task.Run(() => _project.Load(filePath))
+        );
+
         _project.ProjectPath = filePath;
 
         RefreshSession(false);
@@ -219,8 +260,11 @@ public class PaintPower_Engine
 
         // Reset everything
         _project = new PaintProject();
+        _project.CreateNew();
         _editorManager = new Editor(_project.Workspace);
         server = new Server();
+
+        MainWindow.window.InvalidateVisual();
 
         Start();
     }
@@ -299,7 +343,8 @@ public class PaintPower_Engine
             Log.Info("Closing current editor.");
             _editor.Close();
             _editor = null;
-        } else
+        }
+        else
         {
             Log.Info("No editor to close.");
         }
@@ -343,6 +388,50 @@ public class PaintPower_Engine
                 project.SaveMetadata();
             }
         }
+    }
+
+    public async Task AnimateStatus(string baseMessage, Func<Task> action)
+    {
+        string[] frames = new[]
+        {
+            baseMessage,
+            baseMessage + ".",
+            baseMessage + "..",
+            baseMessage + "..."
+        };
+
+        int index = 0;
+        bool isRunning = true;
+
+        // Start animation loop
+        var animationLoop = Task.Run(async () =>
+        {
+            while (isRunning)
+            {
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    SetProjectStatus(frames[index]);
+                });
+
+                index = (index + 1) % frames.Length;
+                await Task.Delay(300);
+            }
+        });
+
+        // Run the actual work on a background thread
+        await action();
+
+        // Stop animation
+        isRunning = false;
+
+        // Wait for animation loop to finish
+        await animationLoop;
+
+        // Final status
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            SetProjectStatus(Translator.Map("Done!"));
+        });
     }
 
     public bool _isSavingAnimationRunning = false;
@@ -586,7 +675,7 @@ public class PaintPower_Engine
         server.DownloadProject(path, Convert.ToInt32(chosenId));
     }
 
-   public void HandleKeyDown(KeyEventArgs e)
+    public void HandleKeyDown(KeyEventArgs e)
     {
         KeyPress p = new KeyPress(e);
 

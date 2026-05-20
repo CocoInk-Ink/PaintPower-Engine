@@ -77,7 +77,7 @@ public class PaintProject
     // -------------------------
     // LOAD EXISTING PROJECT
     // -------------------------
-    public void Load(string projectPath)
+    public async Task Load(string projectPath)
     {
         ProjectPath = projectPath;
 
@@ -110,14 +110,18 @@ public class PaintProject
             Metadata = new ProjectMetadata();
         }
 
-        if (PaintPower_Engine.App.server.Username != "" && !Metadata.IsLinked)
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
-            PaintPower_Engine.App.AskToLinkProject(this);
-        }
 
-        // Now that the project is loaded
-        Sprites.Clear();
-        LoadSprites();
+            if (PaintPower_Engine.App.server.Username != "" && !Metadata.IsLinked)
+            {
+                PaintPower_Engine.App.AskToLinkProject(this);
+            }
+
+            // Now that the project is loaded
+            Sprites.Clear();
+            LoadSprites();
+        });
     }
 
     // -------------------------

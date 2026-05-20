@@ -1,3 +1,5 @@
+<!-- Goals.md -->
+
 # Goals!
 
 # Welcome! And thank you for contributing to this project!
@@ -19,6 +21,10 @@
     - Create video editor
 
     - Create animation editor
+
+	- Custom editor API
+
+	- Add your own editor! (Except for a sound editor, no editors that do anything with sound are allowed)
 
   #### For the VM and runtime, it runs bytecode compiled from KiteScript, and all sorts of languages get compiled to KiteScript instead of direct bytecode.
 

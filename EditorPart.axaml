@@ -11,9 +11,14 @@
 					<Menu Grid.Column="1" Margin="12,0">
 						<MenuItem x:Name="FileMenu" Header="File">
 							<MenuItem x:Name="FileNew" Header="New" Click="OnFileNew" />
+							<Separator />
 							<MenuItem x:Name="FileOpen" Header="Open..." Click="OnFileOpen" />
+							<Separator />
 							<MenuItem x:Name="FileSave" Header="Save" Click="OnFileSave" />
 							<MenuItem x:Name="FileSaveAs" Header="Save As..." Click="OnFileSaveAs" />
+							<Separator />
+							<MenuItem x:Name="FileClose" Header="Close Project" Click="OnCloseProject" />
+							<Separator />
 							<MenuItem x:Name="FileExit" Header="Exit" Click="OnFileExit" />
 						</MenuItem>
 						<MenuItem x:Name="EditMenu" Header="Edit">

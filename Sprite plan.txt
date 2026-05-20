@@ -1,4 +1,6 @@
-﻿Ok so let's build the definition of a sprite before we acually build a sprite.
+﻿
+
+Ok so let's build the definition of a sprite before we acually build a sprite.
 
 A sprite should be a folder inside of the project's "items" folder.
 In case you don't remember, a project file (*.xPaint) is a zip file with a project.json file,

@@ -178,6 +178,12 @@ public partial class EditorPart : UserControl
         aboutDialog.ShowDialog(MainWindow.window);
     }
 
+    private void OnCloseProject(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        App.CloseProject();
+    }
+
     public void RefreshTranslations()
     {
         SoundEffects.Click.Play();
@@ -202,6 +208,7 @@ public partial class EditorPart : UserControl
         FileOpen.Header = Translator.Translate("Open...");
         FileSave.Header = Translator.Translate("Save");
         FileSaveAs.Header = Translator.Translate("Save As...");
+        FileClose.Header = Translator.Translate("Close Project");
         FileExit.Header = Translator.Translate("Exit");
 
         // Edit submenu
