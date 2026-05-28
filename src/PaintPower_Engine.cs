@@ -42,7 +42,7 @@ public partial class PaintPower_Engine : EditorBase
     }
 
     private Editor _editorManager;
-    private EditorBase _editor;
+    private EditorBase? _editor;
     public PaintProject _project;
     public Server server;
     public VmPanel vmAreaPart;
