@@ -23,7 +23,7 @@ using Avalonia.Input;
 using PaintPower.Tools.Keyboard;
 namespace PaintPower;
 
-public class PaintPower_Engine
+public partial class PaintPower_Engine : EditorBase
 {
     public static readonly string versionNumber = "1.0.1.2";
     public static readonly string buildTime = new Date().getBuildTimestamp();
@@ -677,11 +677,6 @@ public class PaintPower_Engine
 
     public void HandleKeyDown(KeyEventArgs e)
     {
-        KeyPress p = new KeyPress(e);
-
-        if (p.isPressed("s") && p.isPressed("ctrl"))
-        {
-            Save();
-        }
+        if (SKeyPress.combo(e, "ctrl", "s"));
     }
 }

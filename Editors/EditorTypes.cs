@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PaintPower.Logging;
 using PaintPower.Tools.Media.Sound;
 
 namespace PaintPower.Editors;
@@ -39,8 +40,16 @@ public class EditorTypes
         // No need for a try/catch really, I just added it just in case.
         try
         {
+            Log.QuickLog(ext);
+
+            // Copy of this editor:
+            if (ext == ".xpaint")
+            {
+                result = "xPaint";
+            }
+
             // Paint editor.
-            if (Paint.Contains(ext))
+            else if (Paint.Contains(ext))
             {
                 result = "Paint";
             }

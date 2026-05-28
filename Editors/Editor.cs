@@ -25,6 +25,7 @@ public class Editor
 
         return ActiveEditor = type switch
         {
+            "xPaint" => new EditorPart(),
             "Paint" => new PaintEditor(relative, _workspace),
             "Script" => new ScriptEditor(relative, _workspace),
             "Animation" => new AnimationEditor(relative, _workspace),

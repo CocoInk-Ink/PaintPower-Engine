@@ -18,7 +18,7 @@ using PaintPower.VMPanel;
 using PaintPower.Tools.SoundEffects;
 namespace PaintPower;
 
-public partial class EditorPart : UserControl
+public partial class EditorPart : EditorBase
 {
     public bool saveNeeded = false;
 #pragma warning disable
@@ -28,7 +28,7 @@ public partial class EditorPart : UserControl
 
     #pragma warning enable
 
-    public EditorPart()
+    public EditorPart() : base()
     {
 
         InitializeComponent();
