@@ -1,9 +1,11 @@
-# Contributing to PaintPower Engine
+# Contributing to the PaintPower Engine
 
-Thank you for your interest in contributing to **PaintPower Engine**!  
+Thank you for your interest in contributing to the **PaintPower Engine**!  
 This project is still in early development, so every contribution helps shape its future.
 
 This document explains how to set up the project, how to contribute, and what to expect when submitting pull requests.
+
+### Remember that the PaintPower Engine uses C# 10.0!
 
 ---
 
