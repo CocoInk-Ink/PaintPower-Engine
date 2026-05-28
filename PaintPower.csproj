@@ -4,8 +4,8 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
 
-    <!-- Enable modern C# features even on .NET 6 -->
-    <LangVersion>12.0</LangVersion>
+    <!-- Use version C# 10.0 features for compatibility with on .NET 6 SDK -->
+    <LangVersion>10.0</LangVersion>
 
     <!-- Cross‑platform publishing -->
     <RuntimeIdentifiers>

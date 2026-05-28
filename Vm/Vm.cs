@@ -24,7 +24,7 @@ public class Vm
     public string Id { get; private set; }
 
 #pragma warning disable IDE0044 // Add readonly modifier
-    private List<string> IdList = [];
+    private List<string> IdList = new();
 
 #pragma warning restore IDE0044 // Add readonly modifier
     public int threadsCount = 0;
