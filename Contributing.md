@@ -20,7 +20,7 @@ git clone https://github.com/<your-username>/PaintPower-Engine.git
 ```
 
 ### 3. Install requirements
-PaintPower is written in **C#**.
+PaintPower is written in **C# 10.0**.
 
 You can use either:
 
