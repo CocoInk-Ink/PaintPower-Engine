@@ -7,14 +7,18 @@ namespace PaintPower.Tools.SoundEffects;
 public class SoundEffect
 {
     private readonly List<Media.Media> MediaList = new();
-    
+
     public SoundEffect(params string[] names)
     {
         foreach (var name in names)
         {
-            var media = new Media.Media("Assets/Sounds/" + name + ".wav");
-            media.Load();
-            MediaList.Add(media);
+            try
+            {
+                var media = new Media.Media("Assets/Sounds/" + name + ".wav");
+                media.Load();
+                MediaList.Add(media);
+            }
+            catch { }
         }
     }
 

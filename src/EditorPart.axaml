@@ -59,7 +59,7 @@
 		<Grid Grid.Row="1" ColumnDefinitions="260,5,*,">
 			<!-- BACKGROUND -->
 			<Grid.Background>
-				<ImageBrush Source="avares://PaintPower/Assets/Background.png" Stretch="None" TileMode="Tile" AlignmentX="Left" AlignmentY="Top" DestinationRect="0,0,10,10" />
+				<ImageBrush Source="avares://PaintPower/src/Assets/Background.png" Stretch="None" TileMode="Tile" AlignmentX="Left" AlignmentY="Top" DestinationRect="0,0,10,10" />
 			</Grid.Background>
 			<!-- OUTER LEFT: Sprite Manager + Sprite Properties -->
 			<Grid Grid.Column="0" RowDefinitions="*,5,*">

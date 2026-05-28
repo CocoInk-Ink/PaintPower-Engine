@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using PaintPower.Tools.Keyboard;
 using System;
 
 namespace PaintPower;
@@ -38,6 +39,7 @@ public partial class MainWindow : Window
         App.Start();
 
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
+        AddHandler(KeyUpEvent, OnKeyUp, RoutingStrategies.Tunnel);
 
         // Load project if opened via double-click
         if (!string.IsNullOrWhiteSpace(StartupProjectPath))
@@ -46,10 +48,16 @@ public partial class MainWindow : Window
         }
     }
 
-
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
+        KeyPress.RegisterKeyDown(e.Key);
         PaintPower_Engine.App.HandleKeyDown(e);
+    }
+
+    private void OnKeyUp(object? sender, KeyEventArgs e)
+    {
+        KeyPress.RegisterKeyUp(e.Key);
+        PaintPower_Engine.App.HandleKeyUp(e);
     }
 
 }

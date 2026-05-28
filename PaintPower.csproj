@@ -3,11 +3,8 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
-
-    <!-- Use version C# 10.0 features for compatibility with on .NET 6 SDK -->
     <LangVersion>10.0</LangVersion>
 
-    <!-- Cross‑platform publishing -->
     <RuntimeIdentifiers>
       win-x64;win-arm64;
       linux-x64;linux-arm64;
@@ -15,15 +12,17 @@
     </RuntimeIdentifiers>
 
     <Nullable>enable</Nullable>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationManifest>src\app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <!-- Remove a specific XAML file -->
   <ItemGroup>
-    <AvaloniaXaml Remove="Dialogs\PopupDialog.axaml" />
+    <AvaloniaXaml Remove="src\Dialogs\PopupDialog.axaml" />
   </ItemGroup>
 
+  <!-- NuGet packages -->
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.12" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.12" />
@@ -41,38 +40,29 @@
     <PackageReference Include="NAudio" Version="2.3.0" />
   </ItemGroup>
 
+  <!-- Build timestamp -->
   <PropertyGroup>
     <BuildTimestamp>$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss"))</BuildTimestamp>
     <DefineConstants>$(DefineConstants);BUILD_TIME=$(BuildTimestamp)</DefineConstants>
   </PropertyGroup>
 
+  <!-- External reference -->
   <ItemGroup>
     <Reference Include="AvaloniaEdit">
       <HintPath>..\AvaloniaEdit\net6.0\AvaloniaEdit.dll</HintPath>
     </Reference>
   </ItemGroup>
 
+  <!-- Avalonia resources (all under src/Assets) -->
   <ItemGroup>
-    <AvaloniaResource Include="Assets\**" />
+    <AvaloniaResource Include="src\Assets\**" />
   </ItemGroup>
 
+  <!-- Copy assets to output WITHOUT the src folder -->
   <ItemGroup>
-    <Folder Include="EditorTools\PaintEditorTools\" />
-    <Folder Include="FileExplorer\" />
-    <Folder Include="NewFolder\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Dialogs\DoSaveWindowDialog.axaml.cs">
-      <DependentUpon>DoSaveWindowDialog.axaml</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Assets\Untitled.xPaint" CopyToOutputDirectory="Always" />
-    <None Include="Assets\lang\**\*" CopyToOutputDirectory="Always" />
-    <None Include="Assets\KiteScript\**\*" CopyToOutputDirectory="Always" />
-    <None Include="Assets\Sounds\**\*" CopyToOutputDirectory="Always" />
+    <None Include="src\Assets\**" CopyToOutputDirectory="Always">
+      <Link>Assets\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </None>
   </ItemGroup>
 
 </Project>

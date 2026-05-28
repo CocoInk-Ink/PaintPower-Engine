@@ -158,7 +158,7 @@ public partial class PaintPower_Engine : EditorBase
         SetProjectStatus(Translator.Map("Select or create a project to get started."));
 
         saveNeeded = false;
-        
+
         Translator.load(null); // reset translation to default (in case project has different language)
 
         // Reset current project/editor
@@ -677,6 +677,34 @@ public partial class PaintPower_Engine : EditorBase
 
     public void HandleKeyDown(KeyEventArgs e)
     {
-        if (SKeyPress.combo(e, "ctrl", "s"));
+        KeyPress key = new(e);
+
+        Log.QuickLog($"KeyDown: {e.Key}");
+
+        // For functions that lose focus on this window, activate key up.
+
+        if (SKeyPress.combo(e, "ctrl", "s"))
+        { KeyPress.RegisterKeyUp(e.Key); Save(); }
+
+        if (SKeyPress.combo(e, "ctrl", "z"))
+        { Undo(); KeyPress.RegisterKeyUp(e.Key); }
+
+        if (SKeyPress.combo(e, "ctrl", "shift", "z"))
+        { Redo(); KeyPress.RegisterKeyUp(e.Key); }
+
+        if (SKeyPress.combo(e, "ctrl", "y"))
+        { Redo(); KeyPress.RegisterKeyUp(e.Key); }
+
+        if (SKeyPress.combo(e, "alt", "f4"))
+        { Close(); KeyPress.RegisterKeyUp(e.Key); }
+
+        if (SKeyPress.combo(e, "ctrl", "w"))
+        { CloseCurrentEditor(); KeyPress.RegisterKeyUp(e.Key); };
+
+    }
+
+    public void HandleKeyUp(KeyEventArgs e)
+    {
+        Log.QuickLog($"KeyUp: {e.Key}");
     }
 }
