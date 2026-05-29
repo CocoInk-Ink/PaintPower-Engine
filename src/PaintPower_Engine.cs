@@ -699,7 +699,7 @@ public partial class PaintPower_Engine : EditorBase
         { Close(); KeyPress.RegisterKeyUp(e.Key); }
 
         if (SKeyPress.combo(e, "ctrl", "w"))
-        { CloseCurrentEditor(); KeyPress.RegisterKeyUp(e.Key); };
+        { CloseEditor(); KeyPress.RegisterKeyUp(e.Key); };
 
     }
 

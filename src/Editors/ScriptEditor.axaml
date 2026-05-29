@@ -5,7 +5,7 @@
 
 	<Grid>
 		<Grid.Background>
-			<ImageBrush Source="avares://PaintPower/Assets/Background.png"
+			<ImageBrush Source="avares://PaintPower/src/Assets/Background.png"
 						Stretch="None"
 						TileMode="Tile"
 						DestinationRect="0,0,10,10" />

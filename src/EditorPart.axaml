@@ -56,7 +56,7 @@
 			</Grid>
 		</Border>
 		<!-- MAIN CONTENT -->
-		<Grid Grid.Row="1" ColumnDefinitions="260,5,*,">
+		<Grid Grid.Row="1" ColumnDefinitions="260,5,*">
 			<!-- BACKGROUND -->
 			<Grid.Background>
 				<ImageBrush Source="avares://PaintPower/src/Assets/Background.png" Stretch="None" TileMode="Tile" AlignmentX="Left" AlignmentY="Top" DestinationRect="0,0,10,10" />
@@ -74,7 +74,7 @@
 			</Grid>
 			<!-- SPLITTER between LEFT and CENTER -->
 			<GridSplitter Grid.Column="1" Width="5" Background="#505050" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" />
-			<Grid Grid.Row="2" RowDefinitions="30,*" Grid.Column="2">
+			<Grid RowDefinitions="30,*" Grid.Column="2">
 				<!-- Status Bar -->
 				<Border Grid.Row="0" Background="#c4c4c4" Margin="3">
 					<StackPanel Orientation="Horizontal" Margin="2" Background="#e0e0e0">
@@ -82,7 +82,11 @@
 					</StackPanel>
 				</Border>
 				<!-- OUTER CENTER: Sprite Editor Host -->
-				<ContentControl x:Name="CenterHost" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+				<Grid Grid.Row="1" ColumnDefinitions="*,5,*">
+					<ContentControl x:Name="CenterHost" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+					<GridSplitter Grid.Column="1" Width="5" Background="#505050" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" />
+					<vm:VmPanel Grid.Column="2" />
+				</Grid>
 			</Grid>
 		</Grid>
 	</Grid>
