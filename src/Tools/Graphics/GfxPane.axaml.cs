@@ -15,9 +15,9 @@ public partial class GfxPane : Control
 
     public Renderer2D Renderer => _renderer;
 
-    public GfxPane(int width, int height)
+    public GfxPane(double width, double height)
     {
-        _target = new RenderTarget2D(width, height);
+        _target = new RenderTarget2D((int)width, (int)height);
         _renderer = new Renderer2D(_target);
     }
 

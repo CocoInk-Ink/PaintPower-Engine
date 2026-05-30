@@ -1,8 +1,9 @@
 using System;
+using PaintPower.Sprites;
 
 namespace PaintPower.Display.Stage;
 
-public class StageItem
+public class StageItem : Sprite
 {
     public StageItem() {}
 }

@@ -38,6 +38,10 @@
     <PackageReference Include="Classic.Avalonia.Theme.ColorPicker" Version="11.3.0.3" />
     <PackageReference Include="Classic.CommonControls.Avalonia" Version="11.3.0.3" />
     <PackageReference Include="NAudio" Version="2.3.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.0.2" />
+    <PackageReference Include="Svg.Skia" Version="1.0.0" />
+
+
   </ItemGroup>
 
   <!-- Build timestamp -->

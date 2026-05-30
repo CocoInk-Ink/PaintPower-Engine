@@ -13,6 +13,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using PaintPower.Compiler.PreBytecode;
 
+using PaintPower.Sprites;
+
 namespace PaintPower.Vm;
 
 // VM runtime, runtime for the project player virtual machine.
@@ -21,7 +23,7 @@ public class Vm
 {
 
     public static Vm? vm;
-    public string Id { get; private set; }
+    public string Id { get; set; }
 
 #pragma warning disable IDE0044 // Add readonly modifier
     private List<string> IdList = new();
@@ -36,11 +38,15 @@ public class Vm
 
     public Dictionary<string, VmThread> Threads { get; } = new();
 
+    // For embedded VMs.
+    public Dictionary<string, Vm> VMs { get; } = new();
+
 #pragma warning disable
     public Vm()
     {
         try
         {
+            Id = CreateId();
             // KiteScriptTest.Run();
         }
         catch (Exception e)
@@ -51,23 +57,33 @@ public class Vm
         vm = this;
     }
 
-    public static bool isThreadSafe(VmThread? thread)
-        => thread is { isPaused: false };
+    public static bool isThreadSafe(VmThread? thread) { 
+        return thread.isPaused == false;
+    }
 
 #pragma warning restore
 
-    public string CreateThreadId()
+    public string CreateId(bool forThreads = true)
     {
         string id;
         do id = Guid.NewGuid().ToString();
-        while (Threads.ContainsKey(id));
+        while (forThreads ? Threads.ContainsKey(id) : VMs.ContainsKey(id));
         return id;
     }
 
-    public void AddThread(VmThread? thread, string? id = null)
+    public void AddThread(VmThread? thread, string? id = null) 
     {
-        id ??= CreateThreadId();
+        id ??= CreateId(true);
         Threads[id] = thread!; // safe replace-or-add
+    }
+
+    public void AddVM(Vm? vm, string? id = null)
+    {
+        id ??= CreateId(false);
+
+        if (vm != null) vm.Id = id;
+
+        VMs[id] = vm!;
     }
 
     public void CreateNewThread()
@@ -75,19 +91,39 @@ public class Vm
         AddThread(new VmThread());
     }
 
+    public void CreateNewVm()
+    {
+        AddVM(new Vm());
+    }
+
     public void RemoveThread(string id)
     {
         Threads.Remove(id);
     }
 
+    public void RemoveVM(string id)
+    {
+        VMs.Remove(id);
+    }
+
     public async Task Tick()
     {
+        foreach(Vm vm in VMs.Values)
+        {
+            await vm.Tick();
+        }
+
         foreach (VmThread thread in Threads.Values)
         {
             // Check if thread is valid:
 
             if (!isThreadSafe(thread)) continue;
             await thread.Step();
+
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                MainWindow.window.InvalidateVisual();
+            });
 
         }
     }

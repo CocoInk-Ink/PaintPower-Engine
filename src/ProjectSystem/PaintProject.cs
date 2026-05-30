@@ -113,7 +113,7 @@ public class PaintProject
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
 
-            if (PaintPower_Engine.App.server.Username != "" && !Metadata.IsLinked)
+            if (PaintPower_Engine.App.server.Username != "" && Metadata.IsLinked())
             {
                 PaintPower_Engine.App.AskToLinkProject(this);
             }
@@ -203,7 +203,14 @@ public class ProjectMetadata
     public string? name { get; set; } = "Untitled Project";
     public string? OpenFile { get; set; }
 
+    public double? StageWidth { get; set; } = 640;
+    public double? StageHeight { get; set; } = 450;
+
     // For online options.
-    public string? serverId { get; set; }
-    public bool IsLinked => !string.IsNullOrEmpty(serverId);
+    public string? serverId { get; set; } = null;
+    public bool IsLinked()
+    {
+        if (serverId == "0") return false;
+        return !string.IsNullOrEmpty(serverId);
+    }
 }

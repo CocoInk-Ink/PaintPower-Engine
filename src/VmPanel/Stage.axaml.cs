@@ -12,4 +12,10 @@ public partial class Stage : UserControl
     {
         InitializeComponent();
     }
+
+    public void SetSize(double width, double height)
+    {
+        Width = width;
+        Height = height;
+    }
 }

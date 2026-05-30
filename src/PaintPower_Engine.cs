@@ -573,7 +573,7 @@ public partial class PaintPower_Engine : EditorBase
         }
 
         // 2. Project not linked → ask to link
-        if (!project.Metadata.IsLinked)
+        if (!project.Metadata.IsLinked())
         {
             var linkDialog = new LinkBeforeUploadDialog();
             var linkChoice = await linkDialog.ShowDialog<string>(MainWindow.window);
@@ -610,7 +610,7 @@ public partial class PaintPower_Engine : EditorBase
         }
 
         // 3. Project is linked → ask overwrite/unlink
-        if (project.Metadata.IsLinked)
+        if (project.Metadata.IsLinked())
         {
             var uploadDialog = new UploadOptionsDialog(project.Metadata.serverId!);
             var choice = await uploadDialog.ShowDialog<string>(MainWindow.window);
