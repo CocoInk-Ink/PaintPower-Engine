@@ -24,15 +24,6 @@ public class Graphic
         Pixels = pixels;
     }
 
-    // Convert a Skin (file path) into a Graphic
-    public static object ToGraphic(Skin? skin)
-    {
-        if (skin == null || string.IsNullOrWhiteSpace(skin.path))
-            throw new ArgumentException("Skin is null or has no path.");
-
-        return GraphicLoader.LoadCached(skin.path);
-    }
-
 }
 
 public class GraphicAnimation

@@ -190,6 +190,9 @@ public class PaintProject
                 SpriteFolder = dir
             };
 
+            // Load sprite skins.
+            sprite.LoadSkins();
+
             Sprites.Add(sprite);
         }
     }

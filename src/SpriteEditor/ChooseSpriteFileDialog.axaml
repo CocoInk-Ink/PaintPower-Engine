@@ -1,0 +1,31 @@
+<Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Width="600" Height="500" Background="#303030" x:Class="PaintPower.SpriteEditor.ChooseSpriteFileDialog" Title="Choose File" xmlns:sprite="clr-namespace:PaintPower.SpriteEditor">
+    <Grid ColumnDefinitions="200,5,*" RowDefinitions="*,Auto" Background="#303030">
+        <!-- LEFT: Folder tree -->
+        <TreeView x:Name="FolderTree" Grid.Column="0" Background="#202020" Foreground="White" BorderBrush="#505050" BorderThickness="1" />
+        <!-- SPLITTER -->
+        <GridSplitter Grid.Column="1" Width="5" Background="#505050" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" />
+        <!-- CENTER: File list + preview -->
+        <Grid Grid.Column="2" RowDefinitions="*,200">
+            <!-- FILE LIST WITH THUMBNAILS -->
+            <ListBox x:Name="FileList" Grid.Row="0" Background="#202020" Foreground="White" BorderBrush="#505050" BorderThickness="1" SelectionChanged="OnFileSelected">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="sprite:SpriteFileItem">
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="4">
+                            <Image Source="{Binding Thumbnail}" Width="40" Height="40" />
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <!-- PREVIEW -->
+            <Border Grid.Row="1" Background="#101010" BorderBrush="#505050" BorderThickness="1" Padding="8">
+                <Image x:Name="PreviewImage" Stretch="Uniform" />
+            </Border>
+        </Grid>
+        <!-- BUTTONS -->
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="10">
+            <Button x:Name="CancelButton" Content="Cancel" Width="100" />
+            <Button x:Name="ChooseButton" Content="Choose" Width="100" />
+        </StackPanel>
+    </Grid>
+</Window>

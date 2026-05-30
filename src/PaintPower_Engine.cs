@@ -287,6 +287,8 @@ public partial class PaintPower_Engine : EditorBase
 
         // Set up translation
         setupTranslation();
+
+        vm = new();
     }
 
     public virtual async void Start()
@@ -313,7 +315,8 @@ public partial class PaintPower_Engine : EditorBase
 
         // Set up translation
         setupTranslation();
-        //vm = new Vm.Vm();
+
+        vm = new();
     }
 
     /*public void OpenEditor(EditorBase editor)

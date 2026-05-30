@@ -3,28 +3,35 @@ using PaintPower.Logging;
 using PaintPower.Display.Stage;
 using PaintPower.Display.DisplayIntegration;
 using PaintPower.Tools.Graphics;
+using System.Collections.Generic;
 
 namespace PaintPower.Sprites;
 
 public class Sprite : DIItem
 {
-    public Skin? skin;
+    public List<Skin> Skins = new();
+    public int CurrentSkinIndex = 0;
 
-    public Sprite(double? x = null, double? y = null, Skin? skin = null)
+    public Skin CurrentSkin => Skins[CurrentSkinIndex];
+
+    public Sprite(double? x = null, double? y = null, int? skin = null)
     {
         if (x != null) this.x = x; else this.x = Tools.Math.Random.calc(DIPlay.stageSize.x, DIPlay.stageSize.y);
         if (y != null) this.y = y;
-        if (skin != null) this.skin = skin;
+        if (skin != null) this.CurrentSkinIndex = (int)skin;
     }
 
-    public void SetSkin(Skin skin)
+    public void SetSkin(int index)
     {
-        this.skin = skin;
+        if (index >= 0 && index < Skins.Count)
+            CurrentSkinIndex = index;
     }
 
     public override object DrawAs()
     {
-        return Graphic.ToGraphic(skin);
+        if (Skins.Count == 0)
+            return null; // DIPlay will skip it
+        return CurrentSkin.Graphic;
     }
 
 }

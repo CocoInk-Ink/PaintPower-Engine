@@ -1,7 +1,20 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="PaintPower.VMPanel.Stage">
-    <StackPanel>
-        <Border Width="640" Height="450" BorderBrush="gray" Background="white" BorderThickness="1" CornerRadius="0,0,8,8" Padding="10" />
-    </StackPanel>
+
+    <Border Width="640"
+            Height="450"
+            BorderBrush="gray"
+            Background="black"
+            BorderThickness="1"
+            CornerRadius="0,0,8,8"
+            Padding="0">
+
+        <!-- This is where DIPlay will push the rendered frame -->
+        <Image x:Name="StageImage"
+               Stretch="Fill"
+               HorizontalAlignment="Stretch"
+               VerticalAlignment="Stretch"/>
+    </Border>
+
 </UserControl>

@@ -6,7 +6,7 @@
             <vm:TopBarStagePart Grid.Row="0" />
             <!-- Stage + overlay -->
             <Grid Grid.Row="1">
-                <vm:Stage />
+                <vm:Stage x:Name="StageControl" />
                 <vm:ProcessingPanel x:Name="LoadingPart" />
             </Grid>
         </Grid>

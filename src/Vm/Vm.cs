@@ -47,6 +47,7 @@ public class Vm
         try
         {
             Id = CreateId();
+            LoadSpritesIntoDisplay();
             // KiteScriptTest.Run();
         }
         catch (Exception e)
@@ -57,7 +58,8 @@ public class Vm
         vm = this;
     }
 
-    public static bool isThreadSafe(VmThread? thread) { 
+    public static bool isThreadSafe(VmThread? thread)
+    {
         return thread.isPaused == false;
     }
 
@@ -71,7 +73,7 @@ public class Vm
         return id;
     }
 
-    public void AddThread(VmThread? thread, string? id = null) 
+    public void AddThread(VmThread? thread, string? id = null)
     {
         id ??= CreateId(true);
         Threads[id] = thread!; // safe replace-or-add
@@ -106,9 +108,30 @@ public class Vm
         VMs.Remove(id);
     }
 
+    public void LoadSpritesIntoDisplay()
+    {
+        var project = PaintPower_Engine.App._project;
+        if (project == null)
+            return;
+
+        var stage = PaintPower.VMPanel.Stage.stage;
+        if (stage == null)
+            return;
+
+        var display = stage.Diplay;
+
+        display.items.Clear();
+
+        foreach (PaintSprite ps in project.Sprites)
+        {
+            var runtime = ps.ToRuntimeSprite();
+            display.items.Add(runtime);
+        }
+    }
+
     public async Task Tick()
     {
-        foreach(Vm vm in VMs.Values)
+        foreach (Vm vm in VMs.Values)
         {
             await vm.Tick();
         }

@@ -1,641 +1,370 @@
-/*
-    File containing routes for the interweb, if you want to create your own server,
-    then use these routes or modify them for your server.
-*/
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PaintPower.VMPanel.LoadingBar">
 
-namespace PaintPower.Networking;
+    <Grid x:Name="Root" Width="210" Height="22" ClipToBounds="True">
 
-public class Routes
+        <!-- Background -->
+        <Border Background="#d0d0d0"
+                CornerRadius="6"/>
+
+        <!-- Fill -->
+        <Border x:Name="FillBar"
+                Background="#179fd7"
+                CornerRadius="6"
+                Width="0"
+                HorizontalAlignment="Left"/>
+    </Grid>
+</UserControl>
+using Avalonia;
+using Avalonia.Controls;
+
+namespace PaintPower.VMPanel
 {
-    // Server check routes
-    public static string serverCheck()
+    public partial class LoadingBar : UserControl
     {
-        return "api/servercheck/";
-    }
+        private int _pendingPercent = -1;
 
-    public static string checkActiveServer()
-    {
-        return serverCheck();
-    }
-
-    // Create a new project without uploading it.
-    public static string createNew()
-    {
-        return "api/projects/create";
-    }
-
-    // Upload project routes
-    public static string uploadNew() {
-        return "api/projects/new/upload/paintfile/";
-    }
-
-    public static string uploadUpdate(string id)
-    {
-        return $"api/projects/{id}/upload/paintfile/";
-    }
-
-    // Download project routes
-
-    public static string downloadProject(string id)
-    {
-        return $"api/projects/{id}/download";
-    }
-
-    // Mystuff routes
-    public static string userProjectsRoute(string username = "")
-    {
-        if (username != string.Empty)
+        public LoadingBar()
         {
-            return $"api/list/projects/{username}";
-        }
-        return "api/mystuff/projects";
-    }
+            InitializeComponent();
 
-    // For testing a custom server.
-    public static string testServerListProjects()
-    {
-        return "api/listProjects/";
-    }
-}
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net.Http;
-using PaintPower.ProjectSystem;
-using PaintPower.Logging;
-
-namespace PaintPower.Networking;
-
-// Networking class for the PaintPower Engine.
-// Mainly to be used for the 'Coco xPaint Project', but it will lie
-// here in the engine because it's open source. So anyone can create their own server.
-public class Server
-{
-    //*--- Domain security. ---*//
-    private static List<Domain> AllowedDomainsList = new List<Domain>();
-    private bool isConnected = false;
-    public void AllowDomain(Domain domain) => AllowedDomainsList.Add(domain);
-    public bool IsDomainAllowed(Domain domain) => AllowedDomainsList.Contains(domain);
-
-    public void ClearAllowedDomains() => AllowedDomainsList.Clear();
-
-    public void RemoveDomain(Domain domain) { AllowedDomainsList.Remove(domain); }
-
-    public Domain CurrentDomain = new Domain("www.cocoink.ink/f/PaintPower");
-
-    public void closeAllConnections()
-    {
-        AllowedDomainsList.Clear();
-    }
-
-    // Make a valid url.
-    public string makeUrl(string addon = "")
-    {
-        string url = $"{URLifyer.URLify(CurrentDomain)}{addon}";
-        Log.QuickLog($"Url made: {url}");
-        return url;
-    }
-
-    // Create, register, and add default domains.
-    public void loadDefaultDomains()
-    {
-
-        // Clear old list
-        AllowedDomainsList.Clear();
-
-        // Create Coco links, Paint links, random links, and more!
-        // Creating a custom server? Make a issue on GitHub and I'll add it here!
-        Domain d1 = new Domain("xpaint.cocoink.ink");
-        Domain d2 = new Domain("paint.cocoink.ink");
-        Domain d3 = new Domain("127.0.0.1:5500/f/xPaint");
-        Domain d4 = new Domain("127.0.0.1:5000/f/xPaint");
-        Domain d5 = new Domain("127.0.0.1:3000/f/xPaint");
-        Domain d12 = new Domain("0.0.0.0:5500/f/xPaint");
-        Domain d6 = new Domain("127.0.0.1:8000");
-        Domain d7 = new Domain("localhost:5500");
-        Domain d8 = new Domain("localhost:5000");
-        Domain d9 = new Domain("localhost:8000");
-        Domain d10 = new Domain("localhost:3000");
-        Domain d11 = new Domain("github.com");
-        Domain d13 = new Domain("paint-website.onrender.com");
-        Domain d14 = new Domain("paintpower.cocoink.ink");
-        Domain d15 = new Domain("www.cocoink.ink");
-        Domain d16 = new Domain("www.cocoink.ink/f/xPaint");
-        Domain d17 = new Domain("www.cocoink.ink/f/Paint");
-        Domain d18 = new Domain("www.cocoink.ink/f/PaintPower");
-        Domain d19 = new Domain("negro.org");
-        Domain d20 = new Domain("example.com");
-
-        // Add to list
-        AllowDomain(d1); AllowDomain(d2); AllowDomain(d3); AllowDomain(d4); AllowDomain(d5);
-        AllowDomain(d6); AllowDomain(d7); AllowDomain(d8); AllowDomain(d9); AllowDomain(d10);
-        AllowDomain(d11); AllowDomain(d12); AllowDomain(d13); AllowDomain(d14); AllowDomain(d15);
-        AllowDomain(d16); AllowDomain(d17); AllowDomain(d18); AllowDomain(d19); AllowDomain(d20);
-
-#if DEBUG
-        setActiveDomain(d3);
-#else
-        setActiveDomain(d16);
-#endif
-    }
-
-    public void setActiveDomain(Domain domain)
-    {
-        CurrentDomain = domain;
-    }
-
-    //*--- Networking ---*//
-    public async Task InitServer()
-    {
-        loadDefaultDomains();
-        isConnected = await checkConnection();
-    }
-
-    public async Task<bool> checkConnection()
-    {
-        var domain = CurrentDomain;
-        if (domain == null) throw new ArgumentNullException(nameof(domain));
-
-        if (!IsDomainAllowed(domain)) throw new UnauthorizedAccessException("Domain not allowed");
-
-        try
-        {
-            return await Net.PerformGetRequest(makeUrl(Routes.checkActiveServer())) == "Ok.";
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    public async Task<object?> GetFromServer(string url)
-    {
-        var domain = CurrentDomain;
-        if (domain == null) throw new ArgumentNullException(nameof(domain));
-        if (!IsDomainAllowed(domain)) throw new UnauthorizedAccessException("Domain not allowed");
-        return await Net.PerformGetRequest(url);
-    }
-
-    /* Download a project made by the user */
-    public async Task DownloadProject(string savePath)
-    {
-        string url = URLifyer.URLify(CurrentDomain);
-        await Net.DownloadFileAsync(url, savePath);
-    }
-
-    /* Save the project and load it into the editor. */
-    public async Task DownloadProjectAndLoad(string savePath)
-    {
-        try
-        {
-            await DownloadProject(savePath);
-        }
-        catch (Exception e)
-        {
-            Log.QuickLog(e.Message);
+            // Listen for size changes — this fires when layout is ready
+            Root.SizeChanged += OnSizeChanged;
         }
 
-        PaintPower_Engine.App.OpenProjectFile(savePath);
-    }
-
-    public async Task UploadProject(PaintProject project)
-    {
-#pragma warning disable
-        PaintPower_Engine.App.RunSavingAnimation();
-
-        try
+        private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
         {
-            await Net.UploadFileAsync(
-                 $"{URLifyer.URLify(CurrentDomain)}api/upload/projects/1/",
-                 project.ProjectPath,
-                 project.Metadata.name // send project title
-             );
-        }
-        finally
-        {
-            MainWindow.App._isSavingAnimationRunning = false;
-        }
-    }
-
-    // If the user is signed in, then get a list of their projects from the server.
-    public async Task ListUserProjects()
-    {
-        string url =
-#if DEBUG
-        makeUrl(Routes.testServerListProjects());
-#else
-        makeUrl(Routes.userProjectsRoute());
-#endif
-        GetFromServer(url); // Do nothing with the data for now...
-    }
-
-    public string Username { get; set; }
-
-    public async Task<bool> Login(string username, string password)
-    {
-        if (await IsLoggedIn()) await Logout();
-        await Net.Login(username, password);
-        if (await IsLoggedIn()) Username = username;
-        return await IsLoggedIn();
-    }
-
-    public async Task Logout()
-    {
-        if (await IsLoggedIn()) await Net.PerformPostRequest(PaintPower_Engine.App.server.makeUrl("logout"), new Dictionary<string, bool> {{ "redirect", false }});
-        if (!await IsLoggedIn()) Username = "";
-    }
-
-    public async Task<bool> IsLoggedIn()
-    {
-        var response = await Net.PerformGetRequest(makeUrl("api/whoami"));
-        return response != null && !response.Contains("Not logged in");
-    }
-
-    public Server()
-    {
-        InitServer();
-    }
-}
-
-/*
-    Actual networking
-*/
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using PaintPower;
-using PaintPower.Logging;
-
-public class Net
-{
-    private static readonly HttpClientHandler handler = new HttpClientHandler
-    {
-        UseCookies = true,
-        CookieContainer = new CookieContainer(),
-        AllowAutoRedirect = true
-    };
-
-    // Shared HttpClient instance (recommended for performance)
-    private static readonly HttpClient client = new HttpClient(handler);
-
-    private static async Task<string?> getCSRF_Token()
-    {
-        return PaintPower_Engine.App.server.CurrentDomain?.CSRF_Token;
-    }
-
-    // GET request method
-    public static async Task<string?> PerformGetRequest(string url)
-    {
-        try
-        {
-            HttpResponseMessage response = await client.GetAsync(url);
-            response.EnsureSuccessStatusCode(); // Throws if not 2xx
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            Console.WriteLine("GET Response:");
-            Console.WriteLine(responseBody);
-            return responseBody;
-        }
-        catch (HttpRequestException e)
-        {
-            Console.WriteLine($"GET request error: {e.Message}");
-            return null;
-        }
-    }
-
-    // POST request method
-    public static async Task PerformPostRequest<T>(string url, T data)
-    {
-        try
-        {
-            string json = JsonSerializer.Serialize(data);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            Log.QuickLog($"Body: {content}");
-
-            HttpResponseMessage response = await client.PostAsync(url, content);
-            response.EnsureSuccessStatusCode();
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            Console.WriteLine("POST Response:");
-            Console.WriteLine(responseBody);
-        }
-        catch (HttpRequestException e)
-        {
-            Console.WriteLine($"POST request error: {e.Message}");
-        }
-    }
-
-    public static async Task DownloadFileAsync(string url, string destinationPath)
-    {
-        try
-        {
-            using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-            response.EnsureSuccessStatusCode();
-
-            await using var stream = await response.Content.ReadAsStreamAsync();
-            await using var fileStream = File.Create(destinationPath);
-
-            byte[] buffer = new byte[81920]; // 80 KB chunks
-            int bytesRead;
-
-            while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            if (_pendingPercent >= 0)
             {
-                await fileStream.WriteAsync(buffer, 0, bytesRead);
+                ApplyPercent(_pendingPercent);
+                _pendingPercent = -1;
             }
         }
-        catch (Exception ex)
+
+        public void SetPercent(int percent)
         {
-            Console.WriteLine($"Download error: {ex.Message}");
+            if (percent < 0) percent = 0;
+            if (percent > 100) percent = 100;
+
+            // If width is still 0, wait until SizeChanged fires
+            if (Root.Bounds.Width <= 0)
+            {
+                _pendingPercent = percent;
+                return;
+            }
+
+            ApplyPercent(percent);
         }
-    }
 
-    public static async Task UploadFileAsync(string url, string filePath, string projectTitle)
-    {
-        Debug.WriteLine(url);
-
-        try
+        private void ApplyPercent(int percent)
         {
-            using var form = new MultipartFormDataContent();
-            await using var fileStream = File.OpenRead(filePath);
+            double totalWidth = Root.Bounds.Width;
+            double newWidth = (percent / 100.0) * totalWidth;
 
-            var fileContent = new StreamContent(fileStream);
-            fileContent.Headers.ContentType =
-                new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
-
-            // File field (multer expects "file")
-            form.Add(fileContent, "file", Path.GetFileName(filePath));
-
-            // Add project title
-            form.Add(new StringContent(projectTitle, Encoding.UTF8), "title");
-
-            using var response = await client.PostAsync(url, form);
-            response.EnsureSuccessStatusCode();
-
-            Debug.WriteLine("Upload complete.");
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Upload error: {ex.Message}");
-        }
-    }
-
-    public static async Task<bool> Login(string username, string password)
-    {
-        try
-        {
-            var data = new Dictionary<string, string>
-        {
-            { "username", username },
-            { "password", password }
-        };
-
-            var content = new FormUrlEncodedContent(data);
-
-            var response = await client.PostAsync(
-                PaintPower_Engine.App.server.makeUrl("login"),
-                content
-            );
-
-            Log.QuickLog($"Login status: {response.GetHashCode()}");
-
-            // If login fails, server returns 400 with text
-            if (!response.IsSuccessStatusCode)
-                return false;
-
-            // If login succeeds, server redirects to "/"
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Log.QuickLog($"Login error: {ex.Message}");
-            return false;
+            FillBar.Width = newWidth;
         }
     }
 }
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PaintPower.Networking;
-
-// A class for a domain.
-public class Domain
-{
-    public bool IsConnected { get; set; }
-    public bool IsDisconnected { get; set; }
-    public bool IsAllowed { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public string Type { get; set; } = string.Empty;
-
-    public string Protocol = string.Empty;
-    public string Host = string.Empty; public static string Port = string.Empty;
-    public string? Username = string.Empty;
-    public string? Password = string.Empty;
-    public string domain = string.Empty;
-    public string CSRF_Token = string.Empty;
-
-    public Domain(string nDomain, string nProtocol = "http", string nName = "", string nHost = "", string nPort = "") {
-        // Initalize domain
-        IsAllowed = false;
-        IsConnected = false;
-        IsDisconnected = false;
-        Name = nName;
-        Host = nHost;
-        Port = nPort;
-        domain = nDomain;
-        Protocol = nProtocol;
-    }
-
-    public override string ToString()
-    {
-        return $"Domain: {Name} ({Protocol}://{Host}:{Port})";
-    }
-}
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="clr-namespace:PaintPower.VMPanel" x:Class="PaintPower.VMPanel.ProcessingPanel">
+    <Grid>
+        <Border Background="#90000000" CornerRadius="0,0,8,8">
+            <Border Width="250" Height="130" BorderBrush="gray" Background="white" BorderThickness="3" CornerRadius="0,0,8,8" Padding="10" BoxShadow="0 4 12 0 #80000000" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="12" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <vm:LoadingBar x:Name="Loader" />
+                    <TextBlock Text="Loading Project..." FontSize="16" FontWeight="SemiBold" Foreground="#5c5d5f" HorizontalAlignment="Center" x:Name="HeaderText" />
+                    <TextBlock Text="29449 of 398484 assets loaded" FontSize="11" FontWeight="SemiBold" Foreground="#5c5d5f" HorizontalAlignment="Center" x:Name="SubHeaderText" />
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>
 
 using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Platform.Storage;
-using PaintPower.Dialogs;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Text.Json;
+using Avalonia.Markup.Xaml;
 using System.Threading.Tasks;
 
-namespace PaintPower.ProjectSystem;
+using PaintPower.Logging;
+using PaintPower.Accessibility.Translation;
+using PaintPower.Tools.Math.Formulas;
 
-public class PaintProject
+
+namespace PaintPower.VMPanel;
+
+public partial class ProcessingPanel : UserControl
 {
-    public string ProjectPath { get; set; } = ""; // Path to zip file.
-    public TempWorkspace Workspace { get; }
-    public ProjectMetadata Metadata { get; set; }
-
-    public List<PaintSprite> Sprites { get; private set; } = new(); // Sprite list
-
-    public string ProjectName { get; private set; } = string.Empty;
-
-    public PaintProject()
+    public ProcessingPanel()
     {
-        Workspace = new TempWorkspace();
-        Metadata = new ProjectMetadata();
+        InitializeComponent();
+        RunTest();
     }
 
-    // -------------------------
-    // CREATE NEW PROJECT
-    // -------------------------
-    public void CreateNew()
+    private async void RunTest()
     {
-        var loader = new ProjectLoader();
-        loader.LoadDefaultProject(this);
-
-        // ProjectPath stays empty → user must Save As
-        ProjectPath = "";
-
-        Metadata = new ProjectMetadata { name = "Untitled", OpenFile = null };
-        SaveMetadata();
-    }
-
-    // -------------------------
-    // SAVE NEW PROJECT
-    // -------------------------
-    public async Task<ProjectLoaderResult> SaveNewProject(Window owner)
-    {
-        var savePicker = await owner.StorageProvider.SaveFilePickerAsync(
-            new FilePickerSaveOptions
-            {
-                Title = "Create New Project",
-                DefaultExtension = "xPaint",
-                SuggestedFileName = $"{Metadata.name}.xPaint",
-                ShowOverwritePrompt = true
-            });
-
-        if (savePicker == null)
+        int total = (!false) ? 398484 : 712;
+        //SetText("Loading Project...", "{processed} of {total} assets loaded");
+        SetText("Compiling Scripts...", "Compiled {processed} of {total} total scripts");
+        for (int processed = (false) ? 29449 : 0; processed <= total; processed++)
         {
-            return new ProjectLoaderResult
-            {
-                Mode = ProjectLoaderMode.New,
-                Path = string.Empty
-            };
+            Loader.SetPercent(Percent.calc(processed, total));
+            //SetSubheaderText($"{processed} of {total} assets loaded");
+            SetSubheaderText($"Compiled {processed} of {total} total scripts");
+            await Task.Delay(100);
         }
-
-        PaintPower_Engine.window.Title = $"PaintPower - {Metadata.name}";
-
-        return new ProjectLoaderResult
-        {
-            Mode = ProjectLoaderMode.New,
-            Path = savePicker.Path.LocalPath
-        };
     }
 
-    // -------------------------
-    // LOAD EXISTING PROJECT
-    // -------------------------
-    public void Load(string projectPath)
+    public void SetPercent(int percent)
     {
-        ProjectPath = projectPath;
-
-        if (Directory.Exists(Workspace.Root)) { }
-
-        // Extract ZIP into temp workspace
-        ZipFile.ExtractToDirectory(projectPath, Workspace.Root, overwriteFiles: true);
-
-        // Load metadata
-        string metaPath = Path.Combine(Workspace.Root, "project.json");
-        if (File.Exists(metaPath))
-        {
-            string json = File.ReadAllText(metaPath);
-            Metadata = JsonSerializer.Deserialize<ProjectMetadata>(json) ?? new ProjectMetadata();
-        }
-        else
-        {
-            Metadata = new ProjectMetadata();
-        }
-
-        // Now that the project is loaded
-        LoadSprites();
+        Loader.SetPercent(percent);
     }
 
-    // -------------------------
-    // SAVE PROJECT
-    // -------------------------
-    public async Task SaveToDisk()
+    public void SetText(string? header = null, string? subheader = null)
     {
-        // Always update metadata first
-        SaveMetadata();
-
-        // If no path yet -> ask user where to save
-        if (string.IsNullOrWhiteSpace(ProjectPath))
-        {
-            PaintPower_Engine.App.isNewProject = true; // Keep isNewProject checks
-
-            var result = await SaveNewProject(MainWindow.window);
-
-            if (string.IsNullOrWhiteSpace(result.Path))
-                return; // user cancelled
-
-            ProjectPath = result.Path;
-            PaintPower_Engine.App.isNewProject = false;
-        }
-
-        // Recreate ZIP
-        // Run ZIP creation on background thread
-        await Task.Run(() =>
-        {
-            if (File.Exists(ProjectPath))
-                File.Delete(ProjectPath);
-
-            ZipFile.CreateFromDirectory(Workspace.Root, ProjectPath);
-        });
+        if (header != null) SetHeaderText(header);
+        if (subheader != null) SetSubheaderText(subheader);
     }
 
-    private void SaveMetadata()
+    public void SetHeaderText(string? text)
     {
-        string json = JsonSerializer.Serialize(Metadata, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(Path.Combine(Workspace.Root, "project.json"), json);
+        HeaderText.Text = text;
+        HeaderText.InvalidateVisual();
     }
 
-
-    public void LoadSprites()
+    public void SetSubheaderText(string? text)
     {
-        string spritesDir = Path.Combine(Workspace.ItemsDir, "sprites");
+        SubHeaderText.Text = text;
+        SubHeaderText.InvalidateVisual();
+    }
 
-        if (!Directory.Exists(spritesDir))
-            return;
+}
 
-        foreach (var dir in Directory.GetDirectories(spritesDir))
-        {
-            var sprite = new PaintSprite
-            {
-                Name = Path.GetFileName(dir),
-                SpriteFolder = dir
-            };
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PaintPower.VMPanel.Stage">
+    <StackPanel>
+        <Border Width="640" Height="450" BorderBrush="gray" Background="white" BorderThickness="1" CornerRadius="0,0,8,8" Padding="10" />
+    </StackPanel>
+</UserControl>
 
-            Sprites.Add(sprite);
-        }
+using Avalonia.Controls;
+
+using PaintPower.Logging;
+using PaintPower.Accessibility.Translation;
+using Avalonia.Markup.Xaml;
+
+namespace PaintPower.VMPanel;
+
+public partial class Stage : UserControl
+{
+    public Stage()
+    {
+        InitializeComponent();
+    }
+
+    public void SetSize(double width, double height)
+    {
+        Width = width;
+        Height = height;
     }
 }
 
-// -------------------------
-// PROJECT METADATA STRUCT
-// -------------------------
-public class ProjectMetadata
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="clr-namespace:PaintPower.VMPanel" x:Class="PaintPower.VMPanel.StageAreaPart">
+    <Viewbox Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" StretchDirection="DownOnly">
+        <!-- This Grid stays at its natural size -->
+        <Grid Width="640" Height="450" RowDefinitions="Auto,*">
+            <!-- Top bar -->
+            <vm:TopBarStagePart Grid.Row="0" />
+            <!-- Stage + overlay -->
+            <Grid Grid.Row="1">
+                <vm:Stage />
+                <vm:ProcessingPanel x:Name="LoadingPart" />
+            </Grid>
+        </Grid>
+    </Viewbox>
+</UserControl>
+
+using Avalonia.Controls;
+
+using PaintPower.Logging;
+using PaintPower.Accessibility.Translation;
+using Avalonia.Markup.Xaml;
+
+namespace PaintPower.VMPanel;
+
+public partial class StageAreaPart : UserControl
 {
-    public string name { get; set; } = "Untitled Project";
-    public string? OpenFile { get; set; }
+    public StageAreaPart()
+    {
+        InitializeComponent();
+    }
+}
+
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PaintPower.VMPanel.TopBarStagePart">
+
+    <Border Background="#f0f0f0"
+            CornerRadius="8,8,0,0"
+            BorderBrush="#c0c0c0"
+            BorderThickness="1"
+            Padding="6">
+
+        <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto"
+              VerticalAlignment="Center">
+
+            <!-- Left side: Stage title or empty space -->
+            <TextBlock Text="Stage"
+                       FontSize="14"
+                       Foreground="#444"
+                       VerticalAlignment="Center"
+                       Margin="4 0"/>
+
+            <!-- Spacer -->
+            <Grid Grid.Column="1"/>
+
+            <!-- Fullscreen button -->
+            <Button Grid.Column="2"
+                    Width="28" Height="28"
+                    Background="#4da3ff"
+                    BorderBrush="#3a8bd6"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Margin="4 0"
+                    x:Name="FullscreenButton">
+                <TextBlock Text="[+]"
+                           FontSize="16"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Button>
+
+            <!-- Green flag -->
+            <Button Grid.Column="3"
+                    Width="28" Height="28"
+                    Background="#4caf50"
+                    BorderBrush="#3e8c41"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Margin="4 0"
+                    x:Name="GreenFlagButton">
+                <TextBlock Text=">"
+                           FontSize="16"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Button>
+
+            <!-- Red stop -->
+            <Button Grid.Column="4"
+                    Width="28" Height="28"
+                    Background="#e53935"
+                    BorderBrush="#b52c2a"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Margin="4 0"
+                    x:Name="StopButton">
+                <TextBlock Text="||"
+                           FontSize="16"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Button>
+
+        </Grid>
+    </Border>
+</UserControl>
+
+using Avalonia.Controls;
+
+using PaintPower.Logging;
+using PaintPower.Accessibility.Translation;
+using Avalonia.Markup.Xaml;
+
+namespace PaintPower.VMPanel;
+
+public partial class TopBarStagePart : UserControl
+{
+    public TopBarStagePart()
+    {
+        InitializeComponent();
+    }
+}
+
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="PaintPower.VMPanel.VmPanel" xmlns:vm="clr-namespace:PaintPower.VMPanel">
+	<Grid>
+		<Grid.Background>
+			<ImageBrush Source="avares://PaintPower/src/Assets/Background Dark.png" Stretch="None" TileMode="Tile" DestinationRect="0,0,10,10" />
+		</Grid.Background>
+		<Rectangle Fill="#80000000" />
+		<Border Padding="10">
+			<StackPanel Background="White">
+				<TextBlock x:Name="VMPanelText" Text="VM Panel" FontSize="20" Foreground="Black" Margin="0 0 0 10" />
+				<vm:StageAreaPart/>
+				<StackPanel Orientation="Horizontal">
+					<Button x:Name="PlayButton" Classes="gray" Content="Play" Margin="0 5" />
+					<Button x:Name="StopButton" Classes="gray" Content="Stop" Margin="0 5" />
+					<Button x:Name="BuildAndRunButton" Classes="gray" Content="Build and Run" Margin="0 5" />
+				</StackPanel>
+			</StackPanel>
+		</Border>
+	</Grid>
+</UserControl>
+
+using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
+
+using PaintPower.Accessibility.Translation;
+using PaintPower.Logging;
+
+namespace PaintPower.VMPanel;
+
+public partial class VmPanel : UserControl
+{
+
+    public VmPanel()
+    {
+        InitializeComponent();
+
+        this.AttachedToVisualTree += (_, __) =>
+        {
+            Translator.LanguageChanged += translate;
+            translate();
+        };
+
+        this.DetachedFromVisualTree += (_, __) =>
+        {
+            Translator.LanguageChanged -= translate;
+        };
+    }
+
+    public void refresh()
+    {
+        translate();
+        InvalidateVisual();
+    }
+
+    public void translate()
+    {
+        if (VMPanelText != null) VMPanelText.Text = Translator.Map("VM Panel");
+        else
+        {
+            Log.QuickLog("VMPanelText is null, cannot translate.");
+        }
+        ;
+        if (PlayButton != null) PlayButton.Content = Translator.Map("Play");
+        else
+        {
+            Log.QuickLog("PlayButton is null, cannot translate.");
+        }
+        ;
+        if (StopButton != null) StopButton.Content = Translator.Map("Stop");
+        else
+        {
+            Log.QuickLog("StopButton is null, cannot translate.");
+        }
+        ;
+        if (BuildAndRunButton != null) BuildAndRunButton.Content = Translator.Map("Build and Run");
+        else
+        {
+            Log.QuickLog("BuildAndRunButton is null, cannot translate.");
+        }
+        ;
+    }
 }

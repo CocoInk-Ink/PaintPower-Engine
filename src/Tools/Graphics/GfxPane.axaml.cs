@@ -15,6 +15,12 @@ public partial class GfxPane : Control
 
     public Renderer2D Renderer => _renderer;
 
+    public IntPtr BufferPtr => _target.BufferPtr;
+    public int Stride => _target.CurrentStride;
+
+    public int Width => _target.Width;
+    public int Height => _target.Height;
+
     public GfxPane(double width, double height)
     {
         _target = new RenderTarget2D((int)width, (int)height);

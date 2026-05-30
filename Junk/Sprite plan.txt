@@ -1,4 +1,4 @@
-﻿
+﻿Sprite Plan.txt
 
 Ok so let's build the definition of a sprite before we acually build a sprite.
 
@@ -13,7 +13,7 @@ should be a items folder. When opening a sprite in the editor this is what the e
 the root of the items folder in the sprite folder, no longer the "items" folder in the root of
 the project.
 
-So when a sprite is exported, it's just a zip file containing everthing (*.pSprite).
+So when a sprite is exported, it's just a zip file containing everything (*.pSprite).
 
 Just to be clear, what I mean by opening a sprite is selecting a sprite in the sprite manager area.
 When you do that, the explorer and editor should then show, and the workspace directory will change

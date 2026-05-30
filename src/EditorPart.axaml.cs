@@ -26,7 +26,7 @@ public partial class EditorPart : EditorBase
 
     MainWindow window;
 
-    #pragma warning enable
+#pragma warning enable
 
     public EditorPart() : base()
     {
@@ -36,6 +36,12 @@ public partial class EditorPart : EditorBase
 
         // Display PaintPower version:
         VersionInfoTextBlock.Text = PaintPower_Engine.version;
+
+        SpriteManager.SpriteSelected += sprite =>
+        {
+            SpriteProperties.LoadSprite(sprite);
+        };
+
     }
 
     public EditorPart attachPaintPower(PaintPower_Engine paintPower_Engine)
@@ -131,7 +137,7 @@ public partial class EditorPart : EditorBase
     private void OnMakeConnection(object? sender, RoutedEventArgs e)
     {
         SoundEffects.Click.Play();
-        #pragma warning disable
+#pragma warning disable
         // Enable connection to the server
         App.server.checkConnection();
     }

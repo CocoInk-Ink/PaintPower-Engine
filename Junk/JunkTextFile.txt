@@ -1,389 +1,1258 @@
-Ok, i'd say we are done with translation for now.
-Let's work on a system so that we can sign into an account attached to a server.
+Wow, nice. PaintSprite does not know about skins yet though. But I know exactly where it should define them.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net.Http;
-using PaintPower.ProjectSystem;
+Current PaintSprite.cs:
+
+using PaintPower.Accessibility.Translation;
 using PaintPower.Logging;
+using System;
+using System.IO;
+using System.Linq;
 
-namespace PaintPower.Networking;
+namespace PaintPower.ProjectSystem;
 
-// Networking class for the PaintPower Engine.
-// Mainly to be used for the 'Coco xPaint Project', but it will lie
-// here in the engine because it's open source. So anyone can create their own server.
-public class Server
+public class PaintSprite
 {
-//*--- Domain security. ---*//
-private static List<Domain> AllowedDomainsList = new List<Domain>();
-private bool isConnected = false; 
-public void AllowDomain(Domain domain) => AllowedDomainsList.Add(domain);
-public bool IsDomainAllowed(Domain domain) => AllowedDomainsList.Contains(domain);
+    public string Name { get; set; } = "";
+    public string SpriteFolder { get; set; } = ""; // absolute path in workspace
 
-public void ClearAllowedDomains() => AllowedDomainsList.Clear();
+    public string JsonPath => Path.Combine(SpriteFolder, "Sprite.json");
+    public string AnimationPath => Path.Combine(SpriteFolder, "Sprite.wxa");
 
-public void RemoveDomain(Domain domain) { AllowedDomainsList.Remove(domain); }
+    // Thumbnail.
+    public string ThumbnailPath => Path.Combine(SpriteFolder, "Sprite.png");
+    public string ScriptPath => Path.Combine(SpriteFolder, "Sprite.pss");
 
-public Domain CurrentDomain = new Domain("www.cocoink.ink/f/PaintPower");
+    // NEW: Skins.xml, I guess we will link skins to files in the items folder or it's subdirectories.
+    // Please not JSON, i've been waiting for an excuse to use xml!
+    public string SkinsPath => Path.Combine(SpriteFolder, "Skins.xml");
 
-public void closeAllConnections() {
-AllowedDomainsList.Clear();
+    // Files.
+    public string ItemsFolder => Path.Combine(SpriteFolder, "items");
+
+    public override string ToString() => Name;
+
+    // ---------------------------------------------------------
+    // STATIC OPERATIONS (SpriteManagerView passes the sprite)
+    // ---------------------------------------------------------
+
+    public static void Delete(PaintSprite sprite)
+    {
+        if (sprite == null)
+            return;
+
+        if (Directory.Exists(sprite.SpriteFolder))
+            Directory.Delete(sprite.SpriteFolder, recursive: true);
+    }
+
+    public static void Rename(PaintSprite sprite, string newName)
+    {
+        if (sprite == null)
+            return;
+
+        string parent = Directory.GetParent(sprite.SpriteFolder)!.FullName;
+        string newFolder = Path.Combine(parent, newName);
+
+        Directory.Move(sprite.SpriteFolder, newFolder);
+
+        sprite.SpriteFolder = newFolder;
+        sprite.Name = newName;
+    }
+
+    public static string? SafeRename(string baseName, string parentFolder)
+    {
+        // Clean filename to prevent errors, instead of replacing with underscores, we can just remove invalid chars
+        var invalidChars = Path.GetInvalidFileNameChars();
+        baseName = string.Concat(baseName.Where(c => !invalidChars.Contains(c)));
+
+        if (string.IsNullOrWhiteSpace(baseName))
+            return null;
+
+        // If no conflict, return as-is
+        string target = Path.Combine(parentFolder, baseName);
+        if (!Directory.Exists(target))
+            return baseName;
+
+        // Extract trailing number (if any)
+        int number = 1;
+        string nameWithoutNumber = baseName;
+
+        int i = baseName.Length - 1;
+        while (i >= 0 && char.IsDigit(baseName[i]))
+            i--;
+
+        if (i < baseName.Length - 1)
+        {
+            string digits = baseName[(i + 1)..];
+            nameWithoutNumber = baseName[..(i + 1)];
+
+            if (int.TryParse(digits, out int parsed))
+                number = parsed + 1;
+        }
+
+        // Try incrementing until we find a free name
+        string newName;
+        do
+        {
+            newName = $"{nameWithoutNumber}{number}";
+            number++;
+        }
+        while (Directory.Exists(Path.Combine(parentFolder, newName)));
+
+        return newName;
+    }
+
+    public static PaintSprite Duplicate(PaintSprite sprite)
+    {
+        if (sprite == null)
+            throw new ArgumentNullException(nameof(sprite));
+
+        string parent = Directory.GetParent(sprite.SpriteFolder)!.FullName;
+
+        // Generate a safe name like "Sprite2", "Sprite3", etc.
+        string newName = SafeRename(sprite.Name, parent);
+
+        string newFolder = Path.Combine(parent, newName);
+
+        // Copy entire folder recursively
+        CopyDirectory(sprite.SpriteFolder, newFolder);
+
+        // Create new sprite instance
+        var newSprite = new PaintSprite
+        {
+            Name = newName,
+            SpriteFolder = newFolder
+        };
+
+        return newSprite;
+    }
+
+    private static void CopyDirectory(string sourceDir, string destDir)
+    {
+        Directory.CreateDirectory(destDir);
+
+        // Copy files
+        foreach (var file in Directory.GetFiles(sourceDir))
+        {
+            string dest = Path.Combine(destDir, Path.GetFileName(file));
+            File.Copy(file, dest, overwrite: true);
+        }
+
+        // Copy subdirectories
+        foreach (var dir in Directory.GetDirectories(sourceDir))
+        {
+            string dest = Path.Combine(destDir, Path.GetFileName(dir));
+            CopyDirectory(dir, dest);
+        }
+    }
 }
 
-// Make a valid url.
-public string makeUrl(string addon = "")
+Here is the old but not outdated Sprite Plan.txt File:
+
+`
+Sprite Plan.txt
+
+Ok so let's build the definition of a sprite before we acually build a sprite.
+
+A sprite should be a folder inside of the project's "items" folder.
+In case you don't remember, a project file (*.xPaint) is a zip file with a project.json file,
+a header.json file, and a "items", "compiled", and now a sprites folder inside of the items folder.
+In the "sprites" folder there should be, well... Sprites. So anyway a sprite is a folder (inside of the sprites folder) containing
+the following:
+
+Sprite.json (Attributes), Sprite.wxa (Animation or images), Sprite.png (Thumbnail), and Sprite.pss (PaintScript), then next to those files
+should be a items folder. When opening a sprite in the editor this is what the explorer should show,
+the root of the items folder in the sprite folder, no longer the "items" folder in the root of
+the project.
+
+So when a sprite is exported, it's just a zip file containing everything (*.pSprite).
+
+Just to be clear, what I mean by opening a sprite is selecting a sprite in the sprite manager area.
+When you do that, the explorer and editor should then show, and the workspace directory will change
+depending on the sprite, but of course the root of the full project stays the same.
+
+using System;
+using System.IO;
+
+namespace PaintPower.ProjectSystem;
+
+public class TempWorkspace
 {
-return $"{URLifyer.URLify(CurrentDomain)}/{addon}";
-}
+    public string Root { get; }
+    public string ItemsDir => Path.Combine(Root, "items");
 
-// Create, register, and add default domains.
-public void loadDefaultDomains() {
+    public TempWorkspace()
+    {
+        Root = Path.Combine(Path.GetTempPath(), "PaintPower_" + Guid.NewGuid());
+        Directory.CreateDirectory(Root);
+        Directory.CreateDirectory(ItemsDir);
+    }
 
-// Clear old list
-AllowedDomainsList.Clear();
+    public string MapToTemp(string projectRelativePath)
+    {
+        return Path.Combine(ItemsDir, projectRelativePath.Replace("/", "\\"));
+    }
 
-// Create Coco links, Paint links, random links, and more!
-// Creating a custom server? Make a issue on GitHub and I'll add it here!
-Domain d1 = new Domain("xpaint.cocoink.ink");
-Domain d2 = new Domain("paint.cocoink.ink");
-Domain d3 = new Domain("127.0.0.1:5500/f/xPaint");
-Domain d4 = new Domain("127.0.0.1:5000/f/xPaint");
-Domain d5 = new Domain("127.0.0.1:3000/f/xPaint");
-Domain d12 = new Domain("0.0.0.0:5500/f/xPaint");
-Domain d6 = new Domain("127.0.0.1:8000");
-Domain d7 = new Domain("localhost:5500");
-Domain d8 = new Domain("localhost:5000");
-Domain d9 = new Domain("localhost:8000");
-Domain d10 = new Domain("localhost:3000");
-Domain d11 = new Domain("github.com");
-Domain d13 = new Domain("paint-website.onrender.com");
-Domain d14 = new Domain("paintpower.cocoink.ink");
-Domain d15 = new Domain("www.cocoink.ink");
-Domain d16 = new Domain("www.cocoink.ink/f/xPaint");
-Domain d17 = new Domain("www.cocoink.ink/f/Paint");
-Domain d18 = new Domain("www.cocoink.ink/f/PaintPower");
-Domain d19 = new Domain("negro.org");
-Domain d20 = new Domain("example.com");
+    public void ImportFile(string sourcePath, string relativePath)
+    {
+        string dest = MapToTemp(relativePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+        File.Copy(sourcePath, dest, overwrite: true);
+    }
 
-// Add to list
-AllowDomain(d1); AllowDomain(d2); AllowDomain(d3); AllowDomain(d4); AllowDomain(d5);
-AllowDomain(d6); AllowDomain(d7); AllowDomain(d8); AllowDomain(d9); AllowDomain(d10);
-AllowDomain(d11); AllowDomain(d12); AllowDomain(d13); AllowDomain(d14); AllowDomain(d15);
-AllowDomain(d16); AllowDomain(d17); AllowDomain(d18); AllowDomain(d19); AllowDomain(d20);
+    public void SaveFile(string relativePath, string content)
+    {
+        string dest = MapToTemp(relativePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+        File.WriteAllText(dest, content);
+    }
 
-#if DEBUG
-setActiveDomain(d3);
-#else
-setActiveDomain(d16);
-#endif
-}
+    public void SaveBinary(string relativePath, byte[] data)
+    {
+        string dest = MapToTemp(relativePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+        File.WriteAllBytes(dest, data);
+    }
 
-public void setActiveDomain(Domain domain)
-{
-CurrentDomain = domain;
-}
+    public byte[] LoadBinary(string relativePath)
+    {
+        string path = MapToTemp(relativePath);
+        return File.Exists(path) ? File.ReadAllBytes(path) : Array.Empty<byte>();
+    }
 
-//*--- Networking ---*//
-public async Task InitServer()
-{
-loadDefaultDomains();
-isConnected = await checkConnection();
-}
+    public string LoadText(string relativePath)
+    {
+        string path = MapToTemp(relativePath);
+        return File.Exists(path) ? File.ReadAllText(path) : "";
+    }
 
-public async Task<bool> checkConnection() {
-var domain = CurrentDomain;
-if (domain == null) throw new ArgumentNullException(nameof(domain));
+    public void Delete(string relativePath)
+    {
+        string path = MapToTemp(relativePath);
+        if (File.Exists(path))
+            File.Delete(path);
+    }
 
-if (!IsDomainAllowed(domain)) throw new UnauthorizedAccessException("Domain not allowed");
-
-try {
-return await Net.PerformGetRequest(makeUrl(Routes.checkActiveServer())) == "Ok.";
-}
-catch
-{
-return false;
-}
-}
-
-public async Task<object?> GetFromServer(string url)
-{
-var domain = CurrentDomain;
-if (domain == null) throw new ArgumentNullException(nameof(domain));
-if (!IsDomainAllowed(domain)) throw new UnauthorizedAccessException("Domain not allowed");
-return await Net.PerformGetRequest(url);
-}
-
-/* Download a project made by the user */
-public async Task DownloadProject(string savePath)
-{
-string url = URLifyer.URLify(CurrentDomain);
-await Net.DownloadFileAsync(url, savePath);
-}
-
-/* Save the project and load it into the editor. */
-public async Task DownloadProjectAndLoad(string savePath)
-{
-try {
-await DownloadProject(savePath);
-} catch(Exception e)
-{
-Log.QuickLog(e.Message);
-}
-
-PaintPower_Engine.App.OpenProjectFile(savePath);
-}
-
-public async Task UploadProject(PaintProject project)
-{
-#pragma warning disable
-PaintPower_Engine.App.RunSavingAnimation();
-
-try
-{
-await Net.UploadFileAsync(
-$"{URLifyer.URLify(CurrentDomain)}api/upload/projects/1/",
-project.ProjectPath,
-project.Metadata.name // send project title
-);
-}
-finally
-{
-MainWindow.App._isSavingAnimationRunning = false;   
-}
-}
-
-// If the user is signed in, then get a list of their projects from the server.
-public async Task ListUserProjects()
-{
-string url =
-#if DEBUG
-makeUrl(Routes.testServerListProjects());
-#else
-makeUrl(Routes.userProjectsRoute());
-#endif
-GetFromServer(url); // Do nothing with the data for now...
-}
-
-public Server() {
-InitServer();
-}
+    public void Cleanup()
+    {
+        if (Directory.Exists(Root))
+            Directory.Delete(Root, recursive: true);
+    }
 }
 
 using System;
+using System.IO;
+using System.IO.Compression;
+using System.Text.Json;
+
+namespace PaintPower.ProjectSystem;
+
+public class PaintProject
+{
+    public string ProjectPath { get; set; } = ""; // Path to zip file.
+    public TempWorkspace Workspace { get; }
+    public ProjectMetadata Metadata { get; private set; }
+
+    public string ProjectName { get; private set; } = string.Empty;
+
+    public PaintProject()
+    {
+        Workspace = new TempWorkspace();
+        Metadata = new ProjectMetadata();
+    }
+
+    // -------------------------
+    // CREATE NEW PROJECT
+    // -------------------------
+    public void CreateNew(string projectPath, string Name)
+    {
+        ProjectPath = projectPath;
+        Metadata = new ProjectMetadata
+        {
+            name = Name,
+            OpenFile = null
+        };
+
+        SaveMetadata();
+        SaveToDisk();
+    }
+
+    // -------------------------
+    // LOAD EXISTING PROJECT
+    // -------------------------
+    public void Load(string projectPath)
+    {
+        ProjectPath = projectPath;
+
+        if (Directory.Exists(Workspace.Root)) { }
+
+        // Extract ZIP into temp workspace
+        ZipFile.ExtractToDirectory(projectPath, Workspace.Root, overwriteFiles: true);
+
+        // Load metadata
+        string metaPath = Path.Combine(Workspace.Root, "project.json");
+        if (File.Exists(metaPath))
+        {
+            string json = File.ReadAllText(metaPath);
+            Metadata = JsonSerializer.Deserialize<ProjectMetadata>(json) ?? new ProjectMetadata();
+        }
+        else
+        {
+            Metadata = new ProjectMetadata();
+        }
+    }
+
+    // -------------------------
+    // SAVE PROJECT AS ZIP
+    // -------------------------
+    public void SaveToZip()
+    {
+        if (string.IsNullOrWhiteSpace(ProjectPath))
+            throw new Exception("ProjectPath is not set.");
+
+        // Update metadata file
+        SaveMetadata();
+
+        // Recreate ZIP
+        if (File.Exists(ProjectPath))
+            File.Delete(ProjectPath);
+
+        ZipFile.CreateFromDirectory(Workspace.Root, Path.Combine(Workspace.Root, "..", "Paintfile", "file.zip"));
+    }
+    public void ClearTempZip() {
+        File.Delete(Path.Combine(Workspace.Root, "..", "Paintfile", "file.zip"));
+    }
+    // -------------------------
+    // SAVE PROJECT
+    // -------------------------
+    public void SaveToDisk()
+    {
+        if (string.IsNullOrWhiteSpace(ProjectPath))
+            throw new Exception("ProjectPath is not set.");
+
+        // Update metadata file
+        SaveMetadata();
+
+        // Recreate ZIP
+        if (File.Exists(ProjectPath))
+            File.Delete(ProjectPath);
+
+        ZipFile.CreateFromDirectory(Workspace.Root, ProjectPath);
+    }
+
+    private void SaveMetadata()
+    {
+        string json = JsonSerializer.Serialize(Metadata, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(Path.Combine(Workspace.Root, "project.json"), json);
+    }
+}
+
+// -------------------------
+// PROJECT METADATA STRUCT
+// -------------------------
+public class ProjectMetadata
+{
+    public string name { get; set; } = "Untitled Project";
+    public string? OpenFile { get; set; }
+}
+`
+
+Ignore some of the stuff about the old PaintProject code, here is the code now:
+
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
+using PaintPower.Dialogs;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.IO;
+using System.IO.Compression;
+using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace PaintPower.Networking;
+namespace PaintPower.ProjectSystem;
 
-// A class for a domain.
-public class Domain
+public class PaintProject
 {
-public bool IsConnected { get; set; }
-public bool IsDisconnected { get; set; }
-public bool IsAllowed { get; set; }
-public string Name { get; set; } = string.Empty;
-public string Description { get; set; } = string.Empty;
-public string Type { get; set; } = string.Empty;
+    public string ProjectPath { get; set; } = ""; // Path to zip file.
+    public TempWorkspace Workspace { get; }
+    public ProjectMetadata Metadata { get; set; }
 
-public string Protocol = string.Empty;
-public string Host = string.Empty; public static string Port = string.Empty;
-public string? Username = string.Empty;
-public string? Password = string.Empty;
-public string domain = string.Empty;
+    public List<PaintSprite> Sprites { get; private set; } = new(); // Sprite list
 
-public string CSRF_Token = string.Empty;
+    public string ProjectName { get; private set; } = string.Empty;
 
-public Domain(string nDomain, string nProtocol = "http", string nName = "", string nHost = "", string nPort = "") {
-// Initalize domain
-IsAllowed = false;
-IsConnected = false;
-IsDisconnected = false;
-Name = nName;
-Host = nHost;
-Port = nPort;
-domain = nDomain;
-Protocol = nProtocol;
+    public PaintProject()
+    {
+        Workspace = new TempWorkspace();
+        Metadata = new ProjectMetadata();
+    }
+
+    // -------------------------
+    // CREATE NEW PROJECT
+    // -------------------------
+    public void CreateNew()
+    {
+        var loader = new ProjectLoader();
+        loader.LoadDefaultProject(this);
+
+        // ProjectPath stays empty → user must Save As
+        ProjectPath = "";
+
+        Metadata = new ProjectMetadata { name = "Untitled", OpenFile = null };
+        SaveMetadata();
+    }
+
+    // -------------------------
+    // SAVE NEW PROJECT
+    // -------------------------
+    public async Task<ProjectLoaderResult> SaveNewProject(Window owner)
+    {
+        var savePicker = await owner.StorageProvider.SaveFilePickerAsync(
+            new FilePickerSaveOptions
+            {
+                Title = "Create New Project",
+                DefaultExtension = "xPaint",
+                SuggestedFileName = $"{Metadata.name}.xPaint",
+                ShowOverwritePrompt = true
+            });
+
+        if (savePicker == null)
+        {
+            return new ProjectLoaderResult
+            {
+                Mode = ProjectLoaderMode.New,
+                Path = string.Empty
+            };
+        }
+
+        PaintPower_Engine.window.Title = $"PaintPower - {Metadata.name}";
+
+        return new ProjectLoaderResult
+        {
+            Mode = ProjectLoaderMode.New,
+            Path = savePicker.Path.LocalPath
+        };
+    }
+
+    // -------------------------
+    // LOAD EXISTING PROJECT
+    // -------------------------
+    public async Task Load(string projectPath)
+    {
+        ProjectPath = projectPath;
+
+        // Clear any old temp workspace content before extracting a new project.
+        if (Directory.Exists(Workspace.Root))
+            Directory.Delete(Workspace.Root, recursive: true);
+
+        Directory.CreateDirectory(Workspace.Root);
+        Directory.CreateDirectory(Workspace.ItemsDir);
+
+        // Extract ZIP into temp workspace
+        ZipFile.ExtractToDirectory(projectPath, Workspace.Root, overwriteFiles: true);
+
+        // Load metadata
+        string metaPath = Path.Combine(Workspace.Root, "project.json");
+        if (File.Exists(metaPath))
+        {
+            string json = File.ReadAllText(metaPath);
+            try
+            {
+                Metadata = JsonSerializer.Deserialize<ProjectMetadata>(json) ?? new ProjectMetadata();
+            }
+            catch
+            {
+                Metadata = new ProjectMetadata();
+            }
+        }
+        else
+        {
+            Metadata = new ProjectMetadata();
+        }
+
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+
+            if (PaintPower_Engine.App.server.Username != "" && Metadata.IsLinked())
+            {
+                PaintPower_Engine.App.AskToLinkProject(this);
+            }
+
+            // Now that the project is loaded
+            Sprites.Clear();
+            LoadSprites();
+        });
+    }
+
+    // -------------------------
+    // SAVE PROJECT
+    // -------------------------
+    public async Task SaveToDisk(string tempPath = "")
+    {
+        // Always update metadata first
+        SaveMetadata();
+
+        // If no path yet -> ask user where to save
+        if (string.IsNullOrWhiteSpace(ProjectPath))
+        {
+            PaintPower_Engine.App.isNewProject = true; // Keep isNewProject checks
+
+            var result = await SaveNewProject(MainWindow.window);
+
+            if (string.IsNullOrWhiteSpace(result.Path))
+                return; // user cancelled
+
+            ProjectPath = result.Path;
+            PaintPower_Engine.App.isNewProject = false;
+        }
+
+        // Recreate ZIP
+        // Run ZIP creation on background thread
+        await Task.Run(() =>
+        {
+            if (tempPath != "")
+            {
+                if (File.Exists(tempPath))
+                    File.Delete(tempPath);
+
+                ZipFile.CreateFromDirectory(Workspace.Root, tempPath);
+            }
+            else
+            {
+                if (File.Exists(ProjectPath))
+                    File.Delete(ProjectPath);
+
+                ZipFile.CreateFromDirectory(Workspace.Root, ProjectPath);
+            }
+        });
+    }
+
+    public void SaveMetadata()
+    {
+        string json = JsonSerializer.Serialize(Metadata, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(Path.Combine(Workspace.Root, "project.json"), json);
+    }
+
+
+    public void LoadSprites()
+    {
+        Sprites.Clear();
+        string spritesDir = Path.Combine(Workspace.ItemsDir, "sprites");
+
+        if (!Directory.Exists(spritesDir))
+            return;
+
+        foreach (var dir in Directory.GetDirectories(spritesDir))
+        {
+            var sprite = new PaintSprite
+            {
+                Name = Path.GetFileName(dir),
+                SpriteFolder = dir
+            };
+
+            Sprites.Add(sprite);
+        }
+    }
 }
 
-public override string ToString()
+// -------------------------
+// PROJECT METADATA STRUCT
+// -------------------------
+public class ProjectMetadata
 {
-return $"Domain: {Name} ({Protocol}://{Host}:{Port})";
+    public string? name { get; set; } = "Untitled Project";
+    public string? OpenFile { get; set; }
+
+    public double? StageWidth { get; set; } = 640;
+    public double? StageHeight { get; set; } = 450;
+
+    // For online options.
+    public string? serverId { get; set; } = null;
+    public bool IsLinked()
+    {
+        if (serverId == "0") return false;
+        return !string.IsNullOrEmpty(serverId);
+    }
 }
-}
 
-/*
-File containing routes for the interweb, if you want to create your own server,
-then use these routes or modify them for your server.
-*/
+Here are the stuff in the SpriteEditor namespace:
 
-namespace PaintPower.Networking;
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:explorer="clr-namespace:PaintPower.FileExplorer"
+             x:Class="PaintPower.SpriteEditor.SpriteEditorView">
 
-public class Routes
+	<Grid ColumnDefinitions="260,5,*">
+
+		<!-- INNER LEFT: Explorer -->
+		<explorer:ExplorerView x:Name="Explorer"
+                               Grid.Column="0"/>
+
+		<!-- SPLITTER -->
+		<GridSplitter Grid.Column="1"
+                      Width="5"
+                      Background="#505050"
+                      ResizeDirection="Columns"
+                      ResizeBehavior="PreviousAndNext"/>
+
+		<!-- INNER RIGHT: Editor Host -->
+		<ContentControl x:Name="EditorHost"
+                        Grid.Column="2"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"/>
+
+	</Grid>
+</UserControl>
+
+using Avalonia.Controls;
+using PaintPower.Accessibility.Translation;
+using PaintPower.Editors;
+using PaintPower.Logging;
+using PaintPower.ProjectSystem;
+using PaintPower.Tools.SoundEffects;
+using System.IO;
+
+namespace PaintPower.SpriteEditor;
+
+public partial class SpriteEditorView : UserControl
 {
-// Server check routes
-public static string serverCheck()
+    private readonly PaintSprite _sprite;
+    private readonly TempWorkspace _workspace;
+
+    public SpriteEditorView(PaintSprite sprite, TempWorkspace workspace)
+    {
+        InitializeComponent();
+
+        _sprite = sprite;
+        _workspace = workspace;
+
+        Explorer.Initialize(workspace);
+
+        // Set explorer root to sprite items folder
+        _workspace.SetActiveRoot(sprite.ItemsFolder);
+        Explorer.SetRoot(sprite.ItemsFolder);
+
+        Translator.LanguageChanged += () => TranslateGUI();
+    }
+
+    public void OpenEditor(EditorBase editor, string fullPath)
+    {
+        SoundEffects.Click.Play();
+        TranslateGUI();
+        var relative = MakeSpriteRelative(fullPath);
+        editor.SetRelativePath(relative);
+        Log.QuickLog(fullPath);
+        Log.QuickLog(relative);
+        EditorHost.Content = editor;
+    }
+
+    public string MakeSpriteRelative(string fullPath)
+    {
+        // fullPath = items/sprites/<Sprite>/items/<whatever>
+        return fullPath.Replace(_sprite.ItemsFolder + Path.DirectorySeparatorChar, "");
+    }
+
+    public void TranslateGUI()
+    {
+        Explorer.TranslateGUI();
+    }
+}
+
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PaintPower.SpriteEditor.SpriteManagerView">
+
+	<Border Background="#303030" Padding="8">
+		<Grid RowDefinitions="Auto,*,Auto" RowSpacing="8">
+
+			<!-- Header -->
+			<TextBlock Text="Sprites"
+                       Foreground="White"
+                       FontSize="16"
+                       Margin="0,0,0,4"/>
+
+			<!-- Sprite List -->
+			<ListBox x:Name="SpriteList"
+                     Grid.Row="1"
+                     Background="#202020"
+                     BorderBrush="#404040"
+                     BorderThickness="1"
+					 Foreground="White"
+                     SelectionChanged="OnSpriteSelected"
+                     DoubleTapped="OnSpriteDoubleTapped"/>
+
+			<!-- Buttons -->
+			<StackPanel
+                        Orientation="Vertical"
+                        Spacing="6">
+			
+			<StackPanel
+                        Orientation="Horizontal"
+                        Spacing="6">
+				
+				<Button x:Name="NewSpriteButton" Content="New Sprite"
+                        Classes="white"
+                        Click="OnNewSprite"/>
+				
+				<Button x:Name="ImportSpriteButton" Content="Import"
+                        Classes="white"
+                        Click="OnImportSprite"/>
+				
+				<Button x:Name="ExportSpriteButton" Content="Export"
+						Classes="white"
+						Click="OnExportSprite"/>
+			</StackPanel>
+
+				<StackPanel
+                        Orientation="Horizontal"
+                        Spacing="6">
+					
+					
+					
+					<Button
+							x:Name="DuplicateSpriteButton"
+							Content="Duplicate"
+							Classes="white"
+							Click="OnDuplicateSprite"/>
+					<Button
+							x:Name="RenameSpriteButton"
+							Content="Rename"
+							Classes="white"
+							Click="OnRenameSprite"/>
+					
+
+					<Button x:Name="DeleteSpriteButton" Content="Delete"
+							Classes="white"
+							Click="OnDeleteSprite"/>
+				</StackPanel>
+			</StackPanel>
+
+		</Grid>
+	</Border>
+</UserControl>
+
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using PaintPower.Accessibility.Translation;
+using PaintPower.ProjectSystem;
+using System;
+using System.Collections.ObjectModel;
+using System.IO;
+using PaintPower.Dialogs;
+using System.Threading.Tasks;
+
+namespace PaintPower.SpriteEditor;
+
+public partial class SpriteManagerView : UserControl
 {
-return "api/servercheck/";
+    public ObservableCollection<PaintSprite> Sprites { get; } = new();
+
+    private PaintProject _project;
+
+    public event Action<PaintSprite>? SpriteSelected;
+
+    public SpriteManagerView()
+    {
+        InitializeComponent();
+        SpriteList.ItemsSource = Sprites;
+    }
+
+    private string translate(string s)
+    {
+        return Translator.Map(s);
+    }
+
+    public void TranslateGUI()
+    {
+        DeleteSpriteButton.Content = translate("Delete");
+        ExportSpriteButton.Content = translate("Export");
+        ImportSpriteButton.Content = translate("Import");
+        RenameSpriteButton.Content = translate("Rename");
+        DuplicateSpriteButton.Content = translate("Duplicate");
+        NewSpriteButton.Content = translate("New Sprite");
+
+        InvalidateVisual();
+    }
+
+    public void Initialize(PaintProject project)
+    {
+        _project = project;
+        Sprites.Clear();
+
+        foreach (var sprite in project.Sprites)
+            Sprites.Add(sprite);
+    }
+
+    private void OnSpriteSelected(object? sender, SelectionChangedEventArgs e)
+    {
+        if (SpriteList.SelectedItem is PaintSprite sprite)
+            SpriteSelected?.Invoke(sprite);
+    }
+
+    private void OnSpriteDoubleTapped(object? sender, RoutedEventArgs e)
+    {
+        if (SpriteList.SelectedItem is PaintSprite sprite)
+            SpriteSelected?.Invoke(sprite);
+    }
+
+    private void OnNewSprite(object? sender, RoutedEventArgs e)
+    {
+        var name = Translator.Map("Sprite") + " " + (Sprites.Count + 1);
+
+        string spritesDir = Path.Combine(_project.Workspace.ItemsDir, "sprites");
+        Directory.CreateDirectory(spritesDir);
+
+        string folder = Path.Combine(spritesDir, name);
+        Directory.CreateDirectory(folder);
+
+        // Create default files
+        File.WriteAllText(Path.Combine(folder, "Sprite.json"), "{}");
+        File.WriteAllText(Path.Combine(folder, "Sprite.pss"), "");
+        File.WriteAllBytes(Path.Combine(folder, "Sprite.png"), Array.Empty<byte>());
+        File.WriteAllBytes(Path.Combine(folder, "Sprite.wxa"), Array.Empty<byte>());
+        Directory.CreateDirectory(Path.Combine(folder, "items"));
+
+        var sprite = new PaintSprite
+        {
+            Name = name,
+            SpriteFolder = folder
+        };
+
+        _project.Sprites.Add(sprite);
+        Sprites.Add(sprite);
+    }
+
+    private void OnImportSprite(object? sender, RoutedEventArgs e)
+    {
+        if (SpriteList.SelectedItem is PaintSprite sprite)
+        {
+            // TODO: Implement .pSprite import
+        }
+    }
+
+    private void OnExportSprite(object? sender, RoutedEventArgs e)
+    {
+        if (SpriteList.SelectedItem is PaintSprite sprite)
+        {
+            // TODO: Implement .pSprite export
+        }
+    }
+
+    private void OnDuplicateSprite(object? sender, RoutedEventArgs e)
+    {
+        if (SpriteList.SelectedItem is not PaintSprite sprite)
+            return;
+
+        // Duplicate the sprite
+        var newSprite = PaintSprite.Duplicate(sprite);
+
+        // Add to project + UI
+        _project.Sprites.Add(newSprite);
+        Sprites.Add(newSprite);
+    }
+
+    private async void OnDeleteSprite(object? sender, RoutedEventArgs e)
+    {
+        if (SpriteList.SelectedItem is PaintSprite sprite)
+        {
+            var dialog = new DeletionConfirmationDialog();
+            var window = this.VisualRoot as Window;
+            var doDelete = await dialog.ShowAsync(window);
+            if (doDelete == "delete")
+            {
+                PaintSprite.Delete(sprite);
+                Sprites.Remove(sprite);
+                _project.Sprites.Remove(sprite);
+            }
+        }
+    }
+
+    private async void OnRenameSprite(object? sender, RoutedEventArgs e)
+    {
+        if (SpriteList.SelectedItem is not PaintSprite sprite)
+            return;
+
+        bool isValid = false;
+
+        do
+        {
+
+            var dialog = new InputDialog("Rename sprite", $"Enter new name for \"{sprite.Name}\":");
+            var window = this.VisualRoot as Window;
+            var name = await dialog.ShowAsync(window);
+
+            if (string.IsNullOrWhiteSpace(name)) {
+                isValid = true; // Cancelled, keep old name
+                continue;
+            }
+
+            string parent = Directory.GetParent(sprite.SpriteFolder)!.FullName;
+
+            string? safeName = PaintSprite.SafeRename(name, parent);
+
+            if (safeName == null)
+            {
+                var errorDialog = new PopupWindowDialog(translate("Error"), translate("Invalid name"), "Please enter a different name.");
+                await errorDialog.ShowAsync(window);
+                continue;
+            }
+
+            isValid = true;
+
+            PaintSprite.Rename(sprite, safeName);
+        } while (isValid == false);
+
+        // Refresh UI
+        Sprites.Remove(sprite);
+        Sprites.Add(sprite);
+    }
 }
 
-public static string checkActiveServer()
-{
-return serverCheck();
-}
+Here is from the outer parts of the editor:
 
-// Upload project routes
-public static string uploadNew() {
-return "api/projects/new/upload/paintfile/";
-}
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:explorer="clr-namespace:PaintPower.FileExplorer" xmlns:editors="clr-namespace:PaintPower.Editors" xmlns:vm="clr-namespace:PaintPower.VMPanel" xmlns:sprite="clr-namespace:PaintPower.SpriteEditor" x:Class="PaintPower.EditorPart">
+	<Grid RowDefinitions="50,*">
+		<!-- HEADER Background="#e0e0e0" -->
+		<Border Grid.Row="0" Background="#a3a3a3">
+			<Grid ColumnDefinitions="200,*,300" VerticalAlignment="Center">
+				<!-- LEFT: App title -->
+				<TextBlock Text="PaintPower" VerticalAlignment="Center" Margin="12,0" FontSize="20" Foreground="#333" />
+				<TextBlock Text="" Margin="17,-10" FontSize="10" Foreground="black" x:Name="VersionInfoTextBlock" />
+				<!-- CENTER: Menu buttons -->
+				<StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Spacing="16" Grid.Column="1" Margin="12,0">
+					<Menu Grid.Column="1" Margin="12,0">
+						<MenuItem x:Name="FileMenu" Header="File">
+							<MenuItem x:Name="FileNew" Header="New" Click="OnFileNew" />
+							<Separator />
+							<MenuItem x:Name="FileOpen" Header="Open..." Click="OnFileOpen" />
+							<Separator />
+							<MenuItem x:Name="FileSave" Header="Save" Click="OnFileSave" />
+							<MenuItem x:Name="FileSaveAs" Header="Save As..." Click="OnFileSaveAs" />
+							<Separator />
+							<MenuItem x:Name="FileClose" Header="Close Project" Click="OnCloseProject" />
+							<Separator />
+							<MenuItem x:Name="FileExit" Header="Exit" Click="OnFileExit" />
+						</MenuItem>
+						<MenuItem x:Name="EditMenu" Header="Edit">
+							<MenuItem x:Name="EditUndo" Header="Undo" Click="OnEditUndo" />
+							<MenuItem x:Name="EditRedo" Header="Redo" Click="OnEditRedo" />
+							<MenuItem x:Name="EditCut" Header="Cut" Click="OnEditCut" />
+							<MenuItem x:Name="EditCopy" Header="Copy" Click="OnEditCopy" />
+							<MenuItem x:Name="EditPaste" Header="Paste" Click="OnEditPaste" />
+						</MenuItem>
+						<MenuItem x:Name="ServerMenu" Header="Server">
+							<MenuItem x:Name="MakeConnection" Header="Make Connection" Click="OnMakeConnection" />
+							<MenuItem x:Name="UploadProject" Header="Upload Project to server!" Click="OnUploadProject" />
+							<MenuItem x:Name="DownloadProject" Header="Download project from server" Click="OnDownloadProjectFromServer" />
+							<MenuItem x:Name="OpenCollaborators" Header="Open collaborators" />
+							<MenuItem Header="Login" Click="OnLogin" />
+							<MenuItem Header="Logout" Click="OnLogout" />
+						</MenuItem>
+						<MenuItem x:Name="LanguageDropdown" Header="Language" />
+					</Menu>
+				</StackPanel>
+				<!-- RIGHT: Status area -->
+				<StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Spacing="16" Grid.Column="2" Margin="0,0,12,0">
+					<TextBlock Text="" VerticalAlignment="Center" x:Name="ProjectStatus" PointerPressed="StatusClicked" />
+					<Menu Grid.Column="1" Margin="12,0">
+						<MenuItem x:Name="HelpMenu" Header="Help">
+							<MenuItem x:Name="HelpDocumentation" Header="Documentation" Click="OnHelpDocumentation" />
+							<MenuItem x:Name="HelpReportBug" Header="Report a Bug" Click="OnHelpReportBug" />
+							<MenuItem x:Name="HelpAbout" Header="About" Click="OnHelpAbout" />
+						</MenuItem>
+					</Menu>
+					<!--User
+					dropdown menu.-->
+					<Menu></Menu>
+				</StackPanel>
+			</Grid>
+		</Border>
+		<!-- MAIN CONTENT -->
+		<Grid Grid.Row="1" ColumnDefinitions="260,5,*">
+			<!-- BACKGROUND -->
+			<Grid.Background>
+				<ImageBrush Source="avares://PaintPower/src/Assets/Background.png" Stretch="None" TileMode="Tile" AlignmentX="Left" AlignmentY="Top" DestinationRect="0,0,10,10" />
+			</Grid.Background>
+			<!-- OUTER LEFT: Sprite Manager + Sprite Properties -->
+			<Grid Grid.Column="0" RowDefinitions="*,5,*">
+				<!-- SPRITE MANAGER -->
+				<sprite:SpriteManagerView Grid.Row="0" x:Name="SpriteManager" Margin="0,0,0,5" />
+				<GridSplitter Grid.Row="1" Height="5" Background="#505050" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext" />
+				<!-- SPRITE PROPERTIES -->
+				<Border Grid.Row="2" Background="#252525">
+					<TextBlock Text="Sprite Properties" Foreground="White" Margin="8" />
+					<!-- TODO: Replace with your SpriteProperties control -->
+				</Border>
+			</Grid>
+			<!-- SPLITTER between LEFT and CENTER -->
+			<GridSplitter Grid.Column="1" Width="5" Background="#505050" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" />
+			<Grid RowDefinitions="30,*" Grid.Column="2">
+				<!-- Status Bar -->
+				<Border Grid.Row="0" Background="#c4c4c4" Margin="3">
+					<StackPanel Orientation="Horizontal" Margin="2" Background="#e0e0e0">
+						<TextBlock x:Name="StatusBarText" Text="Ready" Grid.Column="0" Margin="3" />
+					</StackPanel>
+				</Border>
+				<!-- OUTER CENTER: Sprite Editor Host -->
+				<Grid Grid.Row="1" ColumnDefinitions="*,5,*">
+					<ContentControl x:Name="CenterHost" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+					<GridSplitter Grid.Column="1" Width="5" Background="#505050" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" />
+					<vm:VmPanel Grid.Column="2" />
+				</Grid>
+			</Grid>
+		</Grid>
+	</Grid>
+</UserControl>
 
-public static string uploadUpdate(string id)
-{
-return $"api/projects/{id}/upload/paintfile/";
-}
-
-// Download project routes
-
-public static string downloadProject(string id)
-{
-return $"api/projects/{id}/download";
-}
-
-// Mystuff routes
-public static string userProjectsRoute(string username = "")
-{
-if (username != string.Empty)
-{
-return $"api/list/projects/{username}";
-}
-return "api/mystuff/projects";
-}
-
-// For testing a custom server.
-public static string testServerListProjects()
-{
-return "api/listProjects/";
-}
-}
-/*
-Actual networking
-*/
-
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
+using PaintPower.Dialogs;
+using PaintPower.Editors;
+using PaintPower.FileExplorer;
+using PaintPower.Logging;
+using PaintPower.Networking;
+using PaintPower.ProjectSystem;
+using PaintPower.SpriteEditor;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
-using PaintPower;
+using PaintPower.Accessibility.Translation;
+using PaintPower.VMPanel;
+using PaintPower.Tools.SoundEffects;
+namespace PaintPower;
 
-class Net
+public partial class EditorPart : EditorBase
 {
-// Shared HttpClient instance (recommended for performance)
-private static readonly HttpClient client = new HttpClient();
+    public bool saveNeeded = false;
+#pragma warning disable
+    public static PaintPower_Engine App;
 
-private static async Task<string?> getCSRF_Token()
-{
-return PaintPower_Engine.App.server.CurrentDomain?.CSRF_Token;
+    MainWindow window;
+
+    #pragma warning enable
+
+    public EditorPart() : base()
+    {
+
+        InitializeComponent();
+        Translator.LanguageChanged += () => RefreshTranslations();
+
+        // Display PaintPower version:
+        VersionInfoTextBlock.Text = PaintPower_Engine.version;
+    }
+
+    public EditorPart attachPaintPower(PaintPower_Engine paintPower_Engine)
+    {
+        App = paintPower_Engine;
+        return this;
+    }
+
+    public void StatusClicked(object sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        App.Save();
+    }
+
+    private void OnFileNew(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        App.newProject();
+    }
+
+    private void OnFileOpen(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        App.OpenProjectFile();
+    }
+
+    private void OnFileSave(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        App.Save();
+    }
+
+    private void OnFileSaveAs(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        App.SaveAs();
+    }
+
+    private void OnFileExit(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        MainWindow.window.Close();
+    }
+
+    private void OnEditUndo(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        // TODO: hook into editor undo
+    }
+
+    private void OnEditRedo(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        // TODO: hook into editor redo
+    }
+
+    private void OnEditCut(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        // TODO
+    }
+
+    private void OnEditCopy(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        // TODO
+    }
+
+    private void OnEditPaste(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        // TODO
+    }
+
+    private async void OnLogin(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        var dialog = new SignInDialog();
+        var result = await dialog.ShowDialog<bool>(MainWindow.window);
+
+        if (result == null)
+        {
+            PaintPower_Engine.App.SetUserStatus("Login cancelled.");
+        }
+    }
+
+    private async void OnLogout(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        await PaintPower_Engine.App.server.Logout();
+    }
+
+    private void OnMakeConnection(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        #pragma warning disable
+        // Enable connection to the server
+        App.server.checkConnection();
+    }
+
+    private void OnUploadProject(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        App.SaveToServer();
+    }
+
+    private void OnDownloadProjectFromServer(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        App.DownloadProjectFromServer();
+    }
+
+    private void OnHelpDocumentation(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        // Open documentation in default browser
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = "http://www.cocoink.ink/PaintPower/docs",
+            UseShellExecute = true
+        });
+    }
+
+    private void OnHelpReportBug(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        // Open bug report page in default browser
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = "http://www.cocoink.ink/PaintPower/bugreport",
+            UseShellExecute = true
+        });
+    }
+
+    private void OnHelpAbout(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        // Show about dialog
+        var aboutDialog = new PopupWindowDialog("About PaintPower", $"PaintPower Engine  {PaintPower_Engine.version}", "Created by CocoBox84 and collaborators: http://github.com/CocoBox84/PaintPower-Engine/");
+        aboutDialog.ShowDialog(MainWindow.window);
+    }
+
+    private void OnCloseProject(object? sender, RoutedEventArgs e)
+    {
+        SoundEffects.Click.Play();
+        App.CloseProject();
+    }
+
+    public void RefreshTranslations()
+    {
+        SoundEffects.Click.Play();
+        if (!Translator.refreshNeeded) return;
+
+        // Window title
+        if (window?.Title != null) window.Title = Translator.Translate("PaintPower");
+
+        // Display PaintPower version:
+        PaintPower_Engine.App.translateVersion();
+        VersionInfoTextBlock.Text = PaintPower_Engine.version;
+
+        // Menus
+        FileMenu.Header = Translator.Translate("File");
+        EditMenu.Header = Translator.Translate("Edit");
+        ServerMenu.Header = Translator.Translate("Server");
+        LanguageDropdown.Header = Translator.Translate("Language");
+        HelpMenu.Header = Translator.Translate("Help");
+
+        // File submenu
+        FileNew.Header = Translator.Translate("New");
+        FileOpen.Header = Translator.Translate("Open...");
+        FileSave.Header = Translator.Translate("Save");
+        FileSaveAs.Header = Translator.Translate("Save As...");
+        FileClose.Header = Translator.Translate("Close Project");
+        FileExit.Header = Translator.Translate("Exit");
+
+        // Edit submenu
+        EditUndo.Header = Translator.Translate("Undo");
+        EditRedo.Header = Translator.Translate("Redo");
+        EditCut.Header = Translator.Translate("Cut");
+        EditCopy.Header = Translator.Translate("Copy");
+        EditPaste.Header = Translator.Translate("Paste");
+
+        // Server submenu
+        MakeConnection.Header = Translator.Translate("Make Connection");
+        UploadProject.Header = Translator.Translate("Upload Project to server!");
+        OpenCollaborators.Header = Translator.Translate("Open collaborators");
+
+        // Help submenu
+        HelpDocumentation.Header = Translator.Translate("Documentation");
+        HelpReportBug.Header = Translator.Translate("Report a Bug");
+        HelpAbout.Header = Translator.Translate("About");
+
+        // Status text
+        ProjectStatus.Text = Translator.Translate("Not edited yet.");
+
+        // VmPanelPanel.refresh();
+        SpriteManager.TranslateGUI();
+
+        InvalidateVisual();
+
+        Translator.refreshNeeded = false;
+    }
 }
 
-// GET request method
-public static async Task<string?> PerformGetRequest(string url)
-{
-try
-{
-HttpResponseMessage response = await client.GetAsync(url);
-response.EnsureSuccessStatusCode(); // Throws if not 2xx
+So yeah that's a lot, but see that "Sprite Properties" panel?
+Seems like a perfect place to manage the currently selected sprite.
 
-string responseBody = await response.Content.ReadAsStringAsync();
-Console.WriteLine("GET Response:");
-Console.WriteLine(responseBody);
-return responseBody;
-}
-catch (HttpRequestException e)
-{
-Console.WriteLine($"GET request error: {e.Message}");
-return null;
-}
-}
+From changing it's name, position, and the skins.
 
-// POST request method
-public static async Task PerformPostRequest<T>(string url, T data)
-{
-try
-{
-string json = JsonSerializer.Serialize(data);
-var content = new StringContent(json, Encoding.UTF8, "application/json");
+The skin editor will just link a skin with an image or item in the sprite's item folder, the relative path must be entered.
+The skin can also be given a name.
 
-HttpResponseMessage response = await client.PostAsync(url, content);
-response.EnsureSuccessStatusCode();
-
-string responseBody = await response.Content.ReadAsStringAsync();
-Console.WriteLine("POST Response:");
-Console.WriteLine(responseBody);
-}
-catch (HttpRequestException e)
-{
-Console.WriteLine($"POST request error: {e.Message}");
-}
-}
-
-public static async Task DownloadFileAsync(string url, string destinationPath)
-{
-try
-{
-using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-response.EnsureSuccessStatusCode();
-
-await using var stream = await response.Content.ReadAsStreamAsync();
-await using var fileStream = File.Create(destinationPath);
-
-byte[] buffer = new byte[81920]; // 80 KB chunks
-int bytesRead;
-
-while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
-{
-await fileStream.WriteAsync(buffer, 0, bytesRead);
-}
-}
-catch (Exception ex)
-{
-Console.WriteLine($"Download error: {ex.Message}");
-}
-}
-
-public static async Task UploadFileAsync(string url, string filePath, string projectTitle)
-{
-Debug.WriteLine(url);
-
-try
-{
-using var form = new MultipartFormDataContent();
-await using var fileStream = File.OpenRead(filePath);
-
-var fileContent = new StreamContent(fileStream);
-fileContent.Headers.ContentType =
-new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
-
-// File field (multer expects "file")
-form.Add(fileContent, "file", Path.GetFileName(filePath));
-
-// Add project title
-form.Add(new StringContent(projectTitle, Encoding.UTF8), "title");
-
-using var response = await client.PostAsync(url, form);
-response.EnsureSuccessStatusCode();
-
-Debug.WriteLine("Upload complete.");
-}
-catch (Exception ex)
-{
-Debug.WriteLine($"Upload error: {ex.Message}");
-}
-}
-}
+The Thumbnail can also appear and be modified when the skin is changed.
+I know it's a lot at once.
