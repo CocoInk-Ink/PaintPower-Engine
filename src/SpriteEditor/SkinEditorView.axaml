@@ -1,0 +1,49 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:PaintPower.SpriteEditor" x:Class="PaintPower.SpriteEditor.SkinEditorView">
+    <Grid RowDefinitions="Auto,*" Background="#2b2b2b">
+        <!-- TOP BAR -->
+        <StackPanel Orientation="Horizontal" Background="#333" Margin="8" Spacing="12">
+            <TextBlock Text="Skin Editor" Foreground="White" FontSize="16" VerticalAlignment="Center" />
+        </StackPanel>
+        <!-- MAIN LAYOUT -->
+        <Grid Grid.Row="1" ColumnDefinitions="260,5,*,5,260">
+            <!-- LEFT SIDEBAR -->
+            <StackPanel Grid.Column="0" Background="#252525" Spacing="8" Margin="8">
+                <TextBlock Text="Elements" Foreground="White" FontSize="14" />
+                <ListBox x:Name="ElementsList" Height="200" Background="#1e1e1e" Foreground="White" SelectionChanged="OnElementSelected" />
+                <Separator />
+                <TextBlock Text="Properties" Foreground="White" FontSize="14" />
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Name" Foreground="White" />
+                    <TextBox x:Name="NameBox" />
+                    <TextBlock Text="X" Foreground="White" />
+                    <TextBox x:Name="XBox" />
+                    <TextBlock Text="Y" Foreground="White" />
+                    <TextBox x:Name="YBox" />
+                    <TextBlock Text="Rotation" Foreground="White" />
+                    <TextBox x:Name="RotationBox" />
+                    <TextBlock Text="Scale X" Foreground="White" />
+                    <TextBox x:Name="ScaleXBox" />
+                    <TextBlock Text="Scale Y" Foreground="White" />
+                    <TextBox x:Name="ScaleYBox" />
+                    <TextBlock Text="Z Index" Foreground="White" />
+                    <TextBox x:Name="ZBox" />
+                </StackPanel>
+            </StackPanel>
+            <!-- SPLITTER -->
+            <GridSplitter Grid.Column="1" Width="5" Background="#505050" />
+            <!-- VIEWPORT -->
+            <Border Grid.Column="2" Background="#1e1e1e" ClipToBounds="True">
+                <Canvas x:Name="Viewport" Background="#1e1e1e" PointerWheelChanged="OnZoom" PointerPressed="OnPointerDown" PointerMoved="OnPointerMove" PointerReleased="OnPointerUp" />
+            </Border>
+            <!-- SPLITTER -->
+            <GridSplitter Grid.Column="3" Width="5" Background="#505050" />
+            <!-- RIGHT SIDEBAR -->
+            <StackPanel Grid.Column="4" Background="#252525" Margin="8" Spacing="8">
+                <TextBlock Text="Assets" Foreground="White" FontSize="14" />
+                <ScrollViewer Height="600">
+                    <StackPanel x:Name="AssetPanel" Spacing="4" />
+                </ScrollViewer>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

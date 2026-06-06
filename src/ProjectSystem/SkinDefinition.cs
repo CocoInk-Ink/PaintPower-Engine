@@ -1,16 +1,14 @@
-using System;
+using System.Collections.Generic;
 
-namespace PaintPower.ProjectSystem;
-
-public class SkinDefinition
+namespace PaintPower.ProjectSystem
 {
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-    public string Name { get; set; }
-    public string File { get; set; }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-
-    public override string ToString()
+    public class SkinDefinition
     {
-        return Name;
+        public string Name { get; set; } = "";
+        public string ScriptPath { get; set; } = ""; // path inside items/
+
+        public List<SkinElement> Elements { get; set; } = new();
+
+        public override string ToString() => Name;
     }
 }

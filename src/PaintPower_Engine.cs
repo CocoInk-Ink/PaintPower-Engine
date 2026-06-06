@@ -52,6 +52,8 @@ public partial class PaintPower_Engine : EditorBase
 
     private SpriteEditorView _spriteEditorView;
 
+    private SkinEditorView _skinEditorView;
+
     public bool saveNeeded = false;
 
 #pragma warning disable
@@ -149,6 +151,24 @@ public partial class PaintPower_Engine : EditorBase
         editorGui.CenterHost.Content = _spriteEditorView;
 
         SetProjectStatus($"{Translator.Translate("Editing Sprite:")} {sprite.Name}");
+    }
+
+    public void OpenSkinEditor(PaintSprite sprite, SkinDefinition skin)
+    {
+        if (_project == null)
+        {
+            editorGui.SpriteManager.SpriteList.ItemsSource = null;
+            MainWindow.window.InvalidateVisual();
+            return;
+        }
+        SoundEffects.Click.Play();
+        // Create the sprite editor panel
+        _skinEditorView = new SkinEditorView(sprite, skin);
+
+        // Replace the center panel with the sprite editor
+        editorGui.CenterHost.Content = _skinEditorView;
+
+        SetProjectStatus($"{Translator.Translate("Editing Skin: ")} {skin.Name} {Translator.Map(" in sprite: ")} {sprite.Name}");
     }
 
     public void CloseProject()
@@ -702,7 +722,8 @@ public partial class PaintPower_Engine : EditorBase
         { Close(); KeyPress.RegisterKeyUp(e.Key); }
 
         if (SKeyPress.combo(e, "ctrl", "w"))
-        { CloseEditor(); KeyPress.RegisterKeyUp(e.Key); };
+        { CloseEditor(); KeyPress.RegisterKeyUp(e.Key); }
+        ;
 
     }
 

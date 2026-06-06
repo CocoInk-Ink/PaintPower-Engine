@@ -2,6 +2,7 @@
 using PaintPower.Display.DisplayIntegration;
 using PaintPower.Logging;
 using PaintPower.Sprites;
+using PaintPower.Tools.Graphics;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -43,13 +44,55 @@ public class PaintSprite
 
         var doc = XDocument.Load(SkinsPath);
 
-        foreach (var node in doc.Root.Elements("Skin"))
+        foreach (var skinNode in doc.Root.Elements("Skin"))
         {
-            Skins.Add(new SkinDefinition
+            var skin = new SkinDefinition
             {
-                Name = (string)node.Attribute("name") ?? "Unnamed",
-                File = (string)node.Attribute("file") ?? ""
-            });
+                Name = (string)skinNode.Attribute("name") ?? "Unnamed",
+                ScriptPath = (string)skinNode.Attribute("script") ?? ""
+            };
+
+            foreach (var elemNode in skinNode.Elements())
+            {
+                SkinElement elem = null;
+
+                switch (elemNode.Name.LocalName)
+                {
+                    case "Image":
+                        elem = new SkinImageElement
+                        {
+                            AssetPath = (string)elemNode.Attribute("asset") ?? ""
+                        };
+                        break;
+
+                    case "Video":
+                        elem = new SkinVideoElement
+                        {
+                            AssetPath = (string)elemNode.Attribute("asset") ?? "",
+                            Loop = (bool?)elemNode.Attribute("loop") ?? true,
+                            AutoPlay = (bool?)elemNode.Attribute("autoplay") ?? true
+                        };
+                        break;
+
+                    default:
+                        continue; // unknown element type
+                }
+
+                // Shared properties
+                elem.Id = (string)elemNode.Attribute("id") ?? Guid.NewGuid().ToString();
+                elem.InstanceName = (string)elemNode.Attribute("name") ?? "";
+                elem.ZIndex = (int?)elemNode.Attribute("z") ?? 0;
+
+                elem.Transform.X = (double?)elemNode.Attribute("x") ?? 0;
+                elem.Transform.Y = (double?)elemNode.Attribute("y") ?? 0;
+                elem.Transform.Rotation = (double?)elemNode.Attribute("rotation") ?? 0;
+                elem.Transform.ScaleX = (double?)elemNode.Attribute("scaleX") ?? 1;
+                elem.Transform.ScaleY = (double?)elemNode.Attribute("scaleY") ?? 1;
+
+                skin.Elements.Add(elem);
+            }
+
+            Skins.Add(skin);
         }
     }
 
@@ -57,10 +100,48 @@ public class PaintSprite
     {
         var doc = new XDocument(
             new XElement("Skins",
-                Skins.Select(s =>
+                Skins.Select(skin =>
                     new XElement("Skin",
-                        new XAttribute("name", s.Name),
-                        new XAttribute("file", s.File)
+                        new XAttribute("name", skin.Name),
+                        new XAttribute("script", skin.ScriptPath ?? ""),
+
+                        skin.Elements.Select(elem =>
+                        {
+                            XElement node;
+
+                            if (elem is SkinImageElement img)
+                            {
+                                node = new XElement("Image",
+                                    new XAttribute("asset", img.AssetPath ?? "")
+                                );
+                            }
+                            else if (elem is SkinVideoElement vid)
+                            {
+                                node = new XElement("Video",
+                                    new XAttribute("asset", vid.AssetPath ?? ""),
+                                    new XAttribute("loop", vid.Loop),
+                                    new XAttribute("autoplay", vid.AutoPlay)
+                                );
+                            }
+                            else
+                            {
+                                return null;
+                            }
+
+                            // Shared attributes
+                            node.Add(
+                                new XAttribute("id", elem.Id),
+                                new XAttribute("name", elem.InstanceName ?? ""),
+                                new XAttribute("z", elem.ZIndex),
+                                new XAttribute("x", elem.Transform.X),
+                                new XAttribute("y", elem.Transform.Y),
+                                new XAttribute("rotation", elem.Transform.Rotation),
+                                new XAttribute("scaleX", elem.Transform.ScaleX),
+                                new XAttribute("scaleY", elem.Transform.ScaleY)
+                            );
+
+                            return node;
+                        })
                     )
                 )
             )
@@ -73,30 +154,63 @@ public class PaintSprite
     // The Bridge
     // (Oh yeah!)
     // -----------
-
     public Sprite ToRuntimeSprite()
     {
         var runtime = new Sprite();
 
-        // Load skins
         foreach (var skinDef in Skins)
         {
-            string fullPath = Path.Combine(SpriteFolder, skinDef.File);
-            runtime.Skins.Add(new Skin(skinDef.Name, fullPath));
+            var rSkin = new RuntimeSkin
+            {
+                Name = skinDef.Name,
+                ScriptPath = skinDef.ScriptPath
+            };
+
+            foreach (var elem in skinDef.Elements)
+            {
+                if (elem is SkinImageElement img)
+                {
+                    string full = Path.Combine(SpriteFolder, img.AssetPath);
+                    var graphic = GraphicLoader.LoadCached(full);
+
+                    rSkin.Elements.Add(new RuntimeImageElement
+                    {
+                        InstanceName = elem.InstanceName,
+                        X = elem.Transform.X,
+                        Y = elem.Transform.Y,
+                        Rotation = elem.Transform.Rotation,
+                        ScaleX = elem.Transform.ScaleX,
+                        ScaleY = elem.Transform.ScaleY,
+                        ZIndex = elem.ZIndex,
+                        Graphic = (Graphic)graphic
+                    });
+                }
+                else if (elem is SkinVideoElement vid)
+                {
+                    string full = Path.Combine(SpriteFolder, vid.AssetPath);
+                    var player = VideoPlayer.Load(full);
+
+                    rSkin.Elements.Add(new RuntimeVideoElement
+                    {
+                        InstanceName = elem.InstanceName,
+                        X = elem.Transform.X,
+                        Y = elem.Transform.Y,
+                        Rotation = elem.Transform.Rotation,
+                        ScaleX = elem.Transform.ScaleX,
+                        ScaleY = elem.Transform.ScaleY,
+                        ZIndex = elem.ZIndex,
+                        Player = player,
+                        Loop = vid.Loop,
+                        AutoPlay = vid.AutoPlay
+                    });
+                }
+            }
+
+            runtime.Skins.Add(rSkin);
         }
-
-        // Default to first skin
-        if (runtime.Skins.Count > 0)
-            runtime.CurrentSkinIndex = 0;
-
-        // Default position (center stage)
-        runtime.x = DIPlay.stageSize.x / 2;
-        runtime.y = DIPlay.stageSize.y / 2;
 
         return runtime;
     }
-
-
 
     // ---------------------------------------------------------
     // STATIC OPERATIONS (SpriteManagerView passes the sprite)

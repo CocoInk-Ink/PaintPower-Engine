@@ -26,6 +26,7 @@ public class Graphic
 
 }
 
+// Will be unused becuase we will use snapshots only.
 public class GraphicAnimation
 {
     public List<Graphic> Frames { get; } = new();

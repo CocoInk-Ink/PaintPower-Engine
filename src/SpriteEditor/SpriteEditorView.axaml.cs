@@ -8,7 +8,7 @@ using System.IO;
 
 namespace PaintPower.SpriteEditor;
 
-public partial class SpriteEditorView : UserControl
+public partial class SpriteEditorView : SpriteEditor
 {
     private readonly PaintSprite _sprite;
     private readonly TempWorkspace _workspace;
