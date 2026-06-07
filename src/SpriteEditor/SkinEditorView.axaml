@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:PaintPower.SpriteEditor" x:Class="PaintPower.SpriteEditor.SkinEditorView">
-    <Grid RowDefinitions="Auto,*" Background="#2b2b2b">
+    <!-- Root grid so we can have an overlay canvas on top -->
+    <Grid x:Name="Root" RowDefinitions="Auto,*" Background="#2b2b2b" PointerMoved="OnRootPointerMove" PointerReleased="OnRootPointerUp">
         <!-- TOP BAR -->
         <StackPanel Orientation="Horizontal" Background="#333" Margin="8" Spacing="12">
             <TextBlock Text="Skin Editor" Foreground="White" FontSize="16" VerticalAlignment="Center" />
@@ -41,9 +42,11 @@
             <StackPanel Grid.Column="4" Background="#252525" Margin="8" Spacing="8">
                 <TextBlock Text="Assets" Foreground="White" FontSize="14" />
                 <ScrollViewer Height="600">
-                    <StackPanel x:Name="AssetPanel" Spacing="4" />
+                    <WrapPanel x:Name="AssetGrid" Orientation="Horizontal" ItemWidth="96" ItemHeight="120" Margin="4"/>
                 </ScrollViewer>
             </StackPanel>
         </Grid>
+        <!-- Overlay canvas for ghost drag preview -->
+        <Canvas x:Name="Overlay" Grid.RowSpan="2" IsHitTestVisible="False" />
     </Grid>
 </UserControl>

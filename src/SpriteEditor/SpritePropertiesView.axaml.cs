@@ -169,20 +169,37 @@ namespace PaintPower.SpriteEditor
         {
             if (_sprite == null) return;
 
-            // Convert SkinDefinition → RuntimeSprite
             var runtimeSprite = _sprite.ToRuntimeSprite();
-
             int index = _sprite.Skins.IndexOf(skin);
             if (index < 0) return;
 
             runtimeSprite.SetSkin(index);
-
             runtimeSprite.SnapshotDirty = true;
             runtimeSprite.RenderSnapshot();
 
+            var g = runtimeSprite.SnapshotGraphic;
+
             try
             {
-                File.WriteAllBytes(_sprite.ThumbnailPath, runtimeSprite.SnapshotGraphic.Pixels);
+                int stride = g.Width * 4;
+
+                unsafe
+                {
+                    fixed (byte* ptr = g.Pixels)
+                    {
+                        using var bmp = new Bitmap(
+                            Avalonia.Platform.PixelFormat.Bgra8888,
+                            Avalonia.Platform.AlphaFormat.Premul,
+                            (IntPtr)ptr,
+                            new Avalonia.PixelSize(g.Width, g.Height),
+                            new Avalonia.Vector(96, 96),
+                            stride);
+
+                        using var fs = File.Open(_sprite.ThumbnailPath, FileMode.Create);
+                        bmp.Save(fs); // writes a valid PNG with magic number
+                    }
+                }
+
                 ThumbnailImage.Source = new Bitmap(_sprite.ThumbnailPath);
             }
             catch
