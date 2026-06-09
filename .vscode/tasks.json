@@ -1,40 +1,40 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"label": "dotnet: build (Debug)",
-			"type": "dotnet",
-			"task": "build",
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
-			"problemMatcher": [],
-			"command": "build",
-			"arguments": [
-				"--configuration",
-				"Debug"
-			]
-		},
-		{
-			"label": "dotnet: build (Release)",
-			"type": "dotnet",
-			"task": "build",
-			"group": "build",
-			"problemMatcher": [],
-			"command": "build",
-			"arguments": [
-				"--configuration",
-				"Release"
-			]
-		},
-		{
-			"type": "dotnet",
-			"task": "build c:\\Users\\ninoe\\Documents\\PaintPower\\PaintPower\\PaintPower.csproj",
-			"file": "c:\\Users\\ninoe\\Documents\\PaintPower\\PaintPower\\PaintPower.csproj",
-			"group": "build",
-			"problemMatcher": [],
-			"label": "dotnet: build c:\\Users\\ninoe\\Documents\\PaintPower\\PaintPower\\PaintPower.csproj"
-		}
-	]
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "dotnet: build (Debug)",
+            "type": "dotnet",
+            "command": "build",
+            "args": [
+                "--configuration",
+                "Debug"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "dotnet: build (Release)",
+            "type": "dotnet",
+            "command": "build",
+            "args": [
+                "--configuration",
+                "Release"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "dotnet: build project",
+            "type": "dotnet",
+            "command": "build",
+            "args": [
+                "${workspaceFolder}/PaintPower.csproj"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
 }
