@@ -72,10 +72,17 @@
     <AvaloniaResource Include="src\Assets\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <AvaloniaResource Include="src\Themes\**" />
+  </ItemGroup>
+
   <!-- Copy assets to output WITHOUT the src folder -->
   <ItemGroup>
     <None Include="src\Assets\**" CopyToOutputDirectory="Always">
       <Link>Assets\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </None>
+    <None Include="src\Themes\**" CopyToOutputDirectory="Always">
+      <Link>Themes\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </None>
   </ItemGroup>
 

@@ -8,23 +8,18 @@ namespace PaintPower;
 
 public partial class MainWindow : Window
 {
-    public bool saveNeeded = false;
-#pragma warning disable
-    public static PaintPower_Engine App = new PaintPower_Engine();
-
-    public static MainWindow window;
+    // Instance of the compatibility wrapper
+    public static PaintPower_Engine App { get; } = new PaintPower_Engine();
 
     public string? StartupProjectPath { get; set; }
 
-#pragma warning enable
+    public static MainWindow window;
 
     public MainWindow()
     {
-
         InitializeComponent();
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
-        // After, make a static reference.
         window = this;
     }
 
@@ -32,32 +27,36 @@ public partial class MainWindow : Window
     {
         base.OnOpened(e);
 
-        Tools.Keyboard.KeyPress.init(); // Initialize the key mapping
+        // Initialize keyboard system
+        KeyPress.init();
 
+        // Attach window + editor UI to the engine
         App.attachWindow(this);
         App.attachEditorPart(editorPart.attachPaintPower(App));
+
+        // Start engine runtime
         App.Start();
 
+        // Key handlers
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
         AddHandler(KeyUpEvent, OnKeyUp, RoutingStrategies.Tunnel);
 
-        // Load project if opened via double-click
+        // Load project if opened via double-click / OS association
         if (!string.IsNullOrWhiteSpace(StartupProjectPath))
         {
-            PaintPower_Engine.App.OpenProjectFile(StartupProjectPath);
+            await App.OpenProjectFile(StartupProjectPath);
         }
     }
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         KeyPress.RegisterKeyDown(e.Key);
-        PaintPower_Engine.App.HandleKeyDown(e);
+        App.HandleKeyDown(e);
     }
 
     private void OnKeyUp(object? sender, KeyEventArgs e)
     {
         KeyPress.RegisterKeyUp(e.Key);
-        PaintPower_Engine.App.HandleKeyUp(e);
+        App.HandleKeyUp(e);
     }
-
 }
