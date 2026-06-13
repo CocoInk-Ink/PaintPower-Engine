@@ -22,7 +22,7 @@ This roadmap outlines the planned development of the PaintPower Engine and the l
 - Improved UI
 - Waveform display
 - But absolutely no editing sounds!
-- Seriously no sound editor, no music editor, no editor that has to do with sound at all!
+- Seriously no sound editor, no music editor, no editor that has to do with sound at all! Or SVG images, none!
 - But playing audio is fine.
 
 ### Animation Editor (WXA)
