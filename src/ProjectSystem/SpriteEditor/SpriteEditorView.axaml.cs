@@ -24,7 +24,7 @@ public partial class SpriteEditorView : SpriteEditor
         _editorManager = editorManager;
 
         Explorer.Initialize(workspace);
-        Explorer.SetRoot(sprite.ItemsFolder);
+        Explorer.SetForcedRoot(sprite.ItemsFolder);
 
         Explorer.FileOpened += OnFileOpened;
 

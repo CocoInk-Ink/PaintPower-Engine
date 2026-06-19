@@ -52,6 +52,14 @@ public partial class ExplorerView : UserControl
         Refresh();
     }
 
+    private string? _forcedRoot = null;
+
+    public void SetForcedRoot(string root)
+    {
+        _forcedRoot = root;
+        SetRoot(root);
+    }
+
     private void Refresh()
     {
         TranslateGUI();
@@ -64,7 +72,9 @@ public partial class ExplorerView : UserControl
             return;
         }
 
-        string relative = _currentDir.Replace(_workspace.ActiveRoot, "")
+        string root = _forcedRoot ?? _workspace.ActiveRoot;
+
+        string relative = _currentDir.Replace(root, "")
                                      .Replace("\\", "/");
 
         if (string.IsNullOrEmpty(relative))
@@ -122,7 +132,9 @@ public partial class ExplorerView : UserControl
         if (_workspace == null)
             return;
 
-        _currentDir = _workspace.ActiveRoot;
+        string root = _forcedRoot ?? _workspace.ActiveRoot;
+
+        _currentDir = root;
         Refresh();
     }
 
@@ -131,10 +143,21 @@ public partial class ExplorerView : UserControl
         if (_workspace == null)
             return;
 
-        if (_currentDir == _workspace.ActiveRoot)
+        string root = _forcedRoot ?? _workspace.ActiveRoot;
+
+        // If already at root, do nothing
+        if (Path.GetFullPath(_currentDir) == Path.GetFullPath(root))
             return;
 
-        _currentDir = Directory.GetParent(_currentDir)!.FullName;
+        var parent = Directory.GetParent(_currentDir);
+        if (parent == null)
+            return;
+
+        // Prevent escaping above forced root
+        if (Path.GetFullPath(parent.FullName).StartsWith(Path.GetFullPath(root)) == false)
+            return;
+
+        _currentDir = parent.FullName;
         Refresh();
     }
 
