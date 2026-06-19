@@ -28,6 +28,7 @@ public partial class ExplorerView : UserControl
     public ExplorerView()
     {
         InitializeComponent();
+        FileTree.ContainerPrepared += OnContainerPrepared;
         Translator.LanguageChanged += () => Refresh();
     }
 
@@ -553,5 +554,96 @@ public partial class ExplorerView : UserControl
         DuplicateButton.Header = Translator.Map("Duplicate");
         ImportButton.Header = Translator.Map("Import");
         ExportButton.Header = Translator.Map("Export");
+    }
+
+    // Attach handlers to each TreeViewItem
+    private void OnContainerPrepared(object? sender, ContainerPreparedEventArgs e)
+    {
+        if (e.Container is TreeViewItem tvi)
+        {
+            tvi.PointerPressed += OnItemDragStart;
+            tvi.AddHandler(DragDrop.DragOverEvent, OnItemDragOver);
+            tvi.AddHandler(DragDrop.DropEvent, OnItemDrop);
+        }
+    }
+
+    // DRAG START (Avalonia 11.3.12 uses DataObject + DoDragDrop)
+    private void OnItemDragStart(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not Control control)
+            return;
+
+        if (control.DataContext is not ExplorerItem item)
+            return;
+
+        if (e.GetCurrentPoint(control).Properties.IsLeftButtonPressed)
+        {
+            var data = new DataObject();
+            data.Set("ExplorerItem", item.FullPath);
+
+            DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
+        }
+    }
+
+    // DRAG OVER (Avalonia 11.3.12 uses e.Data.Contains)
+    private void OnItemDragOver(object? sender, DragEventArgs e)
+    {
+        if (sender is not Control control)
+            return;
+
+        if (control.DataContext is not ExplorerItem target)
+            return;
+
+        if (!target.IsDirectory)
+        {
+            e.DragEffects = DragDropEffects.None;
+            return;
+        }
+
+        if (!e.Data.Contains("ExplorerItem"))
+        {
+            e.DragEffects = DragDropEffects.None;
+            return;
+        }
+
+        e.DragEffects = DragDropEffects.Move;
+    }
+
+    // DROP (Avalonia 11.3.12 uses e.Data.Get)
+    private void OnItemDrop(object? sender, DragEventArgs e)
+    {
+        if (sender is not Control control)
+            return;
+
+        if (control.DataContext is not ExplorerItem targetFolder)
+            return;
+
+        if (!targetFolder.IsDirectory)
+            return;
+
+        if (!e.Data.Contains("ExplorerItem"))
+            return;
+
+        var source = e.Data.Get("ExplorerItem") as string;
+        if (source == null)
+            return;
+
+        string name = Path.GetFileName(source);
+        string dest = Path.Combine(targetFolder.FullPath, name);
+
+        try
+        {
+            if (Directory.Exists(source))
+                Directory.Move(source, dest);
+            else if (File.Exists(source))
+                File.Move(source, dest);
+
+            ProjectDirty?.Invoke();
+            Refresh();
+        }
+        catch (Exception ex)
+        {
+            Log.QuickLog("Drag-drop move failed: " + ex.Message);
+        }
     }
 }
