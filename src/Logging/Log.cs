@@ -15,11 +15,17 @@ public static class Log
         }
     }
     // Made to just log something real quick
-    public static void QuickLog(object? message) {
-        Info(message);
-        Debug(message);
+    public static void QuickLog(params object[]? messages)
+    {
+        if (messages == null) return;
+        foreach (object? message in messages)
+        {
+            Info(message);
+            Debug(message);
+        }
     }
-    private static void LogToServer(string message, bool serverError = true) {
+    private static void LogToServer(string message, bool serverError = true)
+    {
         if (serverError)
         {
             return; // Prevent infinte loop!

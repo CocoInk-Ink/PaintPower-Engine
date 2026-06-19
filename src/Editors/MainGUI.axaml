@@ -10,8 +10,7 @@
 
         <!-- MAIN CONTENT SWITCHER -->
         <ContentControl x:Name="MainPart"
-                Grid.Row="1"
-                Margin="0,10,0,0" />
+                Grid.Row="1" />
 
     </Grid>
 </UserControl>

@@ -1,35 +1,87 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="PaintPower.FileExplorer.ExplorerView">
-	<Border Background="#99000000">
-		<Grid RowDefinitions="Auto,Auto,*" Margin="8">
-			<!-- Menubar -->
-			<Menu>
-				<MenuItem Header="File">
-					<MenuItem x:Name="NewFileButton" Header="New File" Click="OnNewFile" />
-					<MenuItem x:Name="NewFolderButton" Header="New Folder" Click="OnNewFolder" />
-					<Separator />
-					<MenuItem x:Name="ImportButton" Header="Import" Click="OnImport" />
-					<MenuItem x:Name="ExportButton" Header="Export" Click="OnExport" />
-				</MenuItem>
-				<MenuItem Header="Navigation">
-					<MenuItem x:Name="GoRootButton" Header="Go to Root" Click="OnGoRoot" />
-					<MenuItem x:Name="GoUpButton" Header="Go Up" Click="OnGoUp" />
-				</MenuItem>
-				<MenuItem Header="Edit">
-					<MenuItem x:Name="CopyButton" Header="Copy" Click="OnCopy" />
-					<MenuItem x:Name="CutButton" Header="Cut" Click="OnCut" />
-					<MenuItem x:Name="PasteButton" Header="Paste" Click="OnPaste" />
-					<Separator />
-					<MenuItem x:Name="DeleteButton" Header="Delete" Click="OnDelete" />
-					<MenuItem x:Name="RenameButton" Header="Rename" Click="OnRename" />
-					<MenuItem x:Name="DuplicateButton" Header="Duplicate" Click="OnDuplicate" />
-				</MenuItem>
-			</Menu>
-			<!-- Current Path -->
-			<TextBlock x:Name="PathLabel" Grid.Row="1" FontSize="14" Margin="4" Foreground="White" />
-			<!-- File List -->
-			<Border Background="#20202020" Grid.Row="2">
-				<ListBox x:Name="FileList" DoubleTapped="OnItemDoubleTapped" SelectionChanged="OnSelectionChanged" />
-			</Border>
-		</Grid>
-	</Border>
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:explorer="clr-namespace:PaintPower.FileExplorer"
+             x:Class="PaintPower.FileExplorer.ExplorerView"
+             x:CompileBindings="False">
+
+    <Border Background="#1E1E1E">
+        <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="6">
+
+            <!-- TOP MENU BAR -->
+            <Menu Grid.Row="0">
+                <MenuItem Header="File">
+                    <MenuItem x:Name="NewFileButton" Header="New File" Click="OnNewFile"/>
+                    <MenuItem x:Name="NewFolderButton" Header="New Folder" Click="OnNewFolder"/>
+                    <Separator/>
+                    <MenuItem x:Name="ImportButton" Header="Import" Click="OnImport"/>
+                    <MenuItem x:Name="ExportButton" Header="Export" Click="OnExport"/>
+                </MenuItem>
+
+                <MenuItem Header="Navigation">
+                    <MenuItem x:Name="GoRootButton" Header="Go to Root" Click="OnGoRoot"/>
+                    <MenuItem x:Name="GoUpButton" Header="Go Up" Click="OnGoUp"/>
+                </MenuItem>
+
+                <MenuItem Header="Edit">
+                    <MenuItem x:Name="CopyButton" Header="Copy" Click="OnCopy"/>
+                    <MenuItem x:Name="CutButton" Header="Cut" Click="OnCut"/>
+                    <MenuItem x:Name="PasteButton" Header="Paste" Click="OnPaste"/>
+                    <Separator/>
+                    <MenuItem x:Name="DeleteButton" Header="Delete" Click="OnDelete"/>
+                    <MenuItem x:Name="RenameButton" Header="Rename" Click="OnRename"/>
+                    <MenuItem x:Name="DuplicateButton" Header="Duplicate" Click="OnDuplicate"/>
+                </MenuItem>
+            </Menu>
+
+            <!-- SEARCH BAR -->
+            <TextBox x:Name="SearchBox"
+                     Grid.Row="1"
+                     Watermark="Search..."
+                     Margin="0,6,0,6"
+                     KeyUp="OnSearchChanged"/>
+
+            <!-- BREADCRUMB BAR -->
+            <StackPanel x:Name="BreadcrumbBar"
+                        Grid.Row="2"
+                        Orientation="Horizontal"
+                        Spacing="6"
+                        Margin="0,0,0,6"/>
+
+            <!-- TREE VIEW -->
+            <Border Grid.Row="3" Background="#252526" Padding="4">
+
+                <TreeView x:Name="FileTree"
+                          Background="#1E1E1E"
+                          ItemsSource="{Binding Items}"
+                          SelectionChanged="OnSelectionChanged">
+
+                    <TreeView.ItemTemplate>
+                        <DataTemplate DataType="explorer:ExplorerItem">
+                            <TreeViewItem Header="{Binding Name}"
+                                          ItemsSource="{Binding Children}"
+                                          DoubleTapped="OnItemDoubleTapped" />
+                        </DataTemplate>
+                    </TreeView.ItemTemplate>
+
+                    <TreeView.Styles>
+                        <Style Selector="TreeViewItem">
+                            <Setter Property="Background" Value="#1E1E1E"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Style>
+                        <Style Selector="TreeViewItem:pointerover">
+                            <Setter Property="Background" Value="#333333"/>
+                        </Style>
+                        <Style Selector="TreeViewItem:selected">
+                            <Setter Property="Background" Value="#094771"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Style>
+                    </TreeView.Styles>
+
+                </TreeView>
+
+            </Border>
+
+        </Grid>
+    </Border>
+
 </UserControl>

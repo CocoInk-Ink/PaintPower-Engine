@@ -23,8 +23,11 @@ public partial class SpriteEditorView : SpriteEditor
         _workspace = workspace;
         _editorManager = editorManager;
 
-        Explorer.Initialize(workspace);
-        Explorer.SetForcedRoot(sprite.ItemsFolder);
+        // NEW: Initialize Explorer directly with the sprite folder
+        Explorer.Initialize(_sprite.ItemsFolder);
+
+        // Sandbox the explorer to this folder
+        Explorer.SetForcedRoot(_sprite.ItemsFolder);
 
         Explorer.FileOpened += OnFileOpened;
 
@@ -36,28 +39,28 @@ public partial class SpriteEditorView : SpriteEditor
         if (!File.Exists(fullPath))
             return;
 
-        // Ask FileEditorManager for the correct editor
         var editor = _editorManager.GetEditorFromFileType(fullPath);
 
         if (editor != null)
             OpenEditor(editor, fullPath);
     }
 
-
     public void OpenEditor(FileEditor editor, string fullPath)
     {
         SoundEffects.Click.Play();
         TranslateGUI();
+
         var relative = MakeSpriteRelative(fullPath);
         editor.SetRelativePath(relative);
+
         Log.QuickLog(fullPath);
         Log.QuickLog(relative);
+
         EditorHost.Content = editor;
     }
 
     public string MakeSpriteRelative(string fullPath)
     {
-        // fullPath = items/sprites/<Sprite>/items/<whatever>
         return fullPath.Replace(_sprite.ItemsFolder + Path.DirectorySeparatorChar, "");
     }
 
