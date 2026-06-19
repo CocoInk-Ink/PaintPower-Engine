@@ -7,19 +7,14 @@ namespace PaintPower;
 
 /// <summary>
 /// The main Avalonia application for PaintPower.
-/// Wires together:
-///   - PaintPowerRuntime (engine logic)
-///   - PaintPowerUI (UI glue)
-///   - MainWindow (Avalonia window)
-///   - ThemeManager (runtime theme loading)
-///
-/// xPaint can subclass this to override branding, themes, menus, etc.
+/// Handles:
+///   - Theme registration
+///   - Theme application
+///   - Creating MainWindow
+///   - Passing startup file arguments
 /// </summary>
 public class PaintPowerApp : Application
 {
-    public PaintPowerRuntime Runtime { get; private set; }
-    public PaintPowerUI UI { get; private set; }
-
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -45,18 +40,10 @@ public class PaintPowerApp : Application
         // ------------------------------------------------------------
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // Create runtime
-            Runtime = CreateRuntime();
+            // Create the main window
+            var window = new MainWindow();
 
-            // Create window
-            var window = CreateMainWindow();
-
-            // Attach UI glue
-            UI = CreateUI(Runtime, window);
-
-            desktop.MainWindow = window;
-
-            // Handle startup file
+            // Handle startup file (double‑click / OS association)
             if (desktop.Args is { Length: > 0 })
             {
                 string file = desktop.Args[0];
@@ -66,21 +53,10 @@ public class PaintPowerApp : Application
                     window.StartupProjectPath = file;
                 }
             }
+
+            desktop.MainWindow = window;
         }
 
         base.OnFrameworkInitializationCompleted();
     }
-
-    // ------------------------------------------------------------
-    // Factory methods — xPaint overrides these
-    // ------------------------------------------------------------
-
-    protected virtual PaintPowerRuntime CreateRuntime()
-        => new PaintPowerRuntime();
-
-    protected virtual MainWindow CreateMainWindow()
-        => new MainWindow();
-
-    protected virtual PaintPowerUI CreateUI(PaintPowerRuntime runtime, MainWindow window)
-        => new PaintPowerUI(runtime, window, window.editorPart);
 }

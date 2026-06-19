@@ -1,0 +1,179 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PaintPower.FileEditors.PaintEditor"
+			 xmlns:local="clr-namespace:PaintPower.FileEditors"
+			 xmlns:baseTools="clr-namespace:PaintPower.FileEditors.Tools"
+			 xmlns:tools="clr-namespace:PaintPower.FileEditors.Tools.PaintEditorTools">
+
+	<Grid RowDefinitions="60,*">
+
+		<Rectangle Fill="#80000000"
+				   Grid.RowSpan="2"
+				   IsHitTestVisible="False"/>
+
+		<!-- TOP TOOLBAR -->
+		<StackPanel Grid.Row="0"
+					Orientation="Horizontal"
+					Background="#e0e0e0"
+					VerticalAlignment="Center"
+					HorizontalAlignment="Left"
+					Spacing="16"
+					Margin="12">
+			<Button Classes="white" x:Name="UndoButton" Content="Undo" Width="80"/>
+			<Button Classes="white" x:Name="SaveButton" Content="Save" Width="80"/>
+			<Button Classes="white" x:Name="ClearButton" Content="Clear" Width="80"/>
+			<Button Classes="white" x:Name="RedoButton" Content="Redo" Width="80"/>
+		</StackPanel>
+
+		<!-- 3-COLUMN AREA -->
+		<Grid Grid.Row="1" ColumnDefinitions="0,*,Auto,220">
+
+			<!-- LEFT COLUMN -->
+			<Border Grid.Column="0"
+					Background="#303030"
+					Padding="8">
+				<StackPanel Spacing="12"
+							VerticalAlignment="Top">
+				</StackPanel>
+			</Border>
+
+			<!-- CENTER COLUMN: CANVAS WITH VIEWPORT -->
+			<Border Grid.Column="1"
+					Margin="8">
+
+				<Grid>
+					<!-- Checkered background -->
+					<LayoutTransformControl x:Name="CheckerZoom"
+											HorizontalAlignment="Left"
+											VerticalAlignment="Top">
+						<tools:Checkerboard x:Name="Checkerboard"
+                    TileSize="16"
+                    LightColor="#FFF0F0F0"
+                    DarkColor="#FFD0D0D0"
+                    Width="{Binding #CanvasImage.Bounds.Width}"
+                    Height="{Binding #CanvasImage.Bounds.Height}"/>
+					</LayoutTransformControl>
+
+					<!-- Scrollable zoomable canvas -->
+					<ScrollViewer x:Name="CanvasScroll"
+								  HorizontalScrollBarVisibility="Auto"
+								  VerticalScrollBarVisibility="Auto">
+						<LayoutTransformControl x:Name="ZoomContainer">
+							<Image x:Name="CanvasImage"
+								   Stretch="None"
+								   HorizontalAlignment="Left"
+								   VerticalAlignment="Top"/>
+						</LayoutTransformControl>
+					</ScrollViewer>
+
+					<Image x:Name="BrushCursor"
+					   Source="avares://PaintPower/src/Assets/Pencil.png"
+					   Width="54"
+					   Height="54"
+					   IsHitTestVisible="False"
+					   HorizontalAlignment="Left"
+					   VerticalAlignment="Top"
+					   Opacity="1"
+					   />
+
+					<baseTools:PixelGrid x:Name="pixelGrid"
+									 IsHitTestVisible="False"
+									 HorizontalAlignment="Left"
+									 VerticalAlignment="Top"/>
+
+					<!-- Floating zoom controls -->
+					<Border Background="#80000000"
+							Padding="6"
+							CornerRadius="4"
+							HorizontalAlignment="Left"
+							VerticalAlignment="Bottom"
+							Margin="10">
+						<StackPanel Orientation="Horizontal"
+									Spacing="8">
+							<TextBlock x:Name="ZoomText"
+									   Text="Zoom"
+									   Foreground="White"
+									   VerticalAlignment="Center"/>
+							<Slider x:Name="ZoomSlider"
+									Minimum="0.1"
+									Maximum="8"
+									Value="1"
+									Width="150"/>
+						</StackPanel>
+					</Border>
+				</Grid>
+			</Border>
+
+			<!-- RESIZER -->
+			<GridSplitter Grid.Column="2"
+			  Width="5"
+			  Background="#606060"
+			  ResizeDirection="Columns"
+			  ResizeBehavior="PreviousAndNext"
+			  HorizontalAlignment="Stretch"/>
+
+
+			<!-- RIGHT COLUMN -->
+			<Border Grid.Column="3"
+					Background="#e0e0e0"
+					Padding="12">
+				<ScrollViewer VerticalScrollBarVisibility="Auto">
+
+					<StackPanel Spacing="12"
+							VerticalAlignment="Top">
+
+						<TextBlock Text="Brush Size" />
+						<Slider x:Name="BrushSizeSlider"
+								Minimum="1" Maximum="50"
+								Width="150"
+								Value="8"/>
+
+						<TextBlock Text="Color" />
+
+						<Border Background="White"
+			CornerRadius="4"
+			Padding="4">
+							<StackPanel Spacing="8">
+
+								<TextBlock Text="Color" />
+
+								<!-- Preview -->
+								<Border x:Name="ColorPreview"
+										Width="40" Height="40"
+										Background="Black"
+										BorderBrush="Gray"
+										BorderThickness="1"
+										CornerRadius="4"/>
+
+								<!-- Hue slider -->
+								<Slider x:Name="HueSlider"
+										Minimum="0" Maximum="360"
+										Value="0"
+										Width="150"/>
+
+								<!-- Saturation/Value square -->
+								<tools:SVPicker x:Name="SVPicker"
+												Width="150" Height="150"/>
+
+								<!-- Opacity slider -->
+								<TextBlock Text="Opacity"/>
+								<Slider x:Name="OpacitySlider"
+										Minimum="0" Maximum="255"
+										Value="255"
+										Width="150"/>
+
+							</StackPanel>
+						</Border>
+
+						<Button Classes="white" x:Name="BrushButton" Content="Brush" Width="150"/>
+						<Button Classes="white" x:Name="EraserButton" Content="Eraser" Width="150"/>
+						<Button Classes="white" x:Name="HandToolButton" Content="Hand Tool" Width="150"/>
+						<Button Classes="white" x:Name="BucketButton" Content="Bucket" Width="150"/>
+
+					</StackPanel>
+				</ScrollViewer>
+			</Border>
+
+		</Grid>
+	</Grid>
+</UserControl>

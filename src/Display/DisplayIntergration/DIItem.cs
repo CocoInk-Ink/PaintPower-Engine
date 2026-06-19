@@ -22,6 +22,14 @@ public abstract class DIItem
     public int Z = 0;
 
     public float Rotation = 0f; // 90 is normal, goes from 0 - 360.
+    public double StageWidth { get; set; } = 640;
+    public double StageHeight { get; set; } = 450;
+
+    public virtual void SetStageSize(double width, double height)
+    {
+        StageWidth = width;
+        StageHeight = height;
+    }
 
     public DIItem() { }
 

@@ -1,8 +1,8 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Input;
+using PaintPower.Accessibility.Translation;
 using PaintPower.Editors;
-using PaintPower.Networking;
-using PaintPower.ProjectSystem;
+using PaintPower.FileEditors;
 using PaintPower.Tools.Keyboard;
 using System;
 using System.Threading.Tasks;
@@ -11,9 +11,13 @@ namespace PaintPower;
 
 /// <summary>
 /// Legacy compatibility wrapper for the old PaintPower_Engine class.
-/// Internally delegates to PaintPowerRuntime + PaintPowerUI.
+/// Now acts only as a thin bridge for old code and keyboard shortcuts.
+/// All real logic lives in:
+///   - MainGUI
+///   - ProjectEditorLogic
+///   - FileEditors
 /// </summary>
-public partial class PaintPower_Engine : EditorBase
+public partial class PaintPower_Engine : FileEditor
 {
     // --------------------------------------------------------------------
     // Static references preserved for compatibility
@@ -21,68 +25,19 @@ public partial class PaintPower_Engine : EditorBase
     public static PaintPower_Engine App { get; private set; }
     public static MainWindow window;
 
-    public static string version => PaintPowerRuntime.Version;
+    public static string version => "PaintPower Engine";
 
-    // --------------------------------------------------------------------
-    // New architecture
-    // --------------------------------------------------------------------
-    public PaintPowerRuntime Runtime { get; }
-    public PaintPowerUI UI { get; private set; }
-
-    // --------------------------------------------------------------------
-    // Legacy fields preserved for compatibility
-    // These now mirror Runtime or UI values.
-    // --------------------------------------------------------------------
-    public Vm.Vm vm => Runtime.Vm;
-
-    public PaintProject _project => Runtime.Project;
-    public Editor _editorManager => Runtime.EditorManager;
-    public EditorBase? _editor => Runtime.CurrentEditor;
-    public Server server => Runtime.Server;
-
-    public bool _isSavingAnimationRunning
-    {
-        get => Runtime.IsSavingAnimationRunning;
-        set => Runtime.IsSavingAnimationRunning = value;
-    }
-
-    public async void RunSavingAnimation()
-    {
-        UI.RunSavingAnimation();
-    }
-
-    public async void AskToLinkProject(PaintProject project)
-    {
-        UI.AskToLinkProject(project);
-    }
-
-    public bool isNewProject
-    {
-        get => Runtime.IsNewProject;
-        set => Runtime.IsNewProject = value;
-    }
-
-    public bool saveNeeded
-    {
-        get => Runtime.SaveNeeded;
-        set => Runtime.SaveNeeded = value;
-    }
-
-    // UI fields (legacy)
-    public EditorPart editorGui => UI.EditorGui;
+    // Reference to the active GUI (set by MainWindow)
+    public MainGUI MainGui { get; private set; }
 
     // --------------------------------------------------------------------
     // Constructor
     // --------------------------------------------------------------------
     public PaintPower_Engine()
     {
-        Runtime = new PaintPowerRuntime();
+        Translator.load("en");
         App = this;
     }
-
-    public void Start() => Runtime.Start();
-
-    public string translateVersion() => Runtime.TranslateVersion();
 
     // --------------------------------------------------------------------
     // Wiring from MainWindow
@@ -92,86 +47,78 @@ public partial class PaintPower_Engine : EditorBase
         window = w;
     }
 
-    public void attachEditorPart(EditorPart part)
+    public void attachMainGUI(MainGUI gui)
     {
-        UI = new PaintPowerUI(Runtime, window, part);
+        MainGui = gui;
     }
 
     // --------------------------------------------------------------------
-    // Project actions (delegated)
+    // Legacy project actions (forwarded to MainGUI)
     // --------------------------------------------------------------------
-    public async Task OpenProjectFile(string path = "")
+    public async Task OpenProjectFile(string path)
     {
-        if (string.IsNullOrWhiteSpace(path))
-            return; // UI handles file picker now
-
-        await UI.OpenProject(path);
+        if (!string.IsNullOrWhiteSpace(path))
+            await MainGui.OpenProject(path);
     }
 
     public async void newProject()
     {
-        await UI.NewProject();
+        await MainGui.NewProject();
     }
 
     public async Task Save()
     {
-        await UI.SaveProject();
+        await MainGui.SaveProject();
     }
 
     public void SaveAs()
     {
-        // SaveAs is UI-specific now.
-        // You can reimplement this inside PaintPowerUI if needed.
+        // SaveAs is handled by MainGUI or ProjectEditorLogic
     }
 
     public void CloseProject()
     {
-        UI.CloseProject();
+        MainGui.CloseProject();
     }
 
     // --------------------------------------------------------------------
-    // Editor actions (delegated)
+    // Legacy editor actions (forwarded to MainGUI)
     // --------------------------------------------------------------------
     public void OpenFile(string path)
     {
-        Runtime.OpenFile(path);
+        MainGui.OpenFile(path);
     }
 
     public void CloseEditor()
     {
-        Runtime.CloseEditor();
+        MainGui.CloseCurrentEditor();
     }
 
     public void CloseCurrentEditor()
     {
-        Runtime.CloseCurrentEditor();
-    }
-
-    public void OpenSkinEditor(PaintSprite paintSprite, SkinDefinition skinDefinition)
-    {
-        Runtime.OpenSkinEditor(paintSprite, skinDefinition);
+        MainGui.CloseCurrentEditor();
     }
 
     // --------------------------------------------------------------------
-    // Networking (delegated)
+    // Networking (legacy stubs)
     // --------------------------------------------------------------------
     public async Task login(string username, string password)
     {
-        await Runtime.Login(username, password);
+        await MainGui.Login(username, password);
     }
 
     public async Task DownloadProjectFromServer()
     {
-        // UI layer should implement dialogs
+        // UI layer handles dialogs
     }
 
     public async void SaveToServer()
     {
-        // UI layer should implement dialogs
+        // UI layer handles dialogs
     }
 
     // --------------------------------------------------------------------
-    // Key handling (delegated)
+    // Key handling (still useful)
     // --------------------------------------------------------------------
     public void HandleKeyDown(KeyEventArgs e)
     {
@@ -179,13 +126,13 @@ public partial class PaintPower_Engine : EditorBase
         { Save(); KeyPress.RegisterKeyUp(e.Key); }
 
         if (SKeyPress.combo(e, "ctrl", "z"))
-        { Runtime.CurrentEditor?.Undo(); KeyPress.RegisterKeyUp(e.Key); }
+        { MainGui.CurrentEditor?.Undo(); KeyPress.RegisterKeyUp(e.Key); }
 
         if (SKeyPress.combo(e, "ctrl", "shift", "z"))
-        { Runtime.CurrentEditor?.Redo(); KeyPress.RegisterKeyUp(e.Key); }
+        { MainGui.CurrentEditor?.Redo(); KeyPress.RegisterKeyUp(e.Key); }
 
         if (SKeyPress.combo(e, "ctrl", "y"))
-        { Runtime.CurrentEditor?.Redo(); KeyPress.RegisterKeyUp(e.Key); }
+        { MainGui.CurrentEditor?.Redo(); KeyPress.RegisterKeyUp(e.Key); }
 
         if (SKeyPress.combo(e, "alt", "f4"))
         { window.Close(); KeyPress.RegisterKeyUp(e.Key); }
@@ -196,10 +143,6 @@ public partial class PaintPower_Engine : EditorBase
 
     public void HandleKeyUp(KeyEventArgs e)
     {
-        // No-op, but preserved for compatibility
+        // No-op
     }
-
-    public string SetProjectStatus(string status) => Runtime.SetProjectStatus(status);
-    public string SetNetworkStatus(string status) => Runtime.SetNetworkStatus(status);
-    public string SetUserStatus(string status) => Runtime.SetUserStatus(status);
 }

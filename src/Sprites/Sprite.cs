@@ -8,6 +8,8 @@ namespace PaintPower.Sprites
 {
     public class Sprite : DIItem
     {
+
+
         // All skins (loaded from Skins.xml)
         public List<RuntimeSkin> Skins = new();
         public int CurrentSkinIndex = 0;
@@ -37,7 +39,7 @@ namespace PaintPower.Sprites
             if (x != null)
                 this.x = x;
             else
-                this.x = Tools.Math.Random.calc(DIPlay.stageSize.x, DIPlay.stageSize.y);
+                this.x = Tools.Math.Random.calc(StageWidth, StageHeight);
 
             if (y != null)
                 this.y = y;
@@ -55,6 +57,14 @@ namespace PaintPower.Sprites
             }
         }
 
+        public override void SetStageSize(double width, double height)
+        {
+            StageWidth = width;
+            StageHeight = height;
+            SnapshotDirty = true;
+        }
+
+
         // ---------------------------------------------------------
         // Snapshot Rendering
         // ---------------------------------------------------------
@@ -64,8 +74,8 @@ namespace PaintPower.Sprites
             if (skin == null)
                 return;
 
-            int w = (int)DIPlay.stageSize.x;
-            int h = (int)DIPlay.stageSize.y;
+            int w = (int)StageWidth;
+            int h = (int)StageHeight;
 
             // Create a temporary render target
             var target = new RenderTarget2D(w, h);

@@ -1,11 +1,11 @@
 using System;
 using PaintPower.Logging;
 using PaintPower.Dialogs;
-using PaintPower.Editors;
+using PaintPower.FileEditors;
 using PaintPower.FileExplorer;
 using PaintPower.Networking;
 using PaintPower.ProjectSystem;
-using PaintPower.SpriteEditor;
+using PaintPower.ProjectSystem.SpriteEditor;
 using PaintPower.Time;
 using System.Threading;
 using System.Collections.Generic;
@@ -14,6 +14,8 @@ using System.Threading.Tasks;
 using PaintPower.Compiler.PreBytecode;
 
 using PaintPower.Sprites;
+using PaintPower.VMPanel;
+using PaintPower.Display.DisplayIntegration;
 
 namespace PaintPower.Vm;
 
@@ -23,6 +25,23 @@ public class Vm
 {
 
     public static Vm? vm;
+
+    public static bool isProjectLoading = false;
+
+    // =======================
+    // Project Loading:
+    // =======================
+    public static async Task LoadProject(PaintProject project, DIPlay display)
+{
+    isProjectLoading = true;
+    LoadSpritesIntoDisplay(project, display);
+    isProjectLoading = false;
+}
+
+    // =======================
+    // Virtual Machine Parts:
+    // =======================
+
     public string Id { get; set; }
 
 #pragma warning disable IDE0044 // Add readonly modifier
@@ -47,15 +66,12 @@ public class Vm
         try
         {
             Id = CreateId();
-            LoadSpritesIntoDisplay();
-            // KiteScriptTest.Run();
         }
         catch (Exception e)
         {
             Log.QuickLog(e);
         }
         ;
-        vm = this;
     }
 
     public static bool isThreadSafe(VmThread? thread)
@@ -108,31 +124,24 @@ public class Vm
         VMs.Remove(id);
     }
 
-    public void LoadSpritesIntoDisplay()
+    public static void LoadSpritesIntoDisplay(PaintProject project, DIPlay display)
     {
-        var project = PaintPower_Engine.App._project;
-        if (project == null)
-            return;
-
-        var stage = PaintPower.VMPanel.Stage.stage;
-        if (stage == null)
-            return;
-
-        var display = stage.Diplay;
+        if (project == null) return;
+        if (display == null) return;
 
         display.items.Clear();
 
-        foreach (PaintSprite ps in project.Sprites)
-        {
-            var runtime = ps.ToRuntimeSprite();
-            display.items.Add(runtime);
-        }
+        foreach (var sprite in project.Sprites)
+            display.items.Add(sprite.ToRuntimeSprite());
     }
 
     public async Task Tick()
     {
+
+        if (isProjectLoading) return; // Make sure project is not loading! (Pasted multiple times for good measure.)
         foreach (Vm vm in VMs.Values)
         {
+            if (isProjectLoading) return; // Make sure project is not loading! (Pasted multiple times for good measure.)
             await vm.Tick();
         }
 
@@ -140,13 +149,10 @@ public class Vm
         {
             // Check if thread is valid:
 
+            if (isProjectLoading) return; // Make sure project is not loading! (Pasted multiple times for good measure.)
+
             if (!isThreadSafe(thread)) continue;
             await thread.Step();
-
-            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-            {
-                MainWindow.window.InvalidateVisual();
-            });
 
         }
     }

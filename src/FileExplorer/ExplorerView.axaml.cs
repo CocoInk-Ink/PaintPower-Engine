@@ -1,16 +1,16 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using PaintPower.Accessibility.Translation;
+using PaintPower.Dialogs;
+using PaintPower.Logging;
+using PaintPower.ProjectSystem;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using PaintPower.ProjectSystem;
-using PaintPower.Dialogs;
-using System;
 using System.Threading.Tasks;
-
-using PaintPower.Accessibility.Translation;
-using PaintPower.Logging;
-using Avalonia;
 
 namespace PaintPower.FileExplorer;
 
@@ -19,16 +19,22 @@ public partial class ExplorerView : UserControl
     public ObservableCollection<ExplorerItem> Items { get; } = new();
 
     private string _currentDir = "";
-    private TempWorkspace _workspace;
+    private TempWorkspace? _workspace;
 
     public string ClipboardPath { get; private set; } = "";
+
+    // Events so parent editors can react
+    public event Action<string>? FileOpened;
+    public event Action<string>? FolderOpened;
+    public event Action? ProjectDirty;
+
     public ExplorerView()
     {
         InitializeComponent();
         Translator.LanguageChanged += () => Refresh();
     }
 
-    // Called by MainWindow after project loads
+    // Called by parent editor after workspace is ready
     public void Initialize(TempWorkspace workspace)
     {
         _workspace = workspace;
@@ -39,7 +45,7 @@ public partial class ExplorerView : UserControl
         Refresh();
     }
 
-    // Called when switching between project root and sprite root
+    // Switch between different roots (project root, sprite root, etc.)
     public void SetRoot(string newRoot)
     {
         _currentDir = newRoot;
@@ -58,7 +64,6 @@ public partial class ExplorerView : UserControl
             return;
         }
 
-        // Compute relative path inside ActiveRoot
         string relative = _currentDir.Replace(_workspace.ActiveRoot, "")
                                      .Replace("\\", "/");
 
@@ -67,7 +72,6 @@ public partial class ExplorerView : UserControl
 
         PathLabel.Text = relative;
 
-        // Folders first
         foreach (var dir in Directory.GetDirectories(_currentDir))
         {
             Items.Add(new ExplorerItem
@@ -78,7 +82,6 @@ public partial class ExplorerView : UserControl
             });
         }
 
-        // Files
         foreach (var file in Directory.GetFiles(_currentDir))
         {
             Items.Add(new ExplorerItem
@@ -90,7 +93,7 @@ public partial class ExplorerView : UserControl
         }
     }
 
-        private static void CopyDirectory(string sourceDir, string destDir)
+    private static void CopyDirectory(string sourceDir, string destDir)
     {
         if (!Directory.Exists(sourceDir))
             throw new DirectoryNotFoundException($"Source directory not found: {sourceDir}");
@@ -116,12 +119,18 @@ public partial class ExplorerView : UserControl
     // -----------------------------
     private void OnGoRoot(object? sender, RoutedEventArgs e)
     {
+        if (_workspace == null)
+            return;
+
         _currentDir = _workspace.ActiveRoot;
         Refresh();
     }
 
     private void OnGoUp(object? sender, RoutedEventArgs e)
     {
+        if (_workspace == null)
+            return;
+
         if (_currentDir == _workspace.ActiveRoot)
             return;
 
@@ -137,7 +146,6 @@ public partial class ExplorerView : UserControl
         if (_workspace == null)
             return;
 
-        // var dialog = new InputDialog("New File", "Enter file name:");
         var dialog = new NewFileDialog();
         var window = this.VisualRoot as Window;
         var name = await dialog.ShowAsync(window);
@@ -145,15 +153,15 @@ public partial class ExplorerView : UserControl
         if (string.IsNullOrWhiteSpace(name))
             return;
 
-        // Remove any invalid characters from the filename
         foreach (char c in Path.GetInvalidFileNameChars())
-        {
             name = name.Replace(c.ToString(), "");
-        }
 
         if (string.IsNullOrEmpty(name))
         {
-            var errorDialog = new PopupWindowDialog(Translator.Map("Error"), Translator.Map("Invalid file name"), "Please enter a different name.");
+            var errorDialog = new PopupWindowDialog(
+                Translator.Map("Error"),
+                Translator.Map("Invalid file name"),
+                "Please enter a different name.");
             await errorDialog.ShowAsync(window);
             return;
         }
@@ -161,18 +169,23 @@ public partial class ExplorerView : UserControl
         string path = Path.Combine(_currentDir, name);
 
         if (!File.Exists(path) && !Directory.Exists(path))
+        {
             File.WriteAllText(path, "");
+            ProjectDirty?.Invoke();
+        }
         else
+        {
             await ShowErrorPopup();
-
-        MainWindow.App.SetProjectStatus("Save Project");
-        MainWindow.App.saveNeeded = true;
+        }
 
         Refresh();
     }
 
     private async void OnNewFolder(object? sender, RoutedEventArgs e)
     {
+        if (_workspace == null)
+            return;
+
         var dialog = new InputDialog("New Folder", "Enter folder name:");
         var window = this.VisualRoot as Window;
         var name = await dialog.ShowAsync(window);
@@ -180,15 +193,15 @@ public partial class ExplorerView : UserControl
         if (string.IsNullOrWhiteSpace(name))
             return;
 
-        // Remove any invalid characters from the folder name
         foreach (char c in Path.GetInvalidFileNameChars())
-        {
             name = name.Replace(c.ToString(), "");
-        }
 
         if (string.IsNullOrEmpty(name))
         {
-            var errorDialog = new PopupWindowDialog(Translator.Map("Error"), Translator.Map("Invalid file name"), "Please enter a different name.");
+            var errorDialog = new PopupWindowDialog(
+                Translator.Map("Error"),
+                Translator.Map("Invalid file name"),
+                "Please enter a different name.");
             await errorDialog.ShowAsync(window);
             return;
         }
@@ -196,21 +209,22 @@ public partial class ExplorerView : UserControl
         string path = Path.Combine(_currentDir, name);
 
         if (!Directory.Exists(path) && !File.Exists(path))
+        {
             Directory.CreateDirectory(path);
+            ProjectDirty?.Invoke();
+        }
         else
+        {
             await ShowErrorPopup();
-
-        MainWindow.App.SetProjectStatus("Save Project");
-        MainWindow.App.saveNeeded = true;
+        }
 
         Refresh();
     }
 
-    /// -----------------------------
-    /// File operations
-    /// -----------------------------
-
-    private async void OnCopy(object? sender, RoutedEventArgs e)
+    // -----------------------------
+    // File operations
+    // -----------------------------
+    private void OnCopy(object? sender, RoutedEventArgs e)
     {
         if (FileList.SelectedItem is not ExplorerItem item)
             return;
@@ -243,15 +257,16 @@ public partial class ExplorerView : UserControl
             else
                 throw new Exception("Source path does not exist");
 
-            MainWindow.App.SetProjectStatus("Save Project");
-            MainWindow.App.saveNeeded = true;
-
+            ProjectDirty?.Invoke();
             Refresh();
         }
         catch (Exception ex)
         {
             Log.QuickLog($"Error pasting file/folder: {ex.Message}");
-            var errorDialog = new PopupWindowDialog(Translator.Map("Error"), Translator.Map("Could not paste item"), "Please try again.");
+            var errorDialog = new PopupWindowDialog(
+                Translator.Map("Error"),
+                Translator.Map("Could not paste item"),
+                "Please try again.");
             var window = this.VisualRoot as Window;
             await errorDialog.ShowAsync(window);
         }
@@ -274,15 +289,16 @@ public partial class ExplorerView : UserControl
                 else
                     File.Delete(item.FullPath);
 
-                MainWindow.App.SetProjectStatus("Save Project");
-                MainWindow.App.saveNeeded = true;
-
+                ProjectDirty?.Invoke();
                 Refresh();
             }
             catch (Exception ex)
             {
                 Log.QuickLog($"Error deleting file/folder: {ex.Message}");
-                var errorDialog = new PopupWindowDialog(Translator.Map("Error"), Translator.Map("Could not delete item"), "Please try again.");
+                var errorDialog = new PopupWindowDialog(
+                    Translator.Map("Error"),
+                    Translator.Map("Could not delete item"),
+                    "Please try again.");
                 await errorDialog.ShowAsync(window);
             }
         }
@@ -300,15 +316,15 @@ public partial class ExplorerView : UserControl
         if (string.IsNullOrWhiteSpace(name))
             return;
 
-        // Remove any invalid characters from the filename
         foreach (char c in Path.GetInvalidFileNameChars())
-        {
             name = name.Replace(c.ToString(), "");
-        }
 
         if (string.IsNullOrEmpty(name))
         {
-            var errorDialog = new PopupWindowDialog(Translator.Map("Error"), Translator.Map("Invalid name"), "Please enter a different name.");
+            var errorDialog = new PopupWindowDialog(
+                Translator.Map("Error"),
+                Translator.Map("Invalid name"),
+                "Please enter a different name.");
             await errorDialog.ShowAsync(window);
             return;
         }
@@ -317,7 +333,10 @@ public partial class ExplorerView : UserControl
 
         if (File.Exists(destPath) || Directory.Exists(destPath))
         {
-            var errorDialog = new PopupWindowDialog(Translator.Map("Error"), Translator.Map("A file or folder with that name already exists"), "Please enter a different name.");
+            var errorDialog = new PopupWindowDialog(
+                Translator.Map("Error"),
+                Translator.Map("A file or folder with that name already exists"),
+                "Please enter a different name.");
             await errorDialog.ShowAsync(window);
             return;
         }
@@ -329,15 +348,16 @@ public partial class ExplorerView : UserControl
             else
                 File.Move(item.FullPath, destPath);
 
-            MainWindow.App.SetProjectStatus("Save Project");
-            MainWindow.App.saveNeeded = true;
-
+            ProjectDirty?.Invoke();
             Refresh();
         }
         catch (Exception ex)
         {
             Log.QuickLog($"Error renaming file/folder: {ex.Message}");
-            var errorDialog = new PopupWindowDialog(Translator.Map("Error"), Translator.Map("Could not rename item"), "Please try again.");
+            var errorDialog = new PopupWindowDialog(
+                Translator.Map("Error"),
+                Translator.Map("Could not rename item"),
+                "Please try again.");
             await errorDialog.ShowAsync(window);
         }
     }
@@ -367,15 +387,16 @@ public partial class ExplorerView : UserControl
             else
                 File.Copy(item.FullPath, destPath);
 
-            MainWindow.App.SetProjectStatus("Save Project");
-            MainWindow.App.saveNeeded = true;
-
+            ProjectDirty?.Invoke();
             Refresh();
         }
         catch (Exception ex)
         {
             Log.QuickLog($"Error duplicating file/folder: {ex.Message}");
-            var errorDialog = new PopupWindowDialog(Translator.Map("Error"), Translator.Map("Could not duplicate item"), "Please try again.");
+            var errorDialog = new PopupWindowDialog(
+                Translator.Map("Error"),
+                Translator.Map("Could not duplicate item"),
+                "Please try again.");
             var window = this.VisualRoot as Window;
             await errorDialog.ShowAsync(window);
         }
@@ -383,9 +404,12 @@ public partial class ExplorerView : UserControl
 
     private async void OnImport(object? sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFileDialog();
-        dialog.Title = "Import file";
-        dialog.AllowMultiple = true;
+        var dialog = new OpenFileDialog
+        {
+            Title = "Import file",
+            AllowMultiple = true
+        };
+
         var window = this.VisualRoot as Window;
         var result = await dialog.ShowAsync(window);
         if (result != null)
@@ -396,7 +420,10 @@ public partial class ExplorerView : UserControl
 
                 if (File.Exists(destPath) || Directory.Exists(destPath))
                 {
-                    var errorDialog = new PopupWindowDialog(Translator.Map("Error"), Translator.Map($"A file or folder named \"{Path.GetFileName(file)}\" already exists in this directory"), "Import Error");
+                    var errorDialog = new PopupWindowDialog(
+                        Translator.Map("Error"),
+                        Translator.Map($"A file or folder named \"{Path.GetFileName(file)}\" already exists in this directory"),
+                        "Import Error");
                     await errorDialog.ShowAsync(window);
                     continue;
                 }
@@ -404,16 +431,16 @@ public partial class ExplorerView : UserControl
                 try
                 {
                     File.Copy(file, destPath);
-
-                    MainWindow.App.SetProjectStatus("Save Project");
-                    MainWindow.App.saveNeeded = true;
-
+                    ProjectDirty?.Invoke();
                     Refresh();
                 }
                 catch (Exception ex)
                 {
                     Log.QuickLog($"Error importing file: {ex.Message}");
-                    var errorDialog = new PopupWindowDialog(Translator.Map("Error"), Translator.Map($"Could not import \"{Path.GetFileName(file)}\""), "Import Error");
+                    var errorDialog = new PopupWindowDialog(
+                        Translator.Map("Error"),
+                        Translator.Map($"Could not import \"{Path.GetFileName(file)}\""),
+                        "Import Error");
                     await errorDialog.ShowAsync(window);
                 }
             }
@@ -425,9 +452,12 @@ public partial class ExplorerView : UserControl
         if (FileList.SelectedItem is not ExplorerItem item)
             return;
 
-        var dialog = new SaveFileDialog();
-        dialog.Title = "Export file";
-        dialog.InitialFileName = item.Name;
+        var dialog = new SaveFileDialog
+        {
+            Title = "Export file",
+            InitialFileName = item.Name
+        };
+
         var window = this.VisualRoot as Window;
         var result = await dialog.ShowAsync(window);
         if (!string.IsNullOrEmpty(result))
@@ -442,7 +472,10 @@ public partial class ExplorerView : UserControl
             catch (Exception ex)
             {
                 Log.QuickLog($"Error exporting file/folder: {ex.Message}");
-                var errorDialog = new PopupWindowDialog(Translator.Map("Error"), Translator.Map("Could not export item"), "Please try again.");
+                var errorDialog = new PopupWindowDialog(
+                    Translator.Map("Error"),
+                    Translator.Map("Could not export item"),
+                    "Please try again.");
                 await errorDialog.ShowAsync(window);
             }
         }
@@ -478,16 +511,15 @@ public partial class ExplorerView : UserControl
         {
             _currentDir = item.FullPath;
             Refresh();
+            FolderOpened?.Invoke(item.FullPath);
             return;
         }
 
-        // Open file in editor
-        PaintPower_Engine.App.OpenFile(item.FullPath);
+        FileOpened?.Invoke(item.FullPath);
     }
 
     public void TranslateGUI()
     {
-        // Toolbar buttons
         NewFileButton.Header = Translator.Map("New");
         NewFolderButton.Header = Translator.Map("New Folder");
         GoRootButton.Header = Translator.Map("Go to Root");

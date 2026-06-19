@@ -8,6 +8,7 @@
 			<StackPanel Background="White">
 				<TextBlock x:Name="VMPanelText" Text="VM Panel" FontSize="20" Foreground="Black" Margin="0 0 0 10" />
 				<vm:StageAreaPart x:Name="StageArea"/>
+				<!-- To be removed, no code refrences it anyway. -->
 				<StackPanel Orientation="Horizontal">
 					<Button x:Name="PlayButton" Classes="gray" Content="Play" Margin="0 5" />
 					<Button x:Name="StopButton" Classes="gray" Content="Stop" Margin="0 5" />

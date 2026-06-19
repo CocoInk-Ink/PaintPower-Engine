@@ -8,12 +8,14 @@ namespace PaintPower;
 
 public partial class MainWindow : Window
 {
-    // Instance of the compatibility wrapper
+    // Legacy compatibility wrapper
     public static PaintPower_Engine App { get; } = new PaintPower_Engine();
 
     public string? StartupProjectPath { get; set; }
 
+#pragma warning disable CS8618
     public static MainWindow window;
+#pragma warning restore CS8618
 
     public MainWindow()
     {
@@ -30,12 +32,9 @@ public partial class MainWindow : Window
         // Initialize keyboard system
         KeyPress.init();
 
-        // Attach window + editor UI to the engine
+        // Attach window + MainGUI to the engine wrapper
         App.attachWindow(this);
-        App.attachEditorPart(editorPart.attachPaintPower(App));
-
-        // Start engine runtime
-        App.Start();
+        App.attachMainGUI(mainGui);
 
         // Key handlers
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);

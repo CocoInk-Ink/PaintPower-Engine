@@ -1,18 +1,21 @@
 ﻿using Avalonia.Threading;
-using PaintPower.Editors;
-using PaintPower.Networking;
+using PaintPower.FileEditors;
 using System.Threading.Tasks;
-using PaintPower.Logging;
-
-// Save to server or on local machine;
 
 namespace PaintPower.ProjectSystem;
 
-class ProjectSaver {
-    // Main function that should be called when saving a project.
-
-    public static async Task Save(PaintProject project, EditorBase editor)
+/// <summary>
+/// Handles saving the current editor and writing the project to disk.
+/// Pure logic — no UI, no engine, no server.
+/// </summary>
+public static class ProjectSaver
+{
+    /// <summary>
+    /// Saves the active file editor (if any) and writes the project ZIP.
+    /// </summary>
+    public static async Task Save(PaintProject project, FileEditor? editor)
     {
+        // Save the active editor (UI thread)
         if (editor != null)
         {
             await Dispatcher.UIThread.InvokeAsync(() =>
@@ -21,26 +24,8 @@ class ProjectSaver {
             });
         }
 
+        // Save project to disk
         if (project != null)
             await project.SaveToDisk();
-    }
-
-    async public static Task PublishToServer(PaintProject project, EditorBase editor, Server server)
-    {
-        if (await PaintPower_Engine.App.server.IsLoggedIn()) {
-        Log.QuickLog("Preparing to upload to server...");
-        await PaintPower_Engine.App.Save();
-        if (await server.checkConnection() && project != null)
-        {
-            Log.QuickLog("Uploading to server...");
-            await server.UploadProject(project);
-        } else
-        {
-            Log.QuickLog("Project is null or server is not available! Not uploading!");
-        }
-        } else
-        {
-            Log.QuickLog("User is not logged in. Don't upload to server.");
-        }
     }
 }

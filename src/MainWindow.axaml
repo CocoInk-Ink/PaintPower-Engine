@@ -1,10 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:app="clr-namespace:PaintPower"
+        xmlns:app="clr-namespace:PaintPower.Editors"
         x:Class="PaintPower.MainWindow"
         Width="1120"
         Height="570"
         Title="PaintPower">
 
-    <app:EditorPart x:Name="editorPart" />
+    <app:MainGUI x:Name="mainGui" />
 </Window>

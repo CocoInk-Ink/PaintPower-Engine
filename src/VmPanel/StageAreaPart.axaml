@@ -1,14 +1,20 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="clr-namespace:PaintPower.VMPanel" x:Class="PaintPower.VMPanel.StageAreaPart">
-    <Viewbox Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" StretchDirection="DownOnly">
-        <!-- This Grid stays at its natural size -->
-        <Grid Width="640" Height="450" RowDefinitions="Auto,*">
-            <!-- Top bar -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:PaintPower.VMPanel"
+             x:Class="PaintPower.VMPanel.StageAreaPart">
+
+    <Viewbox Stretch="Uniform"
+             HorizontalAlignment="Center"
+             VerticalAlignment="Center"
+             StretchDirection="DownOnly">
+
+        <Grid RowDefinitions="Auto,*">
             <vm:TopBarStagePart Grid.Row="0" />
-            <!-- Stage + overlay -->
             <Grid Grid.Row="1">
                 <vm:Stage x:Name="StageControl" />
                 <vm:ProcessingPanel x:Name="LoadingPart" />
             </Grid>
         </Grid>
+
     </Viewbox>
 </UserControl>

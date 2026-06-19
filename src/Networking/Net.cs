@@ -1,8 +1,4 @@
-﻿/*
-    Actual networking
-*/
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -11,10 +7,9 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using PaintPower;
 using PaintPower.Logging;
 
-public class Net
+public static class Net
 {
     private static readonly HttpClientHandler handler = new HttpClientHandler
     {
@@ -23,61 +18,63 @@ public class Net
         AllowAutoRedirect = true
     };
 
-    // Shared HttpClient instance (recommended for performance)
     private static readonly HttpClient client = new HttpClient(handler);
 
-    private static async Task<string?> getCSRF_Token()
-    {
-        return PaintPower_Engine.App.server.CurrentDomain?.CSRF_Token;
-    }
-
-    // GET request method
+    // ------------------------------------------------------------
+    // GET
+    // ------------------------------------------------------------
     public static async Task<string?> PerformGetRequest(string url)
     {
         try
         {
-            HttpResponseMessage response = await client.GetAsync(url);
-            response.EnsureSuccessStatusCode(); // Throws if not 2xx
+            var response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
 
-            string responseBody = await response.Content.ReadAsStringAsync();
+            string body = await response.Content.ReadAsStringAsync();
             Log.QuickLog("GET Response:");
-            Log.QuickLog(responseBody);
-            return responseBody;
+            Log.QuickLog(body);
+
+            return body;
         }
-        catch (HttpRequestException e)
+        catch (Exception ex)
         {
-            Log.QuickLog($"GET request error: {e.Message}");
+            Log.QuickLog($"GET request error: {ex.Message}");
             return null;
         }
     }
 
-    // POST request method
-    public static async Task<object?> PerformPostRequest<T>(string url, T data)
+    // ------------------------------------------------------------
+    // POST (JSON)
+    // ------------------------------------------------------------
+    public static async Task<string?> PerformPostRequest<T>(string url, T data)
     {
         try
         {
             string json = JsonSerializer.Serialize(data);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            Log.QuickLog($"Body: {content}");
+            Log.QuickLog($"POST Body: {json}");
 
-            HttpResponseMessage response = await client.PostAsync(url, content);
+            var response = await client.PostAsync(url, content);
             response.EnsureSuccessStatusCode();
 
-            string responseBody = await response.Content.ReadAsStringAsync();
+            string body = await response.Content.ReadAsStringAsync();
             Log.QuickLog("POST Response:");
-            Log.QuickLog(responseBody);
+            Log.QuickLog(body);
 
-            return responseBody;
+            return body;
         }
-        catch (HttpRequestException e)
+        catch (Exception ex)
         {
-            Log.QuickLog($"POST request error: {e.Message}");
+            Log.QuickLog($"POST request error: {ex.Message}");
+            return null;
         }
-        return null;
     }
 
-    public static async Task DownloadFileAsync(string url, string destinationPath)
+    // ------------------------------------------------------------
+    // File Download
+    // ------------------------------------------------------------
+    public static async Task<bool> DownloadFileAsync(string url, string destinationPath)
     {
         try
         {
@@ -87,24 +84,26 @@ public class Net
             await using var stream = await response.Content.ReadAsStreamAsync();
             await using var fileStream = File.Create(destinationPath);
 
-            byte[] buffer = new byte[81920]; // 80 KB chunks
-            int bytesRead;
+            byte[] buffer = new byte[81920];
+            int read;
 
-            while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
-            {
-                await fileStream.WriteAsync(buffer, 0, bytesRead);
-            }
+            while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                await fileStream.WriteAsync(buffer, 0, read);
+
+            return true;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Download error: {ex.Message}");
+            Log.QuickLog($"Download error: {ex.Message}");
+            return false;
         }
     }
 
-    public static async Task UploadFileAsync(string url, string filePath, string projectTitle)
+    // ------------------------------------------------------------
+    // File Upload
+    // ------------------------------------------------------------
+    public static async Task<bool> UploadFileAsync(string url, string filePath, string projectTitle)
     {
-        Debug.WriteLine(url);
-
         try
         {
             using var form = new MultipartFormDataContent();
@@ -114,63 +113,41 @@ public class Net
             fileContent.Headers.ContentType =
                 new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
 
-            // If project is not saved on disk, then get a random directory, save in in this random directory.
-            // Save the project, upload it, then put it back to normal.
-
-            if (filePath == string.Empty)
-            {
-                string tempFolder = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString());
-                string tempFile = Path.Join(tempFolder, Guid.NewGuid().ToString() + ".temp.xPaint");
-                if (!Directory.Exists(tempFolder))
-                {
-                    Directory.CreateDirectory(tempFolder);
-                }
-                await PaintPower_Engine.App._project.SaveToDisk(tempFile);
-                filePath = tempFile;
-            }
-
-            // File field (multer expects "file")
             form.Add(fileContent, "file", Path.GetFileName(filePath));
-
-            // Add project title
             form.Add(new StringContent(projectTitle, Encoding.UTF8), "title");
 
-            using var response = await client.PostAsync(url, form);
+            var response = await client.PostAsync(url, form);
             response.EnsureSuccessStatusCode();
 
             Debug.WriteLine("Upload complete.");
+            return true;
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Upload error: {ex.Message}");
+            return false;
         }
     }
 
-    public static async Task<bool> Login(string username, string password)
+    // ------------------------------------------------------------
+    // Login
+    // ------------------------------------------------------------
+    public static async Task<bool> Login(string url, string username, string password)
     {
         try
         {
             var data = new Dictionary<string, string>
-        {
-            { "username", username },
-            { "password", password }
-        };
+            {
+                { "username", username },
+                { "password", password }
+            };
 
             var content = new FormUrlEncodedContent(data);
+            var response = await client.PostAsync(url, content);
 
-            var response = await client.PostAsync(
-                PaintPower_Engine.App.server.makeUrl("login"),
-                content
-            );
+            Log.QuickLog($"Login status: {response.StatusCode}");
 
-            Log.QuickLog($"Login status: {response.GetHashCode()}");
-
-            // If login fails, server returns 400 with text
-            if (!response.IsSuccessStatusCode)
-                return false;
-
-            // If login succeeds, server redirects to "/"
-            return true;
+            return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
         {

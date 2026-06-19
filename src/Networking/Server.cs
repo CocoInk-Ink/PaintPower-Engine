@@ -1,242 +1,256 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net.Http;
-using PaintPower.ProjectSystem;
-using PaintPower.Logging;
+using System.IO;
 using System.Text.Json;
+using System.Threading.Tasks;
+using PaintPower.Logging;
+using PaintPower.ProjectSystem;
 
 namespace PaintPower.Networking;
 
-// Networking class for the PaintPower Engine.
-// Mainly to be used for the 'Coco xPaint Project', but it will lie
-// here in the engine because it's open source. So anyone can create their own server.
+/// <summary>
+/// Pure networking class for PaintPower.
+/// Handles:
+///   - Domain security
+///   - Server connection checks
+///   - Login/logout
+///   - Upload/download
+///   - Listing user projects
+///
+/// Does NOT:
+///   - Touch UI
+///   - Touch PaintPower_Engine
+///   - Touch ProjectEditorLogic
+///   - Touch window title or status bar
+/// </summary>
 public class Server
 {
-    //*--- Domain security. ---*//
-    private static List<Domain> AllowedDomainsList = new List<Domain>();
+    private static readonly List<Domain> AllowedDomainsList = new();
     private bool isConnected = false;
-    public void AllowDomain(Domain domain) => AllowedDomainsList.Add(domain);
-    public bool IsDomainAllowed(Domain domain) => AllowedDomainsList.Contains(domain);
-
-    public void ClearAllowedDomains() => AllowedDomainsList.Clear();
-
-    public void RemoveDomain(Domain domain) { AllowedDomainsList.Remove(domain); }
 
     public Domain CurrentDomain = new Domain("www.cocoink.ink/f/PaintPower");
+    public string Username { get; private set; } = "";
 
-    public void closeAllConnections()
+    // ------------------------------------------------------------
+    // Domain Security
+    // ------------------------------------------------------------
+    public void AllowDomain(Domain domain) => AllowedDomainsList.Add(domain);
+    public bool IsDomainAllowed(Domain domain) => AllowedDomainsList.Contains(domain);
+    public void ClearAllowedDomains() => AllowedDomainsList.Clear();
+    public void RemoveDomain(Domain domain) => AllowedDomainsList.Remove(domain);
+
+    public void CloseAllConnections()
     {
         AllowedDomainsList.Clear();
-        PaintPower_Engine.App.SetNetworkStatus("Not connected");
+        isConnected = false;
     }
 
-    // Make a valid url.
-    public string makeUrl(string addon = "")
+    public string MakeUrl(string addon = "")
     {
         string url = $"{URLifyer.URLify(CurrentDomain)}{addon}";
         Log.QuickLog($"Url made: {url}");
         return url;
     }
 
-    // Create, register, and add default domains.
-    public void loadDefaultDomains()
+    public void LoadDefaultDomains()
     {
-
-        // Clear old list
         AllowedDomainsList.Clear();
 
-        // Create Coco links, Paint links, random links, and more!
-        // Creating a custom server? Make a issue on GitHub and I'll add it here!
-        Domain d1 = new Domain("xpaint.cocoink.ink");
-        Domain d2 = new Domain("paint.cocoink.ink");
-        Domain d3 = new Domain("127.0.0.1:5500/f/xPaint");
-        Domain d4 = new Domain("127.0.0.1:5000/f/xPaint");
-        Domain d5 = new Domain("127.0.0.1:3000/f/xPaint");
-        Domain d12 = new Domain("0.0.0.0:5500/f/xPaint");
-        Domain d6 = new Domain("127.0.0.1:8000");
-        Domain d7 = new Domain("localhost:5500");
-        Domain d8 = new Domain("localhost:5000");
-        Domain d9 = new Domain("localhost:8000");
-        Domain d10 = new Domain("localhost:3000");
-        Domain d11 = new Domain("github.com");
-        Domain d13 = new Domain("paint-website.onrender.com");
-        Domain d14 = new Domain("paintpower.cocoink.ink");
-        Domain d15 = new Domain("www.cocoink.ink");
-        Domain d16 = new Domain("www.cocoink.ink/f/xPaint");
-        Domain d17 = new Domain("www.cocoink.ink/f/Paint");
-        Domain d18 = new Domain("www.cocoink.ink/f/PaintPower");
-        Domain d19 = new Domain("negro.org");
-        Domain d20 = new Domain("example.com");
+        Domain[] defaults =
+        {
+            new("xpaint.cocoink.ink"),
+            new("paint.cocoink.ink"),
+            new("127.0.0.1:5500/f/xPaint"),
+            new("127.0.0.1:5000/f/xPaint"),
+            new("127.0.0.1:3000/f/xPaint"),
+            new("0.0.0.0:5500/f/xPaint"),
+            new("127.0.0.1:8000"),
+            new("localhost:5500"),
+            new("localhost:5000"),
+            new("localhost:8000"),
+            new("localhost:3000"),
+            new("github.com"),
+            new("paint-website.onrender.com"),
+            new("paintpower.cocoink.ink"),
+            new("www.cocoink.ink"),
+            new("www.cocoink.ink/f/xPaint"),
+            new("www.cocoink.ink/f/Paint"),
+            new("www.cocoink.ink/f/PaintPower"),
+            new("negro.org"),
+            new("example.com")
+        };
 
-        // Add to list
-        AllowDomain(d1); AllowDomain(d2); AllowDomain(d3); AllowDomain(d4); AllowDomain(d5);
-        AllowDomain(d6); AllowDomain(d7); AllowDomain(d8); AllowDomain(d9); AllowDomain(d10);
-        AllowDomain(d11); AllowDomain(d12); AllowDomain(d13); AllowDomain(d14); AllowDomain(d15);
-        AllowDomain(d16); AllowDomain(d17); AllowDomain(d18); AllowDomain(d19); AllowDomain(d20);
+        foreach (var d in defaults)
+            AllowDomain(d);
 
 #if DEBUG
-        setActiveDomain(d3);
+        SetActiveDomain(defaults[2]); // 127.0.0.1:5500/f/xPaint
 #else
-        setActiveDomain(d16);
+        SetActiveDomain(defaults[15]); // www.cocoink.ink/f/xPaint
 #endif
     }
 
-    public void setActiveDomain(Domain domain)
+    public void SetActiveDomain(Domain domain)
     {
         CurrentDomain = domain;
     }
 
-    //*--- Networking ---*//
+    // ------------------------------------------------------------
+    // Networking
+    // ------------------------------------------------------------
     public async Task InitServer()
     {
-        loadDefaultDomains();
-        isConnected = await checkConnection();
+        LoadDefaultDomains();
+        isConnected = await CheckConnection();
     }
 
-    public async Task<bool> checkConnection()
+    public async Task<bool> CheckConnection()
     {
-        var domain = CurrentDomain;
-        if (domain == null) throw new ArgumentNullException(nameof(domain));
-
-        if (!IsDomainAllowed(domain)) throw new UnauthorizedAccessException("Domain not allowed");
+        if (!IsDomainAllowed(CurrentDomain))
+            throw new UnauthorizedAccessException("Domain not allowed");
 
         try
         {
-            bool c = await Net.PerformGetRequest(makeUrl(Routes.checkActiveServer())) == "Ok.";
-            PaintPower_Engine.App.SetNetworkStatus(c ? "Connected" : "Not connected");
-            isConnected = c;
-            return c;
+            bool ok = await Net.PerformGetRequest(MakeUrl(Routes.checkActiveServer())) == "Ok.";
+            isConnected = ok;
+            return ok;
         }
         catch
         {
-            PaintPower_Engine.App.SetNetworkStatus("Not connected");
             isConnected = false;
             return false;
         }
     }
 
-    public async Task<object?> GetFromServer(string url)
+    public async Task<string?> GetFromServer(string url)
     {
         if (!isConnected) return null;
-        var domain = CurrentDomain;
-        if (domain == null) throw new ArgumentNullException(nameof(domain));
-        if (!IsDomainAllowed(domain)) throw new UnauthorizedAccessException("Domain not allowed");
+        if (!IsDomainAllowed(CurrentDomain)) throw new UnauthorizedAccessException("Domain not allowed");
+
         return await Net.PerformGetRequest(url);
     }
 
-    /* Download a project made by the user */
+    // ------------------------------------------------------------
+    // Project Download
+    // ------------------------------------------------------------
     public async Task DownloadProject(string savePath, int id)
     {
         if (!isConnected) return;
-        string url = makeUrl($"{id}");
+
+        string url = MakeUrl($"{id}");
         await Net.DownloadFileAsync(url, savePath);
     }
 
-    /* Save the project and load it into the editor. */
-    public async Task DownloadProjectAndLoad(string savePath, int id)
-    {
-        if (!isConnected) return;
-        try
-        {
-            await DownloadProject(savePath, id);
-            #pragma warning disable
-            PaintPower_Engine.App.OpenProjectFile(savePath);
-            #pragma warning restore
-        }
-        catch (Exception e)
-        {
-            Log.QuickLog(e.Message);
-        }
-    }
-
+    // ------------------------------------------------------------
+    // Project Upload
+    // ------------------------------------------------------------
     public async Task UploadProject(PaintProject project)
     {
         if (!isConnected) return;
+        if (string.IsNullOrWhiteSpace(project.ProjectPath)) return;
 
-#pragma warning disable
-        PaintPower_Engine.App.RunSavingAnimation();
+        string url = MakeUrl(Routes.normalOverwriteUpload(project.Metadata.serverId));
 
-        try
-        {
-            await Net.UploadFileAsync(
-                 makeUrl(Routes.normalOverwriteUpload(PaintPower_Engine.App._project.Metadata.serverId)),
-                 project.ProjectPath,
-                 project.Metadata.name // send project title
-             );
-        }
-        finally
-        {
-            MainWindow.App._isSavingAnimationRunning = false;
-        }
+        await Net.UploadFileAsync(
+            url,
+            project.ProjectPath,
+            project.Metadata.name
+        );
     }
 
-    // If the user is signed in, then get a list of their projects from the server.
+    // ------------------------------------------------------------
+    // User Projects
+    // ------------------------------------------------------------
     public async Task<List<ProjectInfo>> ListUserProjects()
     {
-        if (!isConnected) return new List<ProjectInfo>();
+        if (!isConnected) return new();
 
-        string url = makeUrl(Routes.userProjectsRoute());
+        string url = MakeUrl(Routes.userProjectsRoute());
         string? response = await Net.PerformGetRequest(url);
 
-        if (response == null) return new List<ProjectInfo>();
-
-        Log.QuickLog(response);
-
-        List<ProjectInfo> list = new List<ProjectInfo>();
+        if (response == null) return new();
 
         try
         {
-            list = JsonSerializer.Deserialize<List<ProjectInfo>>(response) ?? new List<ProjectInfo>();
+            return JsonSerializer.Deserialize<List<ProjectInfo>>(response) ?? new();
         }
-        catch { Log.QuickLog("Threw at JSON."); };
-
-        return list;
+        catch
+        {
+            Log.QuickLog("Failed to parse project list JSON.");
+            return new();
+        }
     }
 
-
-    public async Task<string?> CreateNewServerProject(string title)
+    // ------------------------------------------------------------
+    // Create New Server Project
+    // ------------------------------------------------------------
+    public async Task<string?> CreateNewServerProject(string? title)
     {
         if (!isConnected) return null;
-
-        if (title.Length > 100) title = title.Substring(0, 100);
-        if (string.IsNullOrWhiteSpace(title)) title = "Untitled Project";
         if (!await IsLoggedIn()) return null;
-        string url = makeUrl(Routes.createNew());
-        var payload = new { title = title };
 
-        string? response = (string)await Net.PerformPostRequest(url, payload);
+        if (string.IsNullOrWhiteSpace(title))
+            title = "Untitled Project";
+
+        if (title.Length > 100)
+            title = title[..100];
+
+        string url = MakeUrl(Routes.createNew());
+        var payload = new { title };
+
+        string? response = (string?)await Net.PerformPostRequest(url, payload);
         if (response == null) return null;
 
-        try {
-        var json = JsonSerializer.Deserialize<Dictionary<string, string>>(response);
-        return json?["id"];
-        } catch { return null; }
+        try
+        {
+            var json = JsonSerializer.Deserialize<Dictionary<string, string>>(response);
+            return json?["id"];
+        }
+        catch
+        {
+            return null;
+        }
     }
 
-    public string Username { get; set; }
-
+    // ------------------------------------------------------------
+    // Login / Logout
+    // ------------------------------------------------------------
+    // ------------------------------------------------------------
+    // Login / Logout
+    // ------------------------------------------------------------
     public async Task<bool> Login(string username, string password)
     {
         if (!isConnected) return false;
-        if (await IsLoggedIn()) await Logout();
-        await Net.Login(username, password);
-        if (await IsLoggedIn()) Username = username;
+
+        await Logout();
+
+        string loginUrl = MakeUrl("login");
+        await Net.Login(loginUrl, username, password);
+
+        if (await IsLoggedIn())
+            Username = username;
+
         return await IsLoggedIn();
     }
 
     public async Task Logout()
     {
-        if (await IsLoggedIn()) await Net.PerformPostRequest(PaintPower_Engine.App.server.makeUrl("logout"), new Dictionary<string, bool> { { "redirect", false } });
-        if (!await IsLoggedIn()) Username = "";
+        if (!await IsLoggedIn()) return;
+
+        await Net.PerformPostRequest(
+            MakeUrl("logout"),
+            new Dictionary<string, bool> { { "redirect", false } }
+        );
+
+        if (!await IsLoggedIn())
+            Username = "";
     }
 
     public async Task<bool> IsLoggedIn()
     {
-        if (isConnected == false) return false;
-        var response = await Net.PerformGetRequest(makeUrl("api/whoami"));
+        if (!isConnected) return false;
+
+        var response = await Net.PerformGetRequest(MakeUrl("api/whoami"));
         return response != null && !response.Contains("Not logged in");
     }
 

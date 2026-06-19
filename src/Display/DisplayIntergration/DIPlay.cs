@@ -15,10 +15,7 @@ namespace PaintPower.Display.DisplayIntegration
     {
         public GfxPane gfxPane;
 
-        public static Point stageSize = new(
-            PaintPower_Engine.App._project?.Metadata?.StageWidth,
-            PaintPower_Engine.App._project?.Metadata?.StageHeight
-        );
+        public Point StageSize { get; set; }
 
         public List<DIItem> items = new();
 
@@ -26,10 +23,11 @@ namespace PaintPower.Display.DisplayIntegration
 
         private int _t = 0;
 
-        public DIPlay(int width, int height, VMPanel.Stage stage)
+        public DIPlay(int width, int height, VMPanel.Stage stage, double stageWidth, double stageHeight)
         {
             _stage = stage;
             gfxPane = new GfxPane(width, height);
+            StageSize = new Point(stageWidth, stageHeight);
         }
 
         public void Start()
@@ -42,9 +40,6 @@ namespace PaintPower.Display.DisplayIntegration
         public async void Tick()
         {
             var pane = gfxPane;
-
-            if (PaintPower_Engine.App.vm != null)
-                await PaintPower_Engine.App.vm.Tick();
 
             List<DrawCommand> batch = new();
 
@@ -109,8 +104,7 @@ namespace PaintPower.Display.DisplayIntegration
 
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
-                var bmp = CreateBitmapFromPane();
-                _stage.SetBitmap(bmp);
+                _stage.SetBitmap(CreateBitmapFromPane());
             });
 
             _t++;
@@ -127,9 +121,10 @@ namespace PaintPower.Display.DisplayIntegration
             float bottom = y + halfH;
 
             return right < 0 ||
-                   left > stageSize.x ||
-                   bottom < 0 ||
-                   top > stageSize.y;
+                left > StageSize.x ||
+                bottom < 0 ||
+                top > StageSize.y;
+
         }
 
         private Bitmap CreateBitmapFromPane()

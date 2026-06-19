@@ -2,15 +2,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="PaintPower.VMPanel.Stage">
 
-    <Border Width="640"
-            Height="450"
+    <Border x:Name="StageBorder"
             BorderBrush="gray"
-            Background="black"
+            Background="White"
             BorderThickness="1"
             CornerRadius="0,0,8,8"
             Padding="0">
 
-        <!-- This is where DIPlay will push the rendered frame -->
+        <!-- DIPlay will push rendered frames here -->
         <Image x:Name="StageImage"
                Stretch="Fill"
                HorizontalAlignment="Stretch"

@@ -14,21 +14,12 @@ public partial class ProcessingPanel : UserControl
     public ProcessingPanel()
     {
         InitializeComponent();
-        RunTest();
     }
 
-    private async void RunTest()
+    public void Reset()
     {
-        int total = (!false) ? 398484 : 712;
-        //SetText("Loading Project...", "{processed} of {total} assets loaded");
-        SetText("Compiling Scripts...", "Compiled {processed} of {total} total scripts");
-        for (int processed = (false) ? 29449 : 0; processed <= total; processed++)
-        {
-            Loader.SetPercent(Percent.calc(processed, total));
-            //SetSubheaderText($"{processed} of {total} assets loaded");
-            SetSubheaderText($"Compiled {processed} of {total} total scripts");
-            await Task.Delay(100);
-        }
+        SetPercent(0);
+        SetSubheaderText("0 of 0 assets loaded");
     }
 
     public void SetPercent(int percent)

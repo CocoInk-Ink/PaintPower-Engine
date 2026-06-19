@@ -1,48 +1,83 @@
-﻿namespace PaintPower.Editors;
-
 using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Avalonia.Controls;
-using PaintPower.ProjectSystem;
+using PaintPower.Accessibility.Translation;
 
-public class Editor
+namespace PaintPower.Editors;
+
+public partial class Editor : UserControl
 {
-    private readonly TempWorkspace _workspace;
-    private static EditorBase? ActiveEditor = null;
+    public virtual Task Save() => Task.CompletedTask;
+    public virtual Task SaveAs() => Task.CompletedTask;
+    public virtual Task Cut() => Task.CompletedTask;
+    public virtual Task Copy() => Task.CompletedTask;
+    public virtual Task Paste() => Task.CompletedTask;
+    public virtual Task Undo() => Task.CompletedTask;
+    public virtual Task Redo() => Task.CompletedTask;
 
-    public Editor(TempWorkspace workspace)
+    public virtual void SetUIMode(EditorUIMode mode) { }
+
+    // Override this in each editor
+    public virtual HeaderDefinition GetHeaderDefinition()
     {
-        _workspace = workspace;
+        return HeaderDefinition.Empty;
     }
 
-    public EditorBase GetEditorFromFileType(string path)
+    // Shared menus
+    protected List<HeaderItem> StandardEditMenu() => new()
     {
-        // FIX: keep full relative path inside items/
-        string relative = Path.GetRelativePath(_workspace.ItemsDir, path);
+        new HeaderItem { Label = "Undo", Command = () => Undo() },
+        new HeaderItem { Label = "Redo", Command = () => Redo() },
+        new HeaderItem { IsSeparator = true },
+        new HeaderItem { Label = "Cut", Command = () => Cut() },
+        new HeaderItem { Label = "Copy", Command = () => Copy() },
+        new HeaderItem { Label = "Paste", Command = () => Paste() }
+    };
 
-        var ext = Path.GetExtension(path);
-        var type = Editors.EditorTypes.FindEditorFromExt(ext.ToLower());
+    protected List<HeaderItem> StandardHelpMenu() => new()
+    {
+        new HeaderItem { Label = "About" },
+        new HeaderItem { Label = "Documentation" },
+        new HeaderItem { Label = "Videos" },
+        new HeaderItem { Label = "Tutorials" }
+    };
 
-        return ActiveEditor = type switch
+    protected List<HeaderItem> LanguageMenu()
+    {
+        var list = new List<HeaderItem>();
+
+        foreach (var kv in Translator.GetAvailableLanguages())
         {
-            "xPaint" => new EditorPart(),
-            "Paint" => new PaintEditor(relative, _workspace),
-            "Script" => new ScriptEditor(relative, _workspace),
-            "Animation" => new AnimationEditor(relative, _workspace),
-            "Video" => new VideoEditor(relative, _workspace),
-            "Sound" => new SoundPlayer(relative, _workspace),
-            _ => new EditorBase().addText(new TextBlock { Text = $"Unsupported file: {ext}" })
-        };
-    }
+            string fullName = kv.Key;
+            string shortCode = kv.Value;
 
-    // Save items in the editor to the temp directory.
-    public static void SaveEditor() {
-        ActiveEditor?.Save();
-    }
+            list.Add(new HeaderItem
+            {
+                Label = fullName,
+                Command = () =>
+                {
+                    Translator.changeLang(shortCode);
+                    Translator.refreshNeeded = true;
+                    Translator.refresh();
+                }
+            });
+        }
 
-    public void TranslateGUI()
-    {
-        if (ActiveEditor != null)
-            ActiveEditor.TranslateGUI();
+        return list;
     }
+}
+
+public class HeaderDefinition
+{
+    public Dictionary<string, List<HeaderItem>> Menus { get; set; } = new();
+
+    public static HeaderDefinition Empty => new HeaderDefinition();
+}
+
+public class HeaderItem
+{
+    public string Label { get; set; }
+    public Action? Command { get; set; }
+    public bool IsSeparator { get; set; }
 }

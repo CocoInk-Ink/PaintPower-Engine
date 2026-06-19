@@ -1,25 +1,30 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media.Imaging;
+using PaintPower.Tools;
 
 namespace PaintPower.VMPanel;
 
 public partial class Stage : UserControl
 {
-    // DIPlay instance owned by this Stage
     public PaintPower.Display.DisplayIntegration.DIPlay Diplay { get; private set; }
-
-    public static Stage? stage { get; private set; }
 
     public Stage()
     {
         InitializeComponent();
 
-        // Create DIPlay using the stage's fixed size (or project metadata)
-        Diplay = new PaintPower.Display.DisplayIntegration.DIPlay(640, 450, this);
+        double stageWidth = 640;
+        double stageHeight = 450;
 
-        stage = this;
+        Diplay = new PaintPower.Display.DisplayIntegration.DIPlay(
+            (int)stageWidth,
+            (int)stageHeight,
+            this,
+            stageWidth,
+            stageHeight
+        );
 
-        // Start the render loop
+        SetSize(stageWidth, stageHeight);
         Diplay.Start();
     }
 
@@ -27,9 +32,14 @@ public partial class Stage : UserControl
     {
         Width = width;
         Height = height;
+
+        StageBorder.Width = width;
+        StageBorder.Height = height;
+
+        Diplay.StageSize = new Point(width, height);
     }
 
-    public void SetBitmap(Avalonia.Media.Imaging.Bitmap bmp)
+    public void SetBitmap(Bitmap bmp)
     {
         StageImage.Source = bmp;
     }

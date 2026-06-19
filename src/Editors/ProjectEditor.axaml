@@ -1,0 +1,55 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:PaintPower.VMPanel"
+             xmlns:sprite="clr-namespace:PaintPower.ProjectSystem.SpriteEditor"
+             x:Class="PaintPower.Editors.ProjectEditor">
+
+    <Grid>
+
+        <!-- NORMAL EDITOR AREA -->
+        <Grid x:Name="EditorArea" ColumnDefinitions="260,5,*">
+
+            <Grid.Background>
+                <DynamicResource ResourceKey="MainBackground" />
+            </Grid.Background>
+
+            <!-- LEFT PANEL -->
+            <Grid Grid.Column="0" RowDefinitions="*,5,*">
+                <sprite:SpriteManagerView Grid.Row="0" x:Name="SpriteManager" Margin="0,0,0,5" />
+                <GridSplitter Grid.Row="1" Height="5" Background="{DynamicResource SplitterColor}" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext" />
+                <Border Grid.Row="2" Background="{DynamicResource LeftPanelBackground}">
+                    <sprite:SpritePropertiesView x:Name="SpriteProperties" />
+                </Border>
+            </Grid>
+
+            <!-- SPLITTER -->
+            <GridSplitter Grid.Column="1" Width="5" Background="{DynamicResource SplitterColor}" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" />
+
+            <!-- CENTER PANEL -->
+            <Grid Grid.Column="2" RowDefinitions="30,*">
+
+                <!-- Status Bar -->
+                <Border Grid.Row="0" Background="{DynamicResource StatusBarBackground}" Margin="3">
+                    <StackPanel Orientation="Horizontal" Margin="2">
+                        <TextBlock x:Name="StatusBarText" Text="Ready" Margin="3" Foreground="{DynamicResource StatusBarForeground}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Editor Host -->
+                <Grid Grid.Row="1" ColumnDefinitions="*,5,*">
+                    <ContentControl x:Name="CenterHost" />
+                    <GridSplitter Grid.Column="1" Width="5" Background="{DynamicResource SplitterColor}" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" />
+                    <vm:VmPanel Grid.Column="2" />
+                </Grid>
+
+            </Grid>
+
+        </Grid>
+
+        <!-- FULLSCREEN VM PANEL (LOADING MODE) -->
+        <Grid x:Name="VmOnlyArea" IsVisible="False">
+            <vm:VmPanel x:Name="VmPanelControl" />
+        </Grid>
+
+    </Grid>
+</UserControl>

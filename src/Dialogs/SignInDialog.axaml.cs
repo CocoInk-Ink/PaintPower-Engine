@@ -2,23 +2,21 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using PaintPower.Networking;
-using PaintPower.Logging;
 using System.Threading.Tasks;
 
 namespace PaintPower.Dialogs;
 
 public partial class SignInDialog : Window
 {
-    public SignInDialog()
+    private readonly Server _server;
+
+    public SignInDialog(Server server)
     {
+        _server = server;
         InitializeComponent();
 
-        if (LoginButton != null) {
         LoginButton.Click += OnLoginClicked;
-        }
-        if (CancelButton != null) {
         CancelButton.Click += (_, __) => Close(false);
-        }
     }
 
     private async void OnLoginClicked(object? sender, RoutedEventArgs e)
@@ -35,7 +33,7 @@ public partial class SignInDialog : Window
 
         StatusText.Text = "Signing in...";
 
-        bool ok = await PaintPower_Engine.App.server.Login(username, password);
+        bool ok = await _server.Login(username, password);
 
         if (ok)
         {

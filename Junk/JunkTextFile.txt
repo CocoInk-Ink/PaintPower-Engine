@@ -580,7 +580,7 @@ Here are the stuff in the SpriteEditor namespace:
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:explorer="clr-namespace:PaintPower.FileExplorer"
-             x:Class="PaintPower.SpriteEditor.SpriteEditorView">
+             x:Class="PaintPower.ProjectSystem.SpriteEditor.SpriteEditorView">
 
 	<Grid ColumnDefinitions="260,5,*">
 
@@ -612,7 +612,7 @@ using PaintPower.ProjectSystem;
 using PaintPower.Tools.SoundEffects;
 using System.IO;
 
-namespace PaintPower.SpriteEditor;
+namespace PaintPower.ProjectSystem.SpriteEditor;
 
 public partial class SpriteEditorView : UserControl
 {
@@ -660,7 +660,7 @@ public partial class SpriteEditorView : UserControl
 
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="PaintPower.SpriteEditor.SpriteManagerView">
+             x:Class="PaintPower.ProjectSystem.SpriteEditor.SpriteManagerView">
 
 	<Border Background="#303030" Padding="8">
 		<Grid RowDefinitions="Auto,*,Auto" RowSpacing="8">
@@ -741,7 +741,7 @@ using System.IO;
 using PaintPower.Dialogs;
 using System.Threading.Tasks;
 
-namespace PaintPower.SpriteEditor;
+namespace PaintPower.ProjectSystem.SpriteEditor;
 
 public partial class SpriteManagerView : UserControl
 {
@@ -910,7 +910,7 @@ public partial class SpriteManagerView : UserControl
 
 Here is from the outer parts of the editor:
 
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:explorer="clr-namespace:PaintPower.FileExplorer" xmlns:editors="clr-namespace:PaintPower.Editors" xmlns:vm="clr-namespace:PaintPower.VMPanel" xmlns:sprite="clr-namespace:PaintPower.SpriteEditor" x:Class="PaintPower.EditorPart">
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:explorer="clr-namespace:PaintPower.FileExplorer" xmlns:editors="clr-namespace:PaintPower.Editors" xmlns:vm="clr-namespace:PaintPower.VMPanel" xmlns:sprite="clr-namespace:PaintPower.ProjectSystem.SpriteEditor" x:Class="PaintPower.EditorPart">
 	<Grid RowDefinitions="50,*">
 		<!-- HEADER Background="#e0e0e0" -->
 		<Border Grid.Row="0" Background="#a3a3a3">
@@ -1013,7 +1013,7 @@ using PaintPower.FileExplorer;
 using PaintPower.Logging;
 using PaintPower.Networking;
 using PaintPower.ProjectSystem;
-using PaintPower.SpriteEditor;
+using PaintPower.ProjectSystem.SpriteEditor;
 using System;
 using System.Diagnostics;
 using System.IO;

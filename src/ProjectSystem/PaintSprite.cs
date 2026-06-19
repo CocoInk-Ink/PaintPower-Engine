@@ -1,5 +1,4 @@
-﻿using PaintPower.Accessibility.Translation;
-using PaintPower.Display.DisplayIntegration;
+﻿using PaintPower.Display.DisplayIntegration;
 using PaintPower.Logging;
 using PaintPower.Sprites;
 using PaintPower.Tools.Graphics;
@@ -11,6 +10,19 @@ using System.Xml.Linq;
 
 namespace PaintPower.ProjectSystem;
 
+/// <summary>
+/// Pure sprite data model.
+/// Handles:
+///   - Loading skins
+///   - Saving skins
+///   - Converting to runtime sprite
+///   - Duplicate / rename / delete
+///
+/// Does NOT:
+///   - Reference PaintPower_Engine
+///   - Reference the project
+///   - Reference UI
+/// </summary>
 public class PaintSprite
 {
     public string Name { get; set; } = "";
@@ -19,22 +31,20 @@ public class PaintSprite
     public string JsonPath => Path.Combine(SpriteFolder, "Sprite.json");
     public string AnimationPath => Path.Combine(SpriteFolder, "Sprite.wxa");
 
-    // Thumbnail.
     public string ThumbnailPath => Path.Combine(SpriteFolder, "Sprite.png");
     public string ScriptPath => Path.Combine(SpriteFolder, "Sprite.pss");
 
-    // NEW: Skins.xml, I guess we will link skins to files in the items folder or it's subdirectories.
-    // Please not JSON, i've been waiting for an excuse to use xml!
     public string SkinsPath => Path.Combine(SpriteFolder, "Skins.xml");
-
-    // Files.
     public string ItemsFolder => Path.Combine(SpriteFolder, "items");
 
     public override string ToString() => Name;
 
-    // Skins //
+    // Skins
     public List<SkinDefinition> Skins { get; private set; } = new();
 
+    // ------------------------------------------------------------
+    // Load skins
+    // ------------------------------------------------------------
     public void LoadSkins()
     {
         Skins.Clear();
@@ -75,7 +85,7 @@ public class PaintSprite
                         break;
 
                     default:
-                        continue; // unknown element type
+                        continue;
                 }
 
                 // Shared properties
@@ -96,6 +106,9 @@ public class PaintSprite
         }
     }
 
+    // ------------------------------------------------------------
+    // Save skins
+    // ------------------------------------------------------------
     public void SaveSkins()
     {
         var doc = new XDocument(
@@ -128,7 +141,6 @@ public class PaintSprite
                                 return null;
                             }
 
-                            // Shared attributes
                             node.Add(
                                 new XAttribute("id", elem.Id),
                                 new XAttribute("name", elem.InstanceName ?? ""),
@@ -150,10 +162,9 @@ public class PaintSprite
         doc.Save(SkinsPath);
     }
 
-    // -----------
-    // The Bridge
-    // (Oh yeah!)
-    // -----------
+    // ------------------------------------------------------------
+    // Convert to runtime sprite
+    // ------------------------------------------------------------
     public Sprite ToRuntimeSprite()
     {
         var runtime = new Sprite();
@@ -212,24 +223,17 @@ public class PaintSprite
         return runtime;
     }
 
-    // ---------------------------------------------------------
-    // STATIC OPERATIONS (SpriteManagerView passes the sprite)
-    // ---------------------------------------------------------
-
+    // ------------------------------------------------------------
+    // Static operations
+    // ------------------------------------------------------------
     public static void Delete(PaintSprite sprite)
     {
-        if (sprite == null)
-            return;
-
         if (Directory.Exists(sprite.SpriteFolder))
             Directory.Delete(sprite.SpriteFolder, recursive: true);
     }
 
     public static void Rename(PaintSprite sprite, string newName)
     {
-        if (sprite == null)
-            return;
-
         string parent = Directory.GetParent(sprite.SpriteFolder)!.FullName;
         string newFolder = Path.Combine(parent, newName);
 
@@ -241,19 +245,16 @@ public class PaintSprite
 
     public static string? SafeRename(string baseName, string parentFolder)
     {
-        // Clean filename to prevent errors, instead of replacing with underscores, we can just remove invalid chars
         var invalidChars = Path.GetInvalidFileNameChars();
         baseName = string.Concat(baseName.Where(c => !invalidChars.Contains(c)));
 
         if (string.IsNullOrWhiteSpace(baseName))
             return null;
 
-        // If no conflict, return as-is
         string target = Path.Combine(parentFolder, baseName);
         if (!Directory.Exists(target))
             return baseName;
 
-        // Extract trailing number (if any)
         int number = 1;
         string nameWithoutNumber = baseName;
 
@@ -270,7 +271,6 @@ public class PaintSprite
                 number = parsed + 1;
         }
 
-        // Try incrementing until we find a free name
         string newName;
         do
         {
@@ -284,41 +284,30 @@ public class PaintSprite
 
     public static PaintSprite Duplicate(PaintSprite sprite)
     {
-        if (sprite == null)
-            throw new ArgumentNullException(nameof(sprite));
-
         string parent = Directory.GetParent(sprite.SpriteFolder)!.FullName;
 
-        // Generate a safe name like "Sprite2", "Sprite3", etc.
         string newName = SafeRename(sprite.Name, parent);
-
         string newFolder = Path.Combine(parent, newName);
 
-        // Copy entire folder recursively
         CopyDirectory(sprite.SpriteFolder, newFolder);
 
-        // Create new sprite instance
-        var newSprite = new PaintSprite
+        return new PaintSprite
         {
             Name = newName,
             SpriteFolder = newFolder
         };
-
-        return newSprite;
     }
 
     private static void CopyDirectory(string sourceDir, string destDir)
     {
         Directory.CreateDirectory(destDir);
 
-        // Copy files
         foreach (var file in Directory.GetFiles(sourceDir))
         {
             string dest = Path.Combine(destDir, Path.GetFileName(file));
             File.Copy(file, dest, overwrite: true);
         }
 
-        // Copy subdirectories
         foreach (var dir in Directory.GetDirectories(sourceDir))
         {
             string dest = Path.Combine(destDir, Path.GetFileName(dir));

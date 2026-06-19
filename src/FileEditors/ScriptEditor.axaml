@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ae="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+             x:Class="PaintPower.FileEditors.ScriptEditor">
+
+	<Grid>
+		<Grid.Background>
+			<ImageBrush Source="avares://PaintPower/src/Assets/Background.png"
+						Stretch="None"
+						TileMode="Tile"
+						DestinationRect="0,0,10,10" />
+		</Grid.Background>
+
+		<Rectangle Fill="#80000000"/>
+		<Border>
+				<!-- 50% black overlay Background="#202020" -->
+			<ae:TextEditor x:Name="Editor"
+			   Foreground="White"
+               ShowLineNumbers="True"
+               FontFamily="Consolas"
+               FontSize="14"
+			   MinHeight="200"
+			   MinWidth="300"
+               HorizontalScrollBarVisibility="Auto"
+               VerticalScrollBarVisibility="Auto"
+               HorizontalAlignment="Stretch"
+               VerticalAlignment="Stretch" 
+						   />
+		</Border>
+	</Grid>
+</UserControl>

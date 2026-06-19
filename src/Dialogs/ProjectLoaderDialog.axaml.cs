@@ -1,81 +1,207 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Input;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
-using Avalonia.Platform.Storage;
-using Avalonia.Markup.Xaml;
 
-using PaintPower.Accessibility.Translation;
-
-namespace PaintPower.Dialogs;
+namespace PaintPower;
 
 public partial class ProjectLoaderDialog : Window
 {
-    public ProjectLoaderDialog() {
-        AvaloniaXamlLoader.Load(this);
-        Translator.LanguageChanged += TranslateGUI;
+    private string _currentPath = "";
+    private readonly Stack<string> _backStack = new();
+    private readonly Stack<string> _forwardStack = new();
+
+    private string? _selectedPath;
+
+    private static readonly string[] Extensions =
+    {
+        ".xPaint", ".xpaint", ".paint", ".Paint", ".zip"
+    };
+
+    public ProjectLoaderDialog()
+    {
+        InitializeComponent();
+
+        _currentPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        LoadDirectory(_currentPath);
     }
 
-    public Task<ProjectLoaderResult?> ShowAsync(Window parent)
+    // ---------------------------
+    // Directory Loading
+    // ---------------------------
+    private void LoadDirectory(string path)
     {
-        return this.ShowDialog<ProjectLoaderResult?>(parent);
-    }
+        if (!Directory.Exists(path))
+            return;
 
-    private async void OnNewProject(object? sender, RoutedEventArgs e)
-    {
-        var savePicker = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
-        {
-            Title = Translator.Map("Create New Project"),
-            DefaultExtension = "xPaint",
-            SuggestedFileName = $"{Translator.Map("NewProject")}.xPaint",
-            ShowOverwritePrompt = true
-        });
+        PathBox.Text = path;
+        _currentPath = path;
 
-        if (savePicker != null)
+        var items = new List<FileItem>();
+
+        // Folders
+        foreach (var dir in Directory.GetDirectories(path))
         {
-            var r = (new ProjectLoaderResult
+            items.Add(new FileItem
             {
-                Mode = ProjectLoaderMode.New,
-                Path = savePicker.Path.LocalPath
+                Name = Path.GetFileName(dir),
+                FullPath = dir,
+                IsDirectory = true,
+                Icon = "📁"
             });
-            Close(r);
-        } else {
-            Close();
         }
-    }
 
-    private async void OnOpenProject(object? sender, RoutedEventArgs e)
-    {
-        TranslateGUI(); // Ensure translation is up to date before opening file dialog, as it may be used in the title or file type descriptions.
-        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        // Files
+        foreach (var file in Directory.GetFiles(path))
         {
-            Title = Translator.Map("Open Project"),
-            AllowMultiple = false,
-            FileTypeFilter = new[]
+            var ext = Path.GetExtension(file);
+            bool isProject = Extensions.Contains(ext);
+
+            items.Add(new FileItem
             {
-                new FilePickerFileType(Translator.Map("PaintPower Project"))
-                {
-                    Patterns = new[] { "*.xPaint", "*.xpaint", "*.Paint", "*.paint" }
-                }
-            }
-        });
+                Name = Path.GetFileName(file),
+                FullPath = file,
+                IsDirectory = false,
+                Icon = isProject ? "📄" : "🗎"
+            });
+        }
 
-        if (files.Count > 0)
+        FileList.ItemsSource = items;
+    }
+
+    // ---------------------------
+    // Navigation
+    // ---------------------------
+    private void OnBack(object? sender, RoutedEventArgs e)
+    {
+        if (_backStack.Count == 0)
+            return;
+
+        _forwardStack.Push(_currentPath);
+        LoadDirectory(_backStack.Pop());
+    }
+
+    private void OnForward(object? sender, RoutedEventArgs e)
+    {
+        if (_forwardStack.Count == 0)
+            return;
+
+        _backStack.Push(_currentPath);
+        LoadDirectory(_forwardStack.Pop());
+    }
+
+    private void OnUp(object? sender, RoutedEventArgs e)
+    {
+        var parent = Directory.GetParent(_currentPath);
+        if (parent == null)
+            return;
+
+        _backStack.Push(_currentPath);
+        LoadDirectory(parent.FullName);
+    }
+
+    private void OnGo(object? sender, RoutedEventArgs e)
+    {
+        NavigateTo(PathBox.Text);
+    }
+
+    private void OnPathBoxKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+            NavigateTo(PathBox.Text);
+    }
+
+    private void NavigateTo(string path)
+    {
+        if (!Directory.Exists(path))
+            return;
+
+        _backStack.Push(_currentPath);
+        _forwardStack.Clear();
+        LoadDirectory(path);
+    }
+
+    // ---------------------------
+    // Selection + Preview
+    // ---------------------------
+    private void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (FileList.SelectedItem is not FileItem item)
         {
-            var r = new ProjectLoaderResult { Mode = ProjectLoaderMode.Open, Path = files[0].Path.LocalPath };
-            Close(r);
+            PreviewName.Text = "Name: -";
+            PreviewPath.Text = "Path: -";
+            PreviewModified.Text = "Modified: -";
+            _selectedPath = null;
+            return;
+        }
+
+        _selectedPath = item.FullPath;
+
+        PreviewName.Text = $"Name: {item.Name}";
+        PreviewPath.Text = $"Path: {item.FullPath}";
+        PreviewModified.Text = item.IsDirectory
+            ? "Modified: -"
+            : $"Modified: {File.GetLastWriteTime(item.FullPath)}";
+    }
+
+    // ---------------------------
+    // Double-click
+    // ---------------------------
+    private void OnItemDoubleTapped(object? sender, RoutedEventArgs e)
+    {
+        if (FileList.SelectedItem is not FileItem item)
+            return;
+
+        if (item.IsDirectory)
+        {
+            _backStack.Push(_currentPath);
+            LoadDirectory(item.FullPath);
+        }
+        else if (Extensions.Contains(Path.GetExtension(item.FullPath)))
+        {
+            Close(item.FullPath);
         }
     }
 
-    public void TranslateGUI()
+    // ---------------------------
+    // Buttons
+    // ---------------------------
+    private void OnCancel(object? sender, RoutedEventArgs e)
     {
-        WelcomeText.Text = Translator.Map("Welcome to the PaintPower engine!");
-        NewProjectButton.Content = Translator.Map("Create New Project");
-        OpenProjectButton.Content = Translator.Map("Open Existing Project");
+        Close(null);
+    }
 
-        InvalidateVisual();
+    private void OnOpen(object? sender, RoutedEventArgs e)
+    {
+        Close(_selectedPath);
+    }
+
+    // ---------------------------
+    // Static Show
+    // ---------------------------
+    public static async Task<string?> ShowAsync(Window parent)
+    {
+        var dlg = new ProjectLoaderDialog();
+        return await dlg.ShowDialog<string?>(parent);
     }
 }
 
+// ---------------------------
+// File Item Model
+// ---------------------------
+public class FileItem
+{
+    public string Name { get; set; } = "";
+    public string FullPath { get; set; } = "";
+    public bool IsDirectory { get; set; }
+    public string Icon { get; set; } = "";
+}
+
+// Used by PaintProject.cs don't remove!
 public class ProjectLoaderResult
 {
     public ProjectLoaderMode Mode { get; set; }

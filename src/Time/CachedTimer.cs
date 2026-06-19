@@ -1,5 +1,7 @@
 ﻿// A class for a cached timer.
 
+using System;
+
 namespace PaintPower.Time;
 
 public class CachedTimer
