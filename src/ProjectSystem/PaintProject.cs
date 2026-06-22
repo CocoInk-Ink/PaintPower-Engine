@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using PaintPower.Dialogs;
+using PaintPower.Editors.Logic;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,10 +43,10 @@ public class PaintProject
     // ------------------------------------------------------------
     // CREATE NEW PROJECT
     // ------------------------------------------------------------
-    public void CreateNew()
+    public void CreateNew(ProjectEditorLogic logic)
     {
         var loader = new ProjectLoader();
-        loader.LoadDefaultProject(this);
+        loader.LoadDefaultProject(this, logic);
 
         ProjectPath = "";
         Metadata = new ProjectMetadata { name = "Untitled", OpenFile = null };
@@ -171,7 +172,7 @@ public class PaintProject
 // ------------------------------------------------------------
 public class ProjectMetadata
 {
-    public string? name { get; set; } = "Untitled Project";
+    public string name { get; set; } = "Untitled Project";
     public string? OpenFile { get; set; }
 
     public double? StageWidth { get; set; } = 640;

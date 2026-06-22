@@ -42,6 +42,7 @@ public class ProjectEditorLogic
     // Makes the project dirty (needs save)
     public void DirtyProject()
     {
+        if (SaveNeeded) return;
         SaveNeeded = true;
         SetStatus("Save Project");
     }
@@ -91,7 +92,7 @@ public class ProjectEditorLogic
         SoundEffects.Click.Play();
 
         Project = new PaintProject();
-        Project.CreateNew();
+        Project.CreateNew(this);
         Workspace = Project.Workspace;
         EditorManager = new FileEditorManager(Project.Workspace);
         CurrentEditor = null;

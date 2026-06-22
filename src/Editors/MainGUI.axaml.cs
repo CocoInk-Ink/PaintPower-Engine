@@ -18,6 +18,7 @@ namespace PaintPower.Editors;
 public partial class MainGUI : UserControl
 {
     public Header Header { get; private set; }
+    public ProjectEditor? projectEditor;
     public Editor? CurrentEditor { get; private set; }
 
     public MainGUI()

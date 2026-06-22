@@ -6,13 +6,15 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using PaintPower.Editors;
+using PaintPower.Editors.Logic;
 using PaintPower.Logging;
 
 namespace PaintPower.ProjectSystem;
 
 public class ProjectLoader
 {
-    public void LoadDefaultProject(PaintProject project)
+    public async Task LoadDefaultProject(PaintProject project, ProjectEditorLogic logic)
     {
         // Path to your embedded default project
         string defaultZip = "Assets/Untitled.xPaint";
@@ -25,19 +27,9 @@ public class ProjectLoader
             return;
         }
 
-        // Extract into the project's workspace
-        ZipFile.ExtractToDirectory(defaultZip, project.Workspace.Root, overwriteFiles: true);
-
-        // Load metadata
-        string metaPath = Path.Combine(project.Workspace.Root, "project.json");
-        if (File.Exists(metaPath))
-        {
-            string json = File.ReadAllText(metaPath);
-            project.Metadata = JsonSerializer.Deserialize<ProjectMetadata>(json) ?? new ProjectMetadata();
-        }
-
-        // Load sprites
-        project.LoadSprites();
+        // Use normal project loading
+        logic.RefreshUI();
+        await logic.LoadProject(defaultZip);
     }
 
     public void LoadProjectFromSystem() {}
