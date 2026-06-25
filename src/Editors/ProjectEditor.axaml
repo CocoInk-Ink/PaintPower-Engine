@@ -35,12 +35,9 @@
                     </StackPanel>
                 </Border>
 
+                <ContentControl Grid.Row="1" x:Name="CenterHost" />
+
                 <!-- Editor Host -->
-                <Grid Grid.Row="1" ColumnDefinitions="*,5,*">
-                    <ContentControl x:Name="CenterHost" />
-                    <GridSplitter Grid.Column="1" Width="5" Background="{DynamicResource SplitterColor}" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" />
-                    <vm:VmPanel Grid.Column="2" />
-                </Grid>
 
             </Grid>
 
