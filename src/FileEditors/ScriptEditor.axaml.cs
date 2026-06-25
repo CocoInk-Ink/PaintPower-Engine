@@ -35,7 +35,7 @@ public partial class ScriptEditor : FileEditor
 
         if (editor != null)
         {
-            editor.Text = _workspace.LoadText(RelativePath);
+            editor.Text = _workspace.LoadText(FullPath);
             editor.Focus();
         }
 
@@ -110,15 +110,13 @@ public partial class ScriptEditor : FileEditor
     override public void Save()
     {
         var editor = this.FindControl<TextEditor>("Editor");
-        _workspace.SaveFile(RelativePath, editor.Text);
+        _workspace.SaveFile(FullPath, editor.Text);
     }
 
-    public override void SetRelativePath(string path)
+    public override void Activate()
     {
-        base.SetRelativePath(path);
-
         var editor = this.FindControl<TextEditor>("Editor");
         if (editor != null)
-            editor.Text = _workspace.LoadText(RelativePath);
+            editor.Text = _workspace.LoadText(FullPath);
     }
 }

@@ -46,6 +46,15 @@ public partial class FileEditor : UserControl
         RelativePath = path;
     }
 
+    public string FullPath { get; private set; } = "";
+
+    public virtual void SetFullPath(string path)
+    {
+        FullPath = path;
+    }
+
+    public virtual void Activate() {}
+
     public event Action? SaveRequested;
 
     protected void MarkDirty()

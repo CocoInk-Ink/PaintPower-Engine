@@ -129,7 +129,7 @@ public partial class PaintEditor : FileEditor
 
     private void LoadOrCreateImage()
     {
-        var fullPath = _workspace.MapToTemp(RelativePath);
+        var fullPath = _workspace.MapToTemp(FullPath);
 
         try
         {
@@ -164,7 +164,7 @@ public partial class PaintEditor : FileEditor
 
     override public void Save()
     {
-        var fullPath = _workspace.MapToTemp(RelativePath);
+        var fullPath = _workspace.MapToTemp(FullPath);
 
         using var fs = File.Open(fullPath, FileMode.Create);
         _bitmap.Save(fs);
@@ -172,9 +172,8 @@ public partial class PaintEditor : FileEditor
         MarkDirty();
     }
 
-    public override void SetRelativePath(string path)
+    public override void Activate()
     {
-        base.SetRelativePath(path);
         LoadOrCreateImage();
     }
 

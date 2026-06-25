@@ -2,3 +2,6 @@
 
 # IDE0160: Convert to block scoped namespace
 csharp_style_namespace_declarations = block_scoped
+
+# IDE0047: Remove unnecessary parentheses
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity

@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -5,52 +6,65 @@ using PaintPower.Accessibility.Translation;
 using PaintPower.Dialogs;
 using PaintPower.Logging;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 
 namespace PaintPower.FileExplorer;
 
+#pragma warning disable IDE0047
+#pragma warning disable IDE0048
+
 public partial class ExplorerView : UserControl
 {
+    public bool isReadOnly = false;
+
+    public ObservableCollection<ExplorerRow> Rows { get; } = new();
     public ObservableCollection<ExplorerItem> Items { get; } = new();
 
     private string _currentDir = "";
     private string? _forcedRoot = null;
 
     public string ClipboardPath { get; private set; } = "";
+    private bool _clipboardIsCut = false;
 
-    // Events for parent editors
     public event Action<string>? FileOpened;
     public event Action<string>? FolderOpened;
     public event Action? ProjectDirty;
+    public event Action<string>? FileRemoved;
+    public event Action<string, string>? FileMoved;
+
+    // custom drag state (local to explorer)
+    private bool _isDragging;
+    private ExplorerRow? _dragRow;
 
     public ExplorerView()
     {
         InitializeComponent();
-        FileTree.ContainerPrepared += OnContainerPrepared;
         Translator.LanguageChanged += () => Refresh();
+        DataContext = this;
     }
 
     // ------------------------------------------------------------
     // Initialization
     // ------------------------------------------------------------
-    public void Initialize(string rootFolder)
+    public void Initialize(string rootFolder, bool isReadOnly)
     {
+        this.isReadOnly = isReadOnly;
+
         if (!Directory.Exists(rootFolder))
             Directory.CreateDirectory(rootFolder);
 
         _forcedRoot = rootFolder;
         _currentDir = rootFolder;
 
-        FileTree.ItemsSource = Items;
         Refresh();
     }
 
     public void InitializeMultiple(params string[] roots)
     {
-        // WorkspaceEditor: multiple root folders
-        _forcedRoot = null; // multi-root mode
+        _forcedRoot = null;
         Items.Clear();
 
         foreach (var root in roots)
@@ -59,8 +73,7 @@ public partial class ExplorerView : UserControl
                 Items.Add(BuildTree(root));
         }
 
-        FileTree.ItemsSource = Items;
-        BreadcrumbBar.Children.Clear();
+        RefreshRows();
     }
 
     public void SetForcedRoot(string root)
@@ -73,50 +86,85 @@ public partial class ExplorerView : UserControl
     // ------------------------------------------------------------
     // Refresh + Tree Building
     // ------------------------------------------------------------
+    private HashSet<string> GetExpandedPaths()
+    {
+        var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        void Walk(ExplorerItem item)
+        {
+            if (item.IsDirectory && item.IsExpanded)
+                set.Add(item.FullPath);
+
+            foreach (var child in item.Children)
+                Walk(child);
+        }
+
+        foreach (var root in Items)
+            Walk(root);
+
+        return set;
+    }
+
     private void Refresh()
     {
         TranslateGUI();
+
+        Menus.IsVisible = !isReadOnly;
+
+        // capture current expansion state
+        var expanded = GetExpandedPaths();
+
         Items.Clear();
 
         if (_forcedRoot == null)
         {
-            // Multi-root workspace mode
+            RefreshRows();
             return;
         }
 
         if (!Directory.Exists(_currentDir))
-        {
             return;
-        }
 
-        Items.Add(BuildTree(_currentDir));
-        UpdateBreadcrumb();
-
-        // Auto-expand root
-        FileTree.ApplyTemplate();
-        FileTree.UpdateLayout();
-
-        if (FileTree.ItemContainerGenerator.ContainerFromIndex(0) is TreeViewItem rootItem)
-        {
-            rootItem.IsExpanded = true;
-        }
-
-        ExpandTree();
+        Items.Add(BuildTree(_currentDir, expanded));
+        RefreshRows();
     }
 
-    private ExplorerItem BuildTree(string path)
+    private ExplorerItem? FindItemByPath(string path)
+    {
+        ExplorerItem? result = null;
+
+        void Walk(ExplorerItem item)
+        {
+            if (item.FullPath.Equals(path, StringComparison.OrdinalIgnoreCase))
+            {
+                result = item;
+                return;
+            }
+
+            foreach (var child in item.Children)
+                Walk(child);
+        }
+
+        foreach (var root in Items)
+            Walk(root);
+
+        return result;
+    }
+
+    private ExplorerItem BuildTree(string path, HashSet<string>? expanded = null)
     {
         var item = new ExplorerItem
         {
             Name = Path.GetFileName(path),
             FullPath = path,
-            IsDirectory = Directory.Exists(path)
+            IsDirectory = Directory.Exists(path),
+            IsExpanded = expanded != null && expanded.Contains(path)
         };
 
         if (item.IsDirectory)
         {
             foreach (var dir in Directory.GetDirectories(path))
-                item.Children.Add(BuildTree(dir));
+                item.Children.Add(BuildTree(dir, expanded));
 
             foreach (var file in Directory.GetFiles(path))
                 item.Children.Add(new ExplorerItem
@@ -130,65 +178,26 @@ public partial class ExplorerView : UserControl
         return item;
     }
 
-    private void ExpandAll(ExplorerItem item)
+    private void RefreshRows()
     {
-        foreach (var child in item.Children)
-            ExpandAll(child);
+        Rows.Clear();
+        foreach (var item in Items)
+            AddItemRecursive(item, 0);
     }
 
-    private void ExpandTree()
+    private void AddItemRecursive(ExplorerItem item, int depth)
     {
-        foreach (var root in Items)
-            ExpandAll(root);
-    }
-
-    // ------------------------------------------------------------
-    // Breadcrumb Bar
-    // ------------------------------------------------------------
-    private void UpdateBreadcrumb()
-    {
-        BreadcrumbBar.Children.Clear();
-
-        if (_forcedRoot == null)
-            return;
-
-        string root = _forcedRoot;
-        string relative = _currentDir.Replace(root, "").TrimStart('\\', '/');
-
-        var parts = relative.Split('/', StringSplitOptions.RemoveEmptyEntries);
-
-        string current = root;
-
-        // Root button
-        var rootBtn = new Button
+        Rows.Add(new ExplorerRow
         {
-            Content = "/",
-            Tag = root
-        };
-        rootBtn.Click += (_, _) =>
+            Item = item,
+            Depth = depth,
+            IsExpanded = item.IsDirectory && item.IsExpanded
+        });
+
+        if (item.IsDirectory && item.IsExpanded)
         {
-            _currentDir = root;
-            Refresh();
-        };
-        BreadcrumbBar.Children.Add(rootBtn);
-
-        foreach (var part in parts)
-        {
-            current = Path.Combine(current, part);
-
-            var btn = new Button
-            {
-                Content = part,
-                Tag = current
-            };
-
-            btn.Click += (_, _) =>
-            {
-                _currentDir = (string)btn.Tag!;
-                Refresh();
-            };
-
-            BreadcrumbBar.Children.Add(btn);
+            foreach (var child in item.Children)
+                AddItemRecursive(child, depth + 1);
         }
     }
 
@@ -210,6 +219,7 @@ public partial class ExplorerView : UserControl
 
         Items.Clear();
         Items.Add(SearchTree(_forcedRoot, query));
+        RefreshRows();
     }
 
     private ExplorerItem SearchTree(string path, string query)
@@ -248,7 +258,119 @@ public partial class ExplorerView : UserControl
     }
 
     // ------------------------------------------------------------
-    // Navigation (sandboxed)
+    // Expand / Collapse
+    // ------------------------------------------------------------
+    private void OnArrowClicked(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not Control c || c.DataContext is not ExplorerRow row)
+            return;
+
+        if (!row.Item.IsDirectory)
+            return;
+
+        row.Item.IsExpanded = !row.Item.IsExpanded;
+        RefreshRows();
+    }
+
+    // ------------------------------------------------------------
+    // Custom drag (inside explorer only)
+    // ------------------------------------------------------------
+    private void OnRowPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not Control c || c.DataContext is not ExplorerRow row)
+            return;
+
+        if (!e.GetCurrentPoint(c).Properties.IsLeftButtonPressed)
+            return;
+
+        _isDragging = true;
+        _dragRow = row;
+    }
+
+    private void OnRowPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (!_isDragging || _dragRow == null)
+            return;
+
+        // For now, we don't show a ghost or reorder visually during drag.
+        // You can extend this later to show a preview or highlight.
+    }
+
+    private void OnRowPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (!_isDragging || _dragRow == null)
+            return;
+
+        _isDragging = false;
+
+        var pos = e.GetPosition(FileList);
+        var hit = FileList.InputHitTest(pos) as Control;
+        if (hit?.DataContext is not ExplorerRow targetRow)
+        {
+            _dragRow = null;
+            return;
+        }
+
+        // Simple rule: if target is a directory, move dragged item into it
+        if (!targetRow.Item.IsDirectory)
+        {
+            _dragRow = null;
+            return;
+        }
+
+        var draggedItem = _dragRow.Item;
+        var targetFolder = targetRow.Item;
+
+        if (draggedItem.FullPath == targetFolder.FullPath)
+        {
+            _dragRow = null;
+            return;
+        }
+
+        string source = draggedItem.FullPath;
+        string dest = Path.Combine(targetFolder.FullPath, draggedItem.Name);
+
+        try
+        {
+            if (draggedItem.IsDirectory)
+                Directory.Move(source, dest);
+            else
+                File.Move(source, dest);
+
+            FileMoved?.Invoke(source, dest);
+            ProjectDirty?.Invoke();
+            Refresh();
+        }
+        catch (Exception ex)
+        {
+            Log.QuickLog("Custom drag-drop move failed: " + ex.Message);
+        }
+
+        _dragRow = null;
+    }
+
+    private void OnRowDoubleTapped(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control c || c.DataContext is not ExplorerRow row)
+            return;
+
+        var item = row.Item;
+
+        if (item.IsDirectory)
+        {
+            // Expand/collapse on double‑click
+            item.IsExpanded = !item.IsExpanded;
+            RefreshRows();
+            FolderOpened?.Invoke(item.FullPath);
+            return;
+        }
+
+        // It's a file → open it
+        FileOpened?.Invoke(item.FullPath);
+    }
+
+    // ------------------------------------------------------------
+    // Navigation
     // ------------------------------------------------------------
     private void OnGoRoot(object? sender, RoutedEventArgs e)
     {
@@ -279,48 +401,50 @@ public partial class ExplorerView : UserControl
     }
 
     // ------------------------------------------------------------
-    // File selection + double click
+    // File operations (same logic as before)
     // ------------------------------------------------------------
-    private void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+
+    private string GetCreationDirectory()
     {
-        // No action on single click
-    }
+        if (FileList.SelectedItem is not ExplorerRow row)
+            return _currentDir;
 
-    private void OnItemDoubleTapped(object? sender, RoutedEventArgs e)
-    {
-        Log.QuickLog("Item has been clicked.");
-
-        if ((sender as Control)?.DataContext is not ExplorerItem item)
-        {
-            Log.QuickLog("Sender has no ExplorerItem DataContext.");
-            return;
-        }
-
-        Log.QuickLog("Still going.");
+        var item = row.Item;
 
         if (item.IsDirectory)
-        {
-            Log.QuickLog("It's a directory.");
-            _currentDir = item.FullPath;
-            Refresh();
-            FolderOpened?.Invoke(item.FullPath);
-            return;
-        }
+            return item.FullPath;
 
-        Log.QuickLog("It's a file.");
-        FileOpened?.Invoke(item.FullPath);
+        return Path.GetDirectoryName(item.FullPath)!;
     }
 
-    // ------------------------------------------------------------
-    // File operations (same as before)
-    // ------------------------------------------------------------
+    private string GetSafePath(string folder, string name, bool isFolder)
+    {
+        string baseName = Path.GetFileNameWithoutExtension(name);
+        string ext = Path.GetExtension(name);
+
+        string path = Path.Combine(folder, name);
+        int i = 1;
+
+        while (Directory.Exists(path) || File.Exists(path))
+        {
+            string newName = isFolder
+                ? $"{baseName} ({i})"
+                : $"{baseName} ({i}){ext}";
+
+            path = Path.Combine(folder, newName);
+            i++;
+        }
+
+        return path;
+    }
+
     private async void OnNewFile(object? sender, RoutedEventArgs e)
     {
         if (_forcedRoot == null)
             return;
 
         var dialog = new NewFileDialog();
-        var window = this.VisualRoot as Window;
+        var window = MainWindow.window;
         var name = await dialog.ShowAsync(window);
 
         if (string.IsNullOrWhiteSpace(name))
@@ -329,14 +453,11 @@ public partial class ExplorerView : UserControl
         foreach (char c in Path.GetInvalidFileNameChars())
             name = name.Replace(c.ToString(), "");
 
-        string path = Path.Combine(_currentDir, name);
+        string folder = GetCreationDirectory();
+        string safePath = GetSafePath(folder, name, isFolder: false);
 
-        if (!File.Exists(path))
-        {
-            File.WriteAllText(path, "");
-            ProjectDirty?.Invoke();
-        }
-
+        File.WriteAllText(safePath, "");
+        ProjectDirty?.Invoke();
         Refresh();
     }
 
@@ -346,7 +467,7 @@ public partial class ExplorerView : UserControl
             return;
 
         var dialog = new InputDialog("New Folder", "Enter folder name:");
-        var window = this.VisualRoot as Window;
+        var window = MainWindow.window;
         var name = await dialog.ShowAsync(window);
 
         if (string.IsNullOrWhiteSpace(name))
@@ -355,31 +476,30 @@ public partial class ExplorerView : UserControl
         foreach (char c in Path.GetInvalidFileNameChars())
             name = name.Replace(c.ToString(), "");
 
-        string path = Path.Combine(_currentDir, name);
+        string folder = GetCreationDirectory();
+        string safePath = GetSafePath(folder, name, isFolder: true);
 
-        if (!Directory.Exists(path))
-        {
-            Directory.CreateDirectory(path);
-            ProjectDirty?.Invoke();
-        }
-
+        Directory.CreateDirectory(safePath);
+        ProjectDirty?.Invoke();
         Refresh();
     }
 
     private void OnCopy(object? sender, RoutedEventArgs e)
     {
-        if (FileTree.SelectedItem is not ExplorerItem item)
+        if (FileList.SelectedItem is not ExplorerRow row)
             return;
 
-        ClipboardPath = item.FullPath;
+        ClipboardPath = row.Item.FullPath;
+        _clipboardIsCut = false;
     }
 
     private void OnCut(object? sender, RoutedEventArgs e)
     {
-        if (FileTree.SelectedItem is not ExplorerItem item)
+        if (FileList.SelectedItem is not ExplorerRow row)
             return;
 
-        ClipboardPath = item.FullPath;
+        ClipboardPath = row.Item.FullPath;
+        _clipboardIsCut = true;
     }
 
     private async void OnPaste(object? sender, RoutedEventArgs e)
@@ -387,33 +507,64 @@ public partial class ExplorerView : UserControl
         if (string.IsNullOrEmpty(ClipboardPath))
             return;
 
-        string filename = Path.GetFileName(ClipboardPath);
-        string destPath = Path.Combine(_currentDir, filename);
+        // Determine where to paste
+        string targetFolder = GetCreationDirectory();
+
+        // Determine safe destination path
+        string name = Path.GetFileName(ClipboardPath);
+        bool isFolder = Directory.Exists(ClipboardPath);
+        string safePath = GetSafePath(targetFolder, name, isFolder);
 
         try
         {
-            if (Directory.Exists(ClipboardPath))
-                CopyDirectory(ClipboardPath, destPath);
-            else if (File.Exists(ClipboardPath))
-                File.Copy(ClipboardPath, destPath);
+            if (_clipboardIsCut)
+            {
+                // CUT = Move
+                if (isFolder)
+                    Directory.Move(ClipboardPath, safePath);
+                else
+                    File.Move(ClipboardPath, safePath);
+            }
+            else
+            {
+                // COPY = Duplicate
+                if (isFolder)
+                    CopyDirectory(ClipboardPath, safePath);
+                else
+                    File.Copy(ClipboardPath, safePath);
+            }
 
             ProjectDirty?.Invoke();
+
+            // Expand the folder we pasted into
+            var targetItem = FindItemByPath(targetFolder);
+            if (targetItem != null)
+                targetItem.IsExpanded = true;
             Refresh();
         }
         catch
         {
-            var window = this.VisualRoot as Window;
+            var window = MainWindow.window;
             await new PopupWindowDialog("Error", "Could not paste item", "").ShowAsync(window);
+        }
+
+        // If it was a cut, clear clipboard
+        if (_clipboardIsCut)
+        {
+            ClipboardPath = "";
+            _clipboardIsCut = false;
         }
     }
 
     private async void OnDelete(object? sender, RoutedEventArgs e)
     {
-        if (FileTree.SelectedItem is not ExplorerItem item)
+        if (FileList.SelectedItem is not ExplorerRow row)
             return;
 
+        var item = row.Item;
+
         var dialog = new DeletionConfirmationDialog();
-        var window = this.VisualRoot as Window;
+        var window = MainWindow.window;
         var doDelete = await dialog.ShowAsync(window);
 
         if (doDelete == "delete")
@@ -423,6 +574,7 @@ public partial class ExplorerView : UserControl
             else
                 File.Delete(item.FullPath);
 
+            FileRemoved?.Invoke(item.FullPath);
             ProjectDirty?.Invoke();
             Refresh();
         }
@@ -430,11 +582,13 @@ public partial class ExplorerView : UserControl
 
     private async void OnRename(object? sender, RoutedEventArgs e)
     {
-        if (FileTree.SelectedItem is not ExplorerItem item)
+        if (FileList.SelectedItem is not ExplorerRow row)
             return;
 
+        var item = row.Item;
+
         var dialog = new InputDialog("Rename", $"Enter new name for \"{item.Name}\":");
-        var window = this.VisualRoot as Window;
+        var window = MainWindow.window;
         var name = await dialog.ShowAsync(window);
 
         if (string.IsNullOrWhiteSpace(name))
@@ -460,8 +614,10 @@ public partial class ExplorerView : UserControl
 
     private async void OnDuplicate(object? sender, RoutedEventArgs e)
     {
-        if (FileTree.SelectedItem is not ExplorerItem item)
+        if (FileList.SelectedItem is not ExplorerRow row)
             return;
+
+        var item = row.Item;
 
         string nameWithoutExt = Path.GetFileNameWithoutExtension(item.Name);
         string ext = Path.GetExtension(item.Name);
@@ -488,7 +644,7 @@ public partial class ExplorerView : UserControl
     private async void OnImport(object? sender, RoutedEventArgs e)
     {
         var dialog = new OpenFileDialog { AllowMultiple = true };
-        var window = this.VisualRoot as Window;
+        var window = MainWindow.window;
         var result = await dialog.ShowAsync(window);
 
         if (result != null)
@@ -509,11 +665,13 @@ public partial class ExplorerView : UserControl
 
     private async void OnExport(object? sender, RoutedEventArgs e)
     {
-        if (FileTree.SelectedItem is not ExplorerItem item)
+        if (FileList.SelectedItem is not ExplorerRow row)
             return;
 
+        var item = row.Item;
+
         var dialog = new SaveFileDialog { InitialFileName = item.Name };
-        var window = this.VisualRoot as Window;
+        var window = MainWindow.window;
         var result = await dialog.ShowAsync(window);
 
         if (!string.IsNullOrEmpty(result))
@@ -525,9 +683,6 @@ public partial class ExplorerView : UserControl
         }
     }
 
-    // ------------------------------------------------------------
-    // Helpers
-    // ------------------------------------------------------------
     private static void CopyDirectory(string source, string dest)
     {
         Directory.CreateDirectory(dest);
@@ -543,8 +698,6 @@ public partial class ExplorerView : UserControl
     {
         NewFileButton.Header = Translator.Map("New");
         NewFolderButton.Header = Translator.Map("New Folder");
-        GoRootButton.Header = Translator.Map("Go to Root");
-        GoUpButton.Header = Translator.Map("Go Up");
 
         CopyButton.Header = Translator.Map("Copy");
         CutButton.Header = Translator.Map("Cut");
@@ -554,96 +707,5 @@ public partial class ExplorerView : UserControl
         DuplicateButton.Header = Translator.Map("Duplicate");
         ImportButton.Header = Translator.Map("Import");
         ExportButton.Header = Translator.Map("Export");
-    }
-
-    // Attach handlers to each TreeViewItem
-    private void OnContainerPrepared(object? sender, ContainerPreparedEventArgs e)
-    {
-        if (e.Container is TreeViewItem tvi)
-        {
-            tvi.PointerPressed += OnItemDragStart;
-            tvi.AddHandler(DragDrop.DragOverEvent, OnItemDragOver);
-            tvi.AddHandler(DragDrop.DropEvent, OnItemDrop);
-        }
-    }
-
-    // DRAG START (Avalonia 11.3.12 uses DataObject + DoDragDrop)
-    private void OnItemDragStart(object? sender, PointerPressedEventArgs e)
-    {
-        if (sender is not Control control)
-            return;
-
-        if (control.DataContext is not ExplorerItem item)
-            return;
-
-        if (e.GetCurrentPoint(control).Properties.IsLeftButtonPressed)
-        {
-            var data = new DataObject();
-            data.Set("ExplorerItem", item.FullPath);
-
-            DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
-        }
-    }
-
-    // DRAG OVER (Avalonia 11.3.12 uses e.Data.Contains)
-    private void OnItemDragOver(object? sender, DragEventArgs e)
-    {
-        if (sender is not Control control)
-            return;
-
-        if (control.DataContext is not ExplorerItem target)
-            return;
-
-        if (!target.IsDirectory)
-        {
-            e.DragEffects = DragDropEffects.None;
-            return;
-        }
-
-        if (!e.Data.Contains("ExplorerItem"))
-        {
-            e.DragEffects = DragDropEffects.None;
-            return;
-        }
-
-        e.DragEffects = DragDropEffects.Move;
-    }
-
-    // DROP (Avalonia 11.3.12 uses e.Data.Get)
-    private void OnItemDrop(object? sender, DragEventArgs e)
-    {
-        if (sender is not Control control)
-            return;
-
-        if (control.DataContext is not ExplorerItem targetFolder)
-            return;
-
-        if (!targetFolder.IsDirectory)
-            return;
-
-        if (!e.Data.Contains("ExplorerItem"))
-            return;
-
-        var source = e.Data.Get("ExplorerItem") as string;
-        if (source == null)
-            return;
-
-        string name = Path.GetFileName(source);
-        string dest = Path.Combine(targetFolder.FullPath, name);
-
-        try
-        {
-            if (Directory.Exists(source))
-                Directory.Move(source, dest);
-            else if (File.Exists(source))
-                File.Move(source, dest);
-
-            ProjectDirty?.Invoke();
-            Refresh();
-        }
-        catch (Exception ex)
-        {
-            Log.QuickLog("Drag-drop move failed: " + ex.Message);
-        }
     }
 }

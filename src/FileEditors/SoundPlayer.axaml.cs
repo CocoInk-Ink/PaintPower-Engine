@@ -17,16 +17,14 @@ public partial class SoundPlayer : FileEditor
         _workspace = workspace;
     }
 
-    public override void SetRelativePath(string relativePath)
+    public override void Activate()
     {
-        var fullPath = _workspace.MapToTemp(relativePath);
-        base.SetRelativePath(fullPath);
 
-        Log.Info("Loading sound player editor with path: " + fullPath);
+        Log.Info("Loading sound player editor with path: " + FullPath);
 
-        if (!string.IsNullOrWhiteSpace(fullPath))
+        if (!string.IsNullOrWhiteSpace(FullPath))
         {
-            var media = new Media(fullPath);
+            var media = new Media(FullPath);
             media.Load();
 
             player?.Dispose();
