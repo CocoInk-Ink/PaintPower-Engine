@@ -119,7 +119,7 @@ public class PaintProject
 
         string target = outputPath ?? ProjectPath;
 
-        if (string.IsNullOrWhiteSpace(target))
+        if (string.IsNullOrWhiteSpace(target) || string.IsNullOrEmpty(target))
             throw new InvalidOperationException("ProjectPath is empty. UI must provide a save path.");
 
         await Task.Run(() =>

@@ -201,6 +201,18 @@ public partial class ExplorerView : UserControl
         }
     }
 
+    private void SelectPath(string fullPath)
+    {
+        var row = Rows.FirstOrDefault(r =>
+            r.Item.FullPath.Equals(fullPath, StringComparison.OrdinalIgnoreCase));
+
+        if (row != null)
+        {
+            FileList.SelectedItem = row;
+            FileList.ScrollIntoView(row);
+        }
+    }
+
     // ------------------------------------------------------------
     // Search
     // ------------------------------------------------------------
@@ -459,6 +471,7 @@ public partial class ExplorerView : UserControl
         File.WriteAllText(safePath, "");
         ProjectDirty?.Invoke();
         Refresh();
+        SelectPath(safePath);
     }
 
     private async void OnNewFolder(object? sender, RoutedEventArgs e)
@@ -482,6 +495,7 @@ public partial class ExplorerView : UserControl
         Directory.CreateDirectory(safePath);
         ProjectDirty?.Invoke();
         Refresh();
+        SelectPath(safePath);
     }
 
     private void OnCopy(object? sender, RoutedEventArgs e)
@@ -579,7 +593,7 @@ public partial class ExplorerView : UserControl
             Refresh();
         }
     }
-
+    
     private async void OnRename(object? sender, RoutedEventArgs e)
     {
         if (FileList.SelectedItem is not ExplorerRow row)

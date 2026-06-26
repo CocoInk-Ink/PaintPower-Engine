@@ -93,6 +93,7 @@ public class ProjectEditorLogic
 
         Project = new PaintProject();
         Project.CreateNew(this);
+        Project.ProjectPath = "";
         Workspace = Project.Workspace;
         EditorManager = new FileEditorManager(Project.Workspace);
         CurrentEditor = null;
@@ -104,7 +105,7 @@ public class ProjectEditorLogic
         RefreshUI();
     }
 
-    public async Task LoadProject(string path)
+    public async Task LoadProject(string path, bool isDefaultProject)
     {
         try
         {
@@ -126,8 +127,8 @@ public class ProjectEditorLogic
                 });
             });
 
-            Project.ProjectPath = path;
-            IsNewProject = false;
+            Project.ProjectPath = isDefaultProject ? string.Empty : path;
+            IsNewProject = isDefaultProject;
             SaveNeeded = false;
 
             _view.SetUIMode(EditorUIMode.ProjectEditor);
@@ -137,7 +138,8 @@ public class ProjectEditorLogic
         {
             Log.QuickLog($"Failed to load project: {ex}");
             await ErrorDialog.ShowAsync(_window, "Invalid or corrupted project file.");
-            CloseProject();
+            _view.SetUIMode(EditorUIMode.NoProject);
+            await CloseProject();
         }
         finally
         {
@@ -152,7 +154,7 @@ public class ProjectEditorLogic
 
         var path = await ProjectLoaderDialog.ShowAsync(window);
         if (!string.IsNullOrWhiteSpace(path))
-            await LoadProject(path);
+            await LoadProject(path, false);
     }
 
     // ------------------------------------------------------------
@@ -167,6 +169,13 @@ public class ProjectEditorLogic
 
         try
         {
+            // If no path, force Save As
+            if (string.IsNullOrWhiteSpace(Project.ProjectPath) || IsNewProject)
+            {
+                await SaveProjectAs();
+                return;
+            }
+
             await ProjectSaver.Save(Project, CurrentEditor);
             SaveNeeded = false;
             SetStatus("Project Saved!");
@@ -235,7 +244,7 @@ public class ProjectEditorLogic
         return false; // cancel
     }
 
-    public async void CloseProject()
+    public async Task CloseProject()
     {
         SoundEffects.Click.Play();
 

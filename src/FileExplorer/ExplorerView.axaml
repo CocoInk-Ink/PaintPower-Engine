@@ -37,7 +37,6 @@
                                     <Border Padding="4,2" Background="Transparent" PointerPressed="OnRowPointerPressed" PointerMoved="OnRowPointerMoved" PointerReleased="OnRowPointerReleased" DoubleTapped="OnRowDoubleTapped">
                                 <StackPanel Orientation="Horizontal">
                                     <!-- Indentation guides -->
-                                    <!-- Indentation guides -->
                                     <ItemsControl ItemsSource="{Binding ., Converter={StaticResource DepthToGuidesConverter}}">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>

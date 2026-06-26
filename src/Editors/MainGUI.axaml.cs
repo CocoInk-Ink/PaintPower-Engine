@@ -80,7 +80,7 @@ public partial class MainGUI : UserControl
         var editor = new ProjectEditor();
         SetEditor(editor);
 
-        await editor.Logic.LoadProject(path);
+        await editor.Logic.LoadProject(path, false);
         ShowHeader();
     }
 
