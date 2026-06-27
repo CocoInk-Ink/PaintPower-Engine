@@ -661,11 +661,13 @@ public partial class ExplorerView : UserControl
         var window = MainWindow.window;
         var result = await dialog.ShowAsync(window);
 
+        var targetDir = GetCreationDirectory();
+
         if (result != null)
         {
             foreach (var file in result)
             {
-                string destPath = Path.Combine(_currentDir, Path.GetFileName(file));
+                string destPath = Path.Combine(targetDir, Path.GetFileName(file));
                 if (!File.Exists(destPath))
                 {
                     File.Copy(file, destPath);

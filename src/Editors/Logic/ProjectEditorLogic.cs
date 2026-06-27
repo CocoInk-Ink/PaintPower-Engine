@@ -132,17 +132,28 @@ public class ProjectEditorLogic
             SaveNeeded = false;
 
             _view.SetUIMode(EditorUIMode.ProjectEditor);
-            RefreshUI();
         }
         catch (Exception ex)
         {
             Log.QuickLog($"Failed to load project: {ex}");
             await ErrorDialog.ShowAsync(_window, "Invalid or corrupted project file.");
-            _view.SetUIMode(EditorUIMode.NoProject);
-            await CloseProject();
+
+            if (isDefaultProject)
+            {
+                // The default project has failed to load, add blank metadata
+                Project = new()
+                {
+                    Metadata = new ProjectMetadata { name = "Untitled", OpenFile = null }
+                };
+
+            } else {
+                // The project has failed to load, create a new one
+                await NewProject();
+            }
         }
         finally
         {
+            RefreshUI();
             await _view.SetProjectLoading(false);
         }
     }
