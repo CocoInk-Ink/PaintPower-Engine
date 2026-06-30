@@ -31,49 +31,58 @@
             <TextBox x:Name="SearchBox" Grid.Row="1" Watermark="Search..." Margin="0,6,0,6" KeyUp="OnSearchChanged" />
             <!-- CUSTOM EXPLORER LIST -->
             <Border Grid.Row="3" Background="#252526" Padding="4">
-                <ListBox x:Name="FileList" Background="#1E1E1E" BorderThickness="0" ItemsSource="{Binding Rows}" SelectionMode="Single">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate DataType="explorer:ExplorerRow">
-                                    <Border Padding="4,2" Background="Transparent" PointerPressed="OnRowPointerPressed" PointerMoved="OnRowPointerMoved" PointerReleased="OnRowPointerReleased" DoubleTapped="OnRowDoubleTapped">
-                                <StackPanel Orientation="Horizontal">
-                                    <!-- Indentation guides -->
-                                    <ItemsControl ItemsSource="{Binding ., Converter={StaticResource DepthToGuidesConverter}}">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <StackPanel Orientation="Horizontal" />
-                                            </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border Width="16" BorderBrush="#333333" BorderThickness="0,0,1,0" />
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                    <!-- Expand / collapse arrow -->
-                                    <TextBlock Text="{Binding ., Converter={StaticResource FolderArrowConverter}}" Margin="0,0,4,0" Foreground="#CCCCCC" PointerPressed="OnArrowClicked" />
-                                    <!-- Name -->
-                                    <TextBlock Text="{Binding Item.Name}" Foreground="White" />
-                                </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                    <ListBox.Styles>
-                        <Style Selector="ListBoxItem">
-                            <Setter Property="Background" Value="Transparent" />
-                            <Setter Property="Foreground" Value="White" />
-                        </Style>
-                        <Style Selector="ListBoxItem:pointerover">
-                            <Setter Property="Background" Value="#333333" />
-                        </Style>
-                        <Style Selector="ListBoxItem:selected">
-                            <Setter Property="Background" Value="#094771" />
-                            <Setter Property="Foreground" Value="White" />
-                        </Style>
-                        <Style Selector="ListBoxItem:pointerover Border">
-                            <Setter Property="BorderBrush" Value="#555555" />
-                        </Style>
-                    </ListBox.Styles>
-                </ListBox>
+                <Canvas>
+                    <TextBlock x:Name="DragGhost" IsVisible="False" Foreground="White" Background="#2A2A2A" Padding="4" ZIndex="999" Opacity="0.85" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                    <ListBox x:Name="FileList" Background="#1E1E1E" BorderThickness="0" ItemsSource="{Binding Rows}" SelectionMode="Single">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="explorer:ExplorerRow">
+                                <Border Padding="4,2" Background="Transparent" PointerPressed="OnRowPointerPressed" PointerMoved="OnRowPointerMoved" PointerReleased="OnRowPointerReleased" DoubleTapped="OnRowDoubleTapped">
+                                    <StackPanel Orientation="Horizontal">
+                                        <!-- Indentation guides -->
+                                        <ItemsControl ItemsSource="{Binding ., Converter={StaticResource DepthToGuidesConverter}}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Width="16" BorderBrush="#333333" BorderThickness="0,0,1,0" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <!-- Expand / collapse arrow -->
+                                        <TextBlock Text="{Binding ., Converter={StaticResource FolderArrowConverter}}" Margin="0,0,4,0" Foreground="#CCCCCC" PointerPressed="OnArrowClicked" />
+                                        <!-- Name -->
+                                        <TextBlock Text="{Binding Item.Name}" Foreground="White" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                        <ListBox.Styles>
+                            <Style Selector="ListBoxItem">
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Style>
+                            <Style Selector="ListBoxItem:pointerover">
+                                <Setter Property="Background" Value="#333333" />
+                            </Style>
+                            <Style Selector="ListBoxItem:selected">
+                                <Setter Property="Background" Value="#094771" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Style>
+                            <Style Selector="ListBoxItem:pointerover Border">
+                                <Setter Property="BorderBrush" Value="#555555" />
+                            </Style>
+                            <Style Selector="ListBoxItem:drag-hover">
+                                <Setter Property="Background" Value="#3A3D41" />
+                            </Style>
+                            <Style Selector="ListBoxItem:dragging-self">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Style>
+                        </ListBox.Styles>
+                    </ListBox>
+                </Canvas>
             </Border>
         </Grid>
     </Border>

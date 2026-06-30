@@ -287,6 +287,7 @@ public partial class ExplorerView : UserControl
     // ------------------------------------------------------------
     // Custom drag (inside explorer only)
     // ------------------------------------------------------------
+    [Obsolete]
     private void OnRowPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not Control c || c.DataContext is not ExplorerRow row)
@@ -297,6 +298,20 @@ public partial class ExplorerView : UserControl
 
         _isDragging = true;
         _dragRow = row;
+
+        row.IsDraggingSelf = true;
+
+        var container = FileList.ItemContainerGenerator.ContainerFromIndex(Rows.IndexOf(row)) as ListBoxItem;
+        if (container != null)
+            container.Classes.Add("dragging-self");
+
+        DragGhost.Text = row.Item.Name;
+        DragGhost.IsVisible = true;
+
+        var pos = e.GetPosition(FileList);
+
+        Canvas.SetLeft(DragGhost, pos.X + 12);
+        Canvas.SetTop(DragGhost, pos.Y + 12);
     }
 
     private void OnRowPointerMoved(object? sender, PointerEventArgs e)
@@ -304,8 +319,25 @@ public partial class ExplorerView : UserControl
         if (!_isDragging || _dragRow == null)
             return;
 
-        // For now, we don't show a ghost or reorder visually during drag.
-        // You can extend this later to show a preview or highlight.
+        var pos = e.GetPosition(FileList);
+        var hit = FileList.InputHitTest(pos) as Control;
+
+        Canvas.SetLeft(DragGhost, pos.X + 12);
+        Canvas.SetTop(DragGhost, pos.Y + 12);
+
+        // Clear previous hover states
+        foreach (var r in Rows)
+        {
+            var c = FileList.ItemContainerGenerator.ContainerFromIndex(Rows.IndexOf(r)) as ListBoxItem;
+            c?.Classes.Remove("drag-hover");
+        }
+
+        if (hit?.DataContext is ExplorerRow targetRow)
+        {
+            var c = FileList.ItemContainerGenerator.ContainerFromIndex(Rows.IndexOf(targetRow)) as ListBoxItem;
+            c?.Classes.Add("drag-hover");
+        }
+
     }
 
     private void OnRowPointerReleased(object? sender, PointerReleasedEventArgs e)
@@ -314,6 +346,8 @@ public partial class ExplorerView : UserControl
             return;
 
         _isDragging = false;
+
+        DragGhost.IsVisible = false;
 
         var pos = e.GetPosition(FileList);
         var hit = FileList.InputHitTest(pos) as Control;
@@ -356,6 +390,16 @@ public partial class ExplorerView : UserControl
         catch (Exception ex)
         {
             Log.QuickLog("Custom drag-drop move failed: " + ex.Message);
+        }
+
+        foreach (var r in Rows)
+        {
+            var c = FileList.ItemContainerGenerator.ContainerFromIndex(Rows.IndexOf(r)) as ListBoxItem;
+            if (c != null)
+            {
+                c.Classes.Remove("drag-hover");
+                c.Classes.Remove("dragging-self");
+            }
         }
 
         _dragRow = null;
@@ -593,7 +637,7 @@ public partial class ExplorerView : UserControl
             Refresh();
         }
     }
-    
+
     private async void OnRename(object? sender, RoutedEventArgs e)
     {
         if (FileList.SelectedItem is not ExplorerRow row)

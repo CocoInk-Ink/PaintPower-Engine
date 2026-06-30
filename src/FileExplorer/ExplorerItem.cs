@@ -11,6 +11,10 @@ public class ExplorerItem
     public bool IsDirectory { get; set; }
     public bool IsExpanded { get; set; }
 
+    public bool IsDragHover { get; set; }
+    public bool IsDraggingSelf { get; set; }
+
+
     // Children for TreeView
     public ObservableCollection<ExplorerItem> Children { get; set; } = new();
 

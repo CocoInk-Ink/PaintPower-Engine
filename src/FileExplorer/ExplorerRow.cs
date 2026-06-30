@@ -10,4 +10,8 @@ public class ExplorerRow
     public int Depth { get; set; }
     public bool IsExpanded { get; set; }
     public bool IsRenaming { get; set; } = false;
+
+    public bool IsDragHover { get; set; }
+    public bool IsDraggingSelf { get; set; }
+
 }
