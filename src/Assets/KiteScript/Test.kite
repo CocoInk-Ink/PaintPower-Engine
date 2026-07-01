@@ -1,3 +1,5 @@
+[#script]
+
 [#define var "x" "x"]
 [#define var "y" "y"]
 [#define var "status" "status"]
@@ -52,3 +54,13 @@
     [#call PopularIds.functions.print]("Status is valid");
 
 [#call PopularIds.functions.print]("System check complete.");
+
+
+@#! New print
+[#define var 0x9837]("Hello, World!");
+
+[#foreach char in [#get 0x9837]] [#call 0x000](char);
+@#! Or:
+[#foreach char in Message] [#block]
+    [#call 0x000](char);
+[/#block]
