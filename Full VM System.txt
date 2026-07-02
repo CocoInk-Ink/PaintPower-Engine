@@ -1,0 +1,2917 @@
+This is the whole system that is already hooked up so far, and it's a lot.
+
+using System;
+using PaintPower.Logging;
+using PaintPower.Dialogs;
+using PaintPower.FileEditors;
+using PaintPower.FileExplorer;
+using PaintPower.Networking;
+using PaintPower.ProjectSystem;
+using PaintPower.ProjectSystem.SpriteEditor;
+using PaintPower.Time;
+using System.Threading;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using PaintPower.Compiler.PreBytecode;
+
+using PaintPower.Sprites;
+using PaintPower.VMPanel;
+using PaintPower.Display.DisplayIntegration;
+
+namespace PaintPower.Vm;
+
+// VM runtime, runtime for the project player virtual machine.
+
+public class Vm
+{
+
+    public static Vm? vm;
+
+    public static bool isProjectLoading = false;
+
+    // =======================
+    // Project Loading:
+    // =======================
+    public static async Task LoadProject(PaintProject project, DIPlay display)
+{
+    isProjectLoading = true;
+    LoadSpritesIntoDisplay(project, display);
+    isProjectLoading = false;
+}
+
+    // =======================
+    // Virtual Machine Parts:
+    // =======================
+
+    public string Id { get; set; }
+
+#pragma warning disable IDE0044 // Add readonly modifier
+    private List<string> IdList = new();
+
+#pragma warning restore IDE0044 // Add readonly modifier
+    public int threadsCount = 0;
+
+    public int currentThread = 0;
+
+    // If 3D processing is enabled, use the system's processing power to run the VM. Use the GPU for 3D Acceleration.
+    public bool usingSystemProcessing = false;
+
+    public Dictionary<string, VmThread> Threads { get; } = new();
+
+    // For embedded VMs.
+    public Dictionary<string, Vm> VMs { get; } = new();
+
+#pragma warning disable
+    public Vm()
+    {
+        try
+        {
+            Id = CreateId();
+        }
+        catch (Exception e)
+        {
+            Log.QuickLog(e);
+        }
+        ;
+    }
+
+    public static bool isThreadSafe(VmThread? thread)
+    {
+        return thread.isPaused == false;
+    }
+
+#pragma warning restore
+
+    public string CreateId(bool forThreads = true)
+    {
+        string id;
+        do id = Guid.NewGuid().ToString();
+        while (forThreads ? Threads.ContainsKey(id) : VMs.ContainsKey(id));
+        return id;
+    }
+
+    public void AddThread(VmThread? thread, string? id = null)
+    {
+        id ??= CreateId(true);
+        Threads[id] = thread!; // safe replace-or-add
+    }
+
+    public void AddVM(Vm? vm, string? id = null)
+    {
+        id ??= CreateId(false);
+
+        if (vm != null) vm.Id = id;
+
+        VMs[id] = vm!;
+    }
+
+    public void CreateNewThread()
+    {
+        AddThread(new VmThread());
+    }
+
+    public void CreateNewVm()
+    {
+        AddVM(new Vm());
+    }
+
+    public void RemoveThread(string id)
+    {
+        Threads.Remove(id);
+    }
+
+    public void RemoveVM(string id)
+    {
+        VMs.Remove(id);
+    }
+
+    public static void LoadSpritesIntoDisplay(PaintProject project, DIPlay display)
+    {
+        if (project == null) return;
+        if (display == null) return;
+
+        display.items.Clear();
+
+        foreach (var sprite in project.Sprites)
+            display.items.Add(sprite.ToRuntimeSprite());
+    }
+
+    public async Task Tick()
+    {
+
+        if (isProjectLoading) return; // Make sure project is not loading! (Pasted multiple times for good measure.)
+        foreach (Vm vm in VMs.Values)
+        {
+            if (isProjectLoading) return; // Make sure project is not loading! (Pasted multiple times for good measure.)
+            await vm.Tick();
+        }
+
+        foreach (VmThread thread in Threads.Values)
+        {
+            // Check if thread is valid:
+
+            if (isProjectLoading) return; // Make sure project is not loading! (Pasted multiple times for good measure.)
+
+            if (!isThreadSafe(thread)) continue;
+            await thread.Step();
+
+        }
+    }
+}
+
+using System.Threading.Tasks;
+using PaintPower.Runtime.Bytecode;
+using PaintPower.Runtime.Interpreter;
+using PaintPower.Vm.Processing;
+
+namespace PaintPower.Vm;
+
+public class VmThread
+{
+    public bool isPaused = false;
+
+    public InstructionSet InstructionSet { get; set; } = new();
+    private Interpreter? _interpreter;
+
+    public void LoadBytecode(Bytecode code)
+    {
+        _interpreter = new Interpreter(code);
+    }
+
+    public Task Step()
+    {
+        if (_interpreter == null || isPaused)
+            return Task.CompletedTask;
+
+        _interpreter.Step();
+
+        if (_interpreter.IsFinished)
+            isPaused = true;
+
+        return Task.CompletedTask;
+    }
+}
+
+using System.Collections.Generic;
+using PaintPower.Runtime.Bytecode;
+
+namespace PaintPower.Vm.Processing;
+
+public class InstructionSet
+{
+    private readonly List<Instruction> _instructions = new();
+    private readonly List<object> _constants = new();
+    private int _localCount = 0;
+
+    public int AddConstant(object value)
+    {
+        _constants.Add(value);
+        return _constants.Count - 1;
+    }
+
+    public int AddLocal()
+    {
+        return _localCount++;
+    }
+
+    public void Emit(OpCode op, int operand = 0)
+    {
+        _instructions.Add(new Instruction(op, operand));
+    }
+
+    public Bytecode ToBytecode()
+    {
+        return new Bytecode(
+            _instructions.ToArray(),
+            _constants.ToArray(),
+            _localCount
+        );
+    }
+
+    public void EmitPrint()
+    {
+        Emit(OpCode.Print);
+    }
+
+    public int EmitWithPlaceholder(OpCode op)
+    {
+        // Emit instruction with operand = 0 for now
+        Emit(op, 0);
+        return _instructions.Count - 1;
+    }
+
+    public void PatchJump(int instrIndex)
+    {
+        // Patch operand to point to the next instruction
+        _instructions[instrIndex] = new Instruction(_instructions[instrIndex].OpCode, _instructions.Count);
+    }
+
+
+}
+
+using System;
+using System.Linq;
+using PaintPower.Display.DisplayIntegration;
+using PaintPower.Tools.Graphics;
+using System.Collections.Generic;
+
+namespace PaintPower.Sprites
+{
+    public class Sprite : DIItem
+    {
+
+
+        // All skins (loaded from Skins.xml)
+        public List<RuntimeSkin> Skins = new();
+        public int CurrentSkinIndex = 0;
+
+        // Snapshot graphic (what DIPlay draws)
+        public Graphic SnapshotGraphic { get; private set; }
+
+        // Whether the snapshot needs to be rebuilt
+        public bool SnapshotDirty { get; set; } = true;
+
+        public RuntimeSkin? CurrentSkin
+        {
+            get
+            {
+                if (Skins.Count == 0)
+                    return null;
+
+                if (CurrentSkinIndex < 0 || CurrentSkinIndex >= Skins.Count)
+                    CurrentSkinIndex = 0;
+
+                return Skins[CurrentSkinIndex];
+            }
+        }
+
+        public Sprite(double? x = null, double? y = null, int? skin = null)
+        {
+            if (x != null)
+                this.x = x;
+            else
+                this.x = Tools.Math.Random.calc(StageWidth, StageHeight);
+
+            if (y != null)
+                this.y = y;
+
+            if (skin != null)
+                this.CurrentSkinIndex = (int)skin;
+        }
+
+        public void SetSkin(int index)
+        {
+            if (index >= 0 && index < Skins.Count)
+            {
+                CurrentSkinIndex = index;
+                SnapshotDirty = true;
+            }
+        }
+
+        public override void SetStageSize(double width, double height)
+        {
+            StageWidth = width;
+            StageHeight = height;
+            SnapshotDirty = true;
+        }
+
+
+        // ---------------------------------------------------------
+        // Snapshot Rendering
+        // ---------------------------------------------------------
+        public void RenderSnapshot()
+        {
+            var skin = CurrentSkin;
+            if (skin == null)
+                return;
+
+            int w = (int)StageWidth;
+            int h = (int)StageHeight;
+
+            // Create a temporary render target
+            var target = new RenderTarget2D(w, h);
+            var renderer = new Renderer2D(target);
+
+            // Clear transparent
+            renderer.Clear(0x00000000);
+
+            // Draw each element in Z order
+            foreach (var elem in skin.Elements.OrderBy(e => e.ZIndex))
+            {
+                double finalX = elem.X + w / 2;
+                double finalY = elem.Y + h / 2;
+
+                if (elem is RuntimeImageElement img)
+                {
+                    if (img.Graphic != null)
+                    {
+                        renderer.DrawGraphic(
+                            img.Graphic,
+                            (int)finalX,
+                            (int)finalY,
+                            (float)elem.Rotation,
+                            (float)elem.ScaleX,
+                            (float)elem.ScaleY
+                        );
+                    }
+                }
+                else if (elem is RuntimeVideoElement vid)
+                {
+                    var frame = vid.Player?.GetCurrentFrame();
+                    if (frame != null)
+                    {
+                        renderer.DrawGraphic(
+                            frame,
+                            (int)finalX,
+                            (int)finalY,
+                            (float)elem.Rotation,
+                            (float)elem.ScaleX,
+                            (float)elem.ScaleY
+                        );
+                    }
+                }
+            }
+
+            // Convert RenderTarget2D → Graphic
+            SnapshotGraphic = new Graphic(w, h, target.Bitmap.CopyPixelsToArray());
+
+            SnapshotDirty = false;
+        }
+
+        // ---------------------------------------------------------
+        // DIPlay calls this to get the final rendered image
+        // ---------------------------------------------------------
+        public override object? DrawAs()
+        {
+            return SnapshotGraphic;
+        }
+    }
+}
+
+
+using System;
+using System.IO;
+using System.IO.Compression;
+using PaintPower.Logging;
+using PaintPower.Tools.Graphics;
+
+namespace PaintPower.Sprites;
+
+public class Skin
+{
+    public string Name;
+    public string Path;
+    public object Graphic; // Graphic or GraphicAnimation
+
+    public Skin(string name, string path)
+    {
+        Name = name;
+        Path = path;
+        Graphic = GraphicLoader.LoadCached(path);
+    }
+}
+
+using PaintPower.Tools.Graphics;
+
+namespace PaintPower.Sprites
+{
+    public class VideoPlayer
+    {
+        private readonly string _path;
+
+        // Placeholder frame (optional)
+        private Graphic? _placeholderFrame;
+
+        private VideoPlayer(string path)
+        {
+            _path = path;
+
+            // Optional: load a placeholder image so videos show something
+            // You can remove this if you prefer null.
+            try
+            {
+                _placeholderFrame = GraphicLoader.LoadRaster(path) as Graphic;
+            }
+            catch
+            {
+                _placeholderFrame = null;
+            }
+        }
+
+        public static VideoPlayer Load(string path)
+        {
+            return new VideoPlayer(path);
+        }
+
+        // Called every frame by Sprite.RenderSnapshot()
+        public Graphic? GetCurrentFrame()
+        {
+            // TODO: real video decoding later
+            return _placeholderFrame;
+        }
+    }
+}
+
+
+using PaintPower.Tools.Graphics;
+
+namespace PaintPower.Sprites
+{
+    public abstract class RuntimeSkinElement
+    {
+        public string InstanceName { get; set; } = "";
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double Rotation { get; set; }
+        public double ScaleX { get; set; } = 1;
+        public double ScaleY { get; set; } = 1;
+        public int ZIndex { get; set; }
+
+        public int Width { get; set; }
+        public int Height { get; set; }
+    }
+}
+
+
+namespace PaintPower.Sprites
+{
+    public class RuntimeVideoElement : RuntimeSkinElement
+    {
+        public VideoPlayer Player { get; set; }
+        public bool Loop { get; set; }
+        public bool AutoPlay { get; set; }
+    }
+}
+
+using PaintPower.Tools.Graphics;
+
+namespace PaintPower.Sprites
+{
+    public class RuntimeImageElement : RuntimeSkinElement
+    {
+        public Graphic Graphic { get; set; }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using Avalonia.Media.Imaging;
+using System.Drawing;
+using System.Drawing.Imaging;
+
+using PaintPower.Sprites;
+using System.IO;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+
+namespace PaintPower.Tools.Graphics;
+
+public class Graphic
+{
+    public int Width { get; }
+    public int Height { get; }
+    public byte[] Pixels { get; } // BGRA pixel data
+
+    public Graphic(int width, int height, byte[] pixels)
+    {
+        Width = width;
+        Height = height;
+        Pixels = pixels;
+    }
+
+}
+
+// Will be unused becuase we will use snapshots only.
+public class GraphicAnimation
+{
+    public List<Graphic> Frames { get; } = new();
+    public List<int> FrameDelays { get; } = new();
+}
+
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:Graphics="clr-namespace:PaintPower.Tools.Graphics" x:Class="PaintPower.Tools.Graphics.GfxPane">
+</UserControl>
+
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using System;
+using System.Threading;
+
+namespace PaintPower.Tools.Graphics;
+
+public partial class GfxPane : Control
+{
+    private readonly RenderTarget2D _target;
+    private readonly Renderer2D _renderer;
+
+    public Renderer2D Renderer => _renderer;
+
+    public IntPtr BufferPtr => _target.BufferPtr;
+    public int Stride => _target.CurrentStride;
+
+    public int Width => _target.Width;
+    public int Height => _target.Height;
+
+    public GfxPane(double width, double height)
+    {
+        _target = new RenderTarget2D((int)width, (int)height);
+        _renderer = new Renderer2D(_target);
+    }
+
+    public override void Render(DrawingContext context)
+    {
+        base.Render(context);
+
+        context.DrawImage(
+            _target.Bitmap,
+            new Rect(0, 0, _target.Width, _target.Height),
+            new Rect(0, 0, Bounds.Width, Bounds.Height));
+    }
+
+    public void Present()
+    {
+        InvalidateVisual();
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Formats.Gif;
+
+using Svg.Skia;
+using SkiaSharp;
+
+namespace PaintPower.Tools.Graphics;
+
+public static class GraphicLoader
+{
+    private static readonly Dictionary<string, object> _cache = new();
+    private static readonly object _lock = new();
+
+    public static object LoadCached(string path)
+    {
+        path = Path.GetFullPath(path);
+
+        lock (_lock)
+        {
+            if (_cache.TryGetValue(path, out var cached))
+                return cached;
+        }
+
+        object loaded = LoadByExtension(path);
+
+        lock (_lock)
+        {
+            _cache[path] = loaded;
+        }
+
+        return loaded;
+    }
+
+    private static object LoadByExtension(string path)
+    {
+        string ext = Path.GetExtension(path).ToLowerInvariant();
+
+        return ext switch
+        {
+            ".gif"  => FromGIF(path),
+            ".png"  => LoadRaster(path),
+            ".jpg"  => LoadRaster(path),
+            ".jpeg" => LoadRaster(path),
+            ".bmp"  => LoadRaster(path),
+            ".webp" => LoadRaster(path),
+            ".tiff" => LoadRaster(path),
+            ".svg" => LoadVectorImage(path, "svg", "xml"),
+            _ => throw new NotSupportedException("Unsupported image format: " + ext)
+        };
+    }
+
+    // Path, type, Markup Language.
+    private static Graphic LoadVectorImage(string path, string type, string ML)
+    {
+        if (ML == "xml")
+        {
+            return type switch
+            {
+                "svg" => LoadSVGImage(path),
+                _ => LoadSVGImage(path)
+            };
+        }
+
+        return new Graphic(0, 0, new byte[268]);
+    }
+
+private static Graphic LoadSVGImage(string path)
+{
+    // Load SVG
+    var svg = new SKSvg();
+    svg.Load(path);
+
+    if (svg.Picture == null)
+        throw new Exception("Failed to load SVG: " + path);
+
+    // Determine output size
+    int width = (int)svg.Picture.CullRect.Width;
+    int height = (int)svg.Picture.CullRect.Height;
+
+    if (width <= 0 || height <= 0)
+        throw new Exception("SVG has invalid dimensions: " + path);
+
+    // Render SVG to Skia bitmap
+    using var skBitmap = new SKBitmap(width, height, SKColorType.Rgba8888, SKAlphaType.Premul);
+    using var canvas = new SKCanvas(skBitmap);
+
+    canvas.Clear(SKColors.Transparent);
+    canvas.DrawPicture(svg.Picture);
+    canvas.Flush();
+
+    // Convert Skia bitmap → ImageSharp image
+    using var img = Image.LoadPixelData<Rgba32>(skBitmap.Bytes, width, height);
+
+    // Extract pixel data
+    byte[] pixels = new byte[width * height * 4];
+    img.CopyPixelDataTo(pixels);
+
+    // Convert RGBA → BGRA for your renderer
+    ConvertRgbaToBgra(pixels);
+
+    return new Graphic(width, height, pixels);
+}
+
+    public static Graphic LoadRaster(string path)
+    {
+        using Image<Rgba32> img = Image.Load<Rgba32>(path);
+
+        int width = img.Width;
+        int height = img.Height;
+
+        byte[] pixels = new byte[width * height * 4];
+        img.CopyPixelDataTo(pixels);
+
+        ConvertRgbaToBgra(pixels);
+
+        return new Graphic(width, height, pixels);
+    }
+
+    public static GraphicAnimation FromGIF(string path)
+    {
+        using Image<Rgba32> gif = Image.Load<Rgba32>(path);
+
+        var anim = new GraphicAnimation();
+
+        foreach (var frame in gif.Frames)
+        {
+            int width = frame.Width;
+            int height = frame.Height;
+
+            byte[] pixels = new byte[width * height * 4];
+            frame.CopyPixelDataTo(pixels);
+
+            ConvertRgbaToBgra(pixels);
+
+            anim.Frames.Add(new Graphic(width, height, pixels));
+
+            var meta = frame.Metadata.GetGifMetadata();
+            int delay = meta.FrameDelay * 10;
+            anim.FrameDelays.Add(delay == 0 ? 100 : delay);
+        }
+
+        return anim;
+    }
+
+    private static void ConvertRgbaToBgra(byte[] pixels)
+    {
+        for (int i = 0; i < pixels.Length; i += 4)
+        {
+            byte r = pixels[i + 0];
+            byte g = pixels[i + 1];
+            byte b = pixels[i + 2];
+            byte a = pixels[i + 3];
+
+            pixels[i + 0] = b;
+            pixels[i + 1] = g;
+            pixels[i + 2] = r;
+            pixels[i + 3] = a;
+        }
+    }
+}
+
+
+using System;
+
+namespace PaintPower.Tools.Graphics;
+
+public struct DrawCommand
+{
+    public Graphic Graphic;
+    public float X;
+    public float Y;
+    public float Rotation;
+    public float ScaleX;
+    public float ScaleY;
+    public int Z;
+
+    public DrawCommand(Graphic g, float x, float y, float rot, float sx, float sy, int z)
+    {
+        Graphic = g;
+        X = x;
+        Y = y;
+        Rotation = rot;
+        ScaleX = sx;
+        ScaleY = sy;
+        Z = z;
+    }
+}
+
+using Avalonia.Media.Imaging;
+using System;
+using System.Runtime.InteropServices;
+
+namespace PaintPower.Tools.Graphics;
+
+public static class BitmapExtensions
+{
+    public static byte[] CopyPixelsToArray(this WriteableBitmap bmp)
+    {
+        using var fb = bmp.Lock();
+        byte[] arr = new byte[fb.RowBytes * bmp.PixelSize.Height];
+        Marshal.Copy(fb.Address, arr, 0, arr.Length);
+        return arr;
+    }
+
+    public static Avalonia.Media.Imaging.Bitmap ToAvaloniaBitmap(this Graphic g)
+    {
+        unsafe
+        {
+            fixed (byte* ptr = g.Pixels)
+            {
+                return new Avalonia.Media.Imaging.Bitmap(
+                    Avalonia.Platform.PixelFormat.Bgra8888,
+                    Avalonia.Platform.AlphaFormat.Premul,
+                    (IntPtr)ptr,
+                    new Avalonia.PixelSize(g.Width, g.Height),
+                    new Avalonia.Vector(96, 96),
+                    g.Width * 4
+                );
+            }
+        }
+    }
+}
+
+namespace PaintPower.Tools.Graphics;
+
+public enum ImageFormats
+{
+    PNG,
+    JPG ,
+    JPEG ,
+    BMP ,
+    GIF ,
+    WebP ,
+    SVG ,
+}
+
+using System;
+using System.Collections.Generic;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using PaintPower.Tools.Math;
+
+namespace PaintPower.Tools.Graphics;
+
+public class Renderer2D
+{
+    private readonly RenderTarget2D _target;
+
+    public Renderer2D(RenderTarget2D target)
+    {
+        _target = target;
+    }
+
+    public unsafe void Clear(uint color)
+    {
+        _target.WithLock((ptr, w, h, stride) =>
+        {
+            Span<byte> span = new Span<byte>((void*)ptr, stride * h);
+            for (int i = 0; i < span.Length; i += 4)
+            {
+                span[i + 0] = (byte)(color & 0xFF);         // B
+                span[i + 1] = (byte)((color >> 8) & 0xFF);  // G
+                span[i + 2] = (byte)((color >> 16) & 0xFF); // R
+                span[i + 3] = (byte)((color >> 24) & 0xFF); // A
+            }
+        });
+    }
+
+    public unsafe void DrawPixel(int x, int y, uint color)
+    {
+        _target.WithLock((ptr, w, h, stride) =>
+        {
+            if (x < 0 || y < 0 || x >= w || y >= h)
+                return;
+
+            byte* pixels = (byte*)ptr;
+            int index = y * stride + x * 4;
+
+            pixels[index + 0] = (byte)(color & 0xFF);         // B
+            pixels[index + 1] = (byte)((color >> 8) & 0xFF);  // G
+            pixels[index + 2] = (byte)((color >> 16) & 0xFF); // R
+            pixels[index + 3] = (byte)((color >> 24) & 0xFF); // A
+        });
+    }
+
+    public unsafe void Blit(WriteableBitmap src, int dstX, int dstY)
+    {
+        _target.WithLock((dstPtr, dstW, dstH, dstStride) =>
+        {
+            using var srcFb = src.Lock();
+            byte* srcPixels = (byte*)srcFb.Address;
+            byte* dstPixels = (byte*)dstPtr;
+
+            int srcW = src.PixelSize.Width;
+            int srcH = src.PixelSize.Height;
+            int srcStride = srcFb.RowBytes;
+
+            for (int y = 0; y < srcH; y++)
+            {
+                int dy = dstY + y;
+                if (dy < 0 || dy >= dstH) continue;
+
+                for (int x = 0; x < srcW; x++)
+                {
+                    int dx = dstX + x;
+                    if (dx < 0 || dx >= dstW) continue;
+
+                    int srcIndex = y * srcStride + x * 4;
+                    int dstIndex = dy * dstStride + dx * 4;
+
+                    byte sb = srcPixels[srcIndex + 0];
+                    byte sg = srcPixels[srcIndex + 1];
+                    byte sr = srcPixels[srcIndex + 2];
+                    byte sa = srcPixels[srcIndex + 3];
+
+                    // Simple alpha blend over destination
+                    byte db = dstPixels[dstIndex + 0];
+                    byte dg = dstPixels[dstIndex + 1];
+                    byte dr = dstPixels[dstIndex + 2];
+                    byte da = dstPixels[dstIndex + 3];
+
+                    float a = sa / 255f;
+                    float ia = 1f - a;
+
+                    dstPixels[dstIndex + 0] = (byte)(sb * a + db * ia);
+                    dstPixels[dstIndex + 1] = (byte)(sg * a + dg * ia);
+                    dstPixels[dstIndex + 2] = (byte)(sr * a + dr * ia);
+                    dstPixels[dstIndex + 3] = 255;
+                }
+            }
+        });
+    }
+
+    public unsafe void DrawGraphic(Graphic g, int dstX, int dstY, float rotationDeg, float scaleX, float scaleY)
+    {
+        float radians = rotationDeg * (float)System.Math.PI / 180f;
+
+        float cos = (float)System.Math.Cos(radians);
+        float sin = (float)System.Math.Sin(radians);
+
+        int srcW = g.Width;
+        int srcH = g.Height;
+
+        float cx = srcW / 2f;
+        float cy = srcH / 2f;
+
+        _target.WithLock((dstPtr, dstW, dstH, dstStride) =>
+        {
+            byte* dst = (byte*)dstPtr;
+            byte[] srcPixels = g.Pixels;
+
+            fixed (byte* src = srcPixels)
+            {
+                for (int y = 0; y < srcH; y++)
+                {
+                    for (int x = 0; x < srcW; x++)
+                    {
+                        float dx = (x - cx) * scaleX;
+                        float dy = (y - cy) * scaleY;
+
+                        float rx = dx * cos - dy * sin;
+                        float ry = dx * sin + dy * cos;
+
+                        int px = (int)(dstX + rx + cx);
+                        int py = (int)(dstY + ry + cy);
+
+                        if (px < 0 || py < 0 || px >= dstW || py >= dstH)
+                            continue;
+
+                        int srcIndex = (y * srcW + x) * 4;
+                        int dstIndex = py * dstStride + px * 4;
+
+                        byte sb = src[srcIndex + 0];
+                        byte sg = src[srcIndex + 1];
+                        byte sr = src[srcIndex + 2];
+                        byte sa = src[srcIndex + 3];
+
+                        float a = sa / 255f;
+                        float ia = 1f - a;
+
+                        byte db = dst[dstIndex + 0];
+                        byte dg = dst[dstIndex + 1];
+                        byte dr = dst[dstIndex + 2];
+
+                        dst[dstIndex + 0] = (byte)(sb * a + db * ia);
+                        dst[dstIndex + 1] = (byte)(sg * a + dg * ia);
+                        dst[dstIndex + 2] = (byte)(sr * a + dr * ia);
+                        dst[dstIndex + 3] = 255;
+                    }
+                }
+            }
+        });
+    }
+
+    public void DrawAnimation(GraphicAnimation anim, int x, int y, float rotation, float scaleX, float scaleY, int timeMs)
+    {
+        int total = 0;
+        int frame = 0;
+
+        for (int i = 0; i < anim.FrameDelays.Count; i++)
+        {
+            total += anim.FrameDelays[i];
+            if (timeMs % total < anim.FrameDelays[i])
+            {
+                frame = i;
+                break;
+            }
+        }
+
+        DrawGraphic(anim.Frames[frame], x, y, rotation, scaleX, scaleY);
+    }
+
+    public unsafe void DrawBatch(List<DrawCommand> commands)
+{
+    _target.WithLock((dstPtr, dstW, dstH, dstStride) =>
+    {
+        byte* dst = (byte*)dstPtr;
+
+        foreach (var cmd in commands)
+        {
+            Graphic g = cmd.Graphic;
+
+            float radians = cmd.Rotation * (float)System.Math.PI / 180f;
+            float cos = (float)System.Math.Cos(radians);
+            float sin = (float)System.Math.Sin(radians);
+
+            int srcW = g.Width;
+            int srcH = g.Height;
+
+            float cx = srcW / 2f;
+            float cy = srcH / 2f;
+
+            byte[] srcPixels = g.Pixels;
+
+            fixed (byte* src = srcPixels)
+            {
+                for (int y = 0; y < srcH; y++)
+                {
+                    for (int x = 0; x < srcW; x++)
+                    {
+                        float dx = (x - cx) * cmd.ScaleX;
+                        float dy = (y - cy) * cmd.ScaleY;
+
+                        float rx = dx * cos - dy * sin;
+                        float ry = dx * sin + dy * cos;
+
+                        int px = (int)(cmd.X + rx + cx);
+                        int py = (int)(cmd.Y + ry + cy);
+
+                        if (px < 0 || py < 0 || px >= dstW || py >= dstH)
+                            continue;
+
+                        int srcIndex = (y * srcW + x) * 4;
+                        int dstIndex = py * dstStride + px * 4;
+
+                        byte sb = src[srcIndex + 0];
+                        byte sg = src[srcIndex + 1];
+                        byte sr = src[srcIndex + 2];
+                        byte sa = src[srcIndex + 3];
+
+                        float a = sa / 255f;
+                        float ia = 1f - a;
+
+                        byte db = dst[dstIndex + 0];
+                        byte dg = dst[dstIndex + 1];
+                        byte dr = dst[dstIndex + 2];
+
+                        dst[dstIndex + 0] = (byte)(sb * a + db * ia);
+                        dst[dstIndex + 1] = (byte)(sg * a + dg * ia);
+                        dst[dstIndex + 2] = (byte)(sr * a + dr * ia);
+                        dst[dstIndex + 3] = 255;
+                    }
+                }
+            }
+        }
+    });
+}
+
+
+}
+
+
+using System;
+using Avalonia;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+
+namespace PaintPower.Tools.Graphics;
+
+public class RenderTarget2D
+{
+    // The underlying pixel buffer
+    public WriteableBitmap Bitmap { get; }
+
+    // Width and height of the render target
+    public int Width => Bitmap.PixelSize.Width;
+    public int Height => Bitmap.PixelSize.Height;
+
+    // Last known stride (updated during WithLock)
+    public int Stride { get; private set; }
+
+    public RenderTarget2D(int width, int height)
+    {
+        Bitmap = new WriteableBitmap(
+            new PixelSize(width, height),
+            new Vector(96, 96),
+            PixelFormat.Bgra8888,
+            AlphaFormat.Premul);
+    }
+
+    // Allows Renderer2D to write directly into the pixel buffer
+    public unsafe void WithLock(Action<IntPtr, int, int, int> action)
+    {
+        using var fb = Bitmap.Lock();
+        Stride = fb.RowBytes;
+        action(fb.Address, Width, Height, Stride);
+    }
+
+    // Exposes the raw pixel pointer for DIPlay → Bitmap conversion
+    public unsafe IntPtr BufferPtr
+    {
+        get
+        {
+            using var fb = Bitmap.Lock();
+            return fb.Address;
+        }
+    }
+
+    // Exposes the stride for DIPlay → Bitmap conversion
+    public int CurrentStride
+    {
+        get
+        {
+            using var fb = Bitmap.Lock();
+            return fb.RowBytes;
+        }
+    }
+}
+
+
+using System;
+using Avalonia.Controls;
+
+namespace PaintPower.Tools.Graphics;
+
+public partial class TestGfx : UserControl
+{
+    public TestGfx()
+    {
+
+    }
+
+    public async void Test()
+    {
+        var pane = new GfxPane(640, 360);
+        int t = 0;
+
+        var timer = new System.Timers.Timer(1000.0 / 60.0);
+        timer.Elapsed += (_, __) =>
+        {
+            int x = (int)(320 + System.Math.Sin(t / 30.0) * 100);
+            int y = 180;
+
+            pane.Renderer.Clear(0xFF202020); // ARGB
+            pane.Renderer.DrawPixel(x, y, 0xFFFFCC00);
+
+            Avalonia.Threading.Dispatcher.UIThread.Post(pane.Present);
+
+            t++;
+        };
+        timer.Start();
+    }
+}
+
+using PaintPower.Display.DisplayIntegration;
+using PaintPower.Logging;
+using PaintPower.Sprites;
+using PaintPower.Tools.Graphics;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Xml.Linq;
+
+namespace PaintPower.ProjectSystem;
+
+/// <summary>
+/// Pure sprite data model.
+/// Handles:
+///   - Loading skins
+///   - Saving skins
+///   - Converting to runtime sprite
+///   - Duplicate / rename / delete
+///
+/// Does NOT:
+///   - Reference PaintPower_Engine
+///   - Reference the project
+///   - Reference UI
+/// </summary>
+public class PaintSprite
+{
+    public string Name { get; set; } = "";
+    public string SpriteFolder { get; set; } = ""; // absolute path in workspace
+
+    public string JsonPath => Path.Combine(SpriteFolder, "Sprite.json");
+    public string AnimationPath => Path.Combine(SpriteFolder, "Sprite.wxa");
+
+    public string ThumbnailPath => Path.Combine(SpriteFolder, "Sprite.png");
+    public string ScriptPath => Path.Combine(SpriteFolder, "Sprite.pss");
+
+    public string SkinsPath => Path.Combine(SpriteFolder, "Skins.xml");
+    public string ItemsFolder => Path.Combine(SpriteFolder, "items");
+
+    public override string ToString() => Name;
+
+    // Skins
+    public List<SkinDefinition> Skins { get; private set; } = new();
+
+    // ------------------------------------------------------------
+    // Load skins
+    // ------------------------------------------------------------
+    public void LoadSkins()
+    {
+        Skins.Clear();
+
+        if (!File.Exists(SkinsPath))
+            return;
+
+        var doc = XDocument.Load(SkinsPath);
+
+        foreach (var skinNode in doc.Root.Elements("Skin"))
+        {
+            var skin = new SkinDefinition
+            {
+                Name = (string)skinNode.Attribute("name") ?? "Unnamed",
+                ScriptPath = (string)skinNode.Attribute("script") ?? ""
+            };
+
+            foreach (var elemNode in skinNode.Elements())
+            {
+                SkinElement elem = null;
+
+                switch (elemNode.Name.LocalName)
+                {
+                    case "Image":
+                        elem = new SkinImageElement
+                        {
+                            AssetPath = (string)elemNode.Attribute("asset") ?? ""
+                        };
+                        break;
+
+                    case "Video":
+                        elem = new SkinVideoElement
+                        {
+                            AssetPath = (string)elemNode.Attribute("asset") ?? "",
+                            Loop = (bool?)elemNode.Attribute("loop") ?? true,
+                            AutoPlay = (bool?)elemNode.Attribute("autoplay") ?? true
+                        };
+                        break;
+
+                    default:
+                        continue;
+                }
+
+                // Shared properties
+                elem.Id = (string)elemNode.Attribute("id") ?? Guid.NewGuid().ToString();
+                elem.InstanceName = (string)elemNode.Attribute("name") ?? "";
+                elem.ZIndex = (int?)elemNode.Attribute("z") ?? 0;
+
+                elem.Transform.X = (double?)elemNode.Attribute("x") ?? 0;
+                elem.Transform.Y = (double?)elemNode.Attribute("y") ?? 0;
+                elem.Transform.Rotation = (double?)elemNode.Attribute("rotation") ?? 0;
+                elem.Transform.ScaleX = (double?)elemNode.Attribute("scaleX") ?? 1;
+                elem.Transform.ScaleY = (double?)elemNode.Attribute("scaleY") ?? 1;
+
+                skin.Elements.Add(elem);
+            }
+
+            Skins.Add(skin);
+        }
+    }
+
+    // ------------------------------------------------------------
+    // Save skins
+    // ------------------------------------------------------------
+    public void SaveSkins()
+    {
+        var doc = new XDocument(
+            new XElement("Skins",
+                Skins.Select(skin =>
+                    new XElement("Skin",
+                        new XAttribute("name", skin.Name),
+                        new XAttribute("script", skin.ScriptPath ?? ""),
+
+                        skin.Elements.Select(elem =>
+                        {
+                            XElement node;
+
+                            if (elem is SkinImageElement img)
+                            {
+                                node = new XElement("Image",
+                                    new XAttribute("asset", img.AssetPath ?? "")
+                                );
+                            }
+                            else if (elem is SkinVideoElement vid)
+                            {
+                                node = new XElement("Video",
+                                    new XAttribute("asset", vid.AssetPath ?? ""),
+                                    new XAttribute("loop", vid.Loop),
+                                    new XAttribute("autoplay", vid.AutoPlay)
+                                );
+                            }
+                            else
+                            {
+                                return null;
+                            }
+
+                            node.Add(
+                                new XAttribute("id", elem.Id),
+                                new XAttribute("name", elem.InstanceName ?? ""),
+                                new XAttribute("z", elem.ZIndex),
+                                new XAttribute("x", elem.Transform.X),
+                                new XAttribute("y", elem.Transform.Y),
+                                new XAttribute("rotation", elem.Transform.Rotation),
+                                new XAttribute("scaleX", elem.Transform.ScaleX),
+                                new XAttribute("scaleY", elem.Transform.ScaleY)
+                            );
+
+                            return node;
+                        })
+                    )
+                )
+            )
+        );
+
+        doc.Save(SkinsPath);
+    }
+
+    // ------------------------------------------------------------
+    // Convert to runtime sprite
+    // ------------------------------------------------------------
+    public Sprite ToRuntimeSprite()
+    {
+        var runtime = new Sprite();
+
+        foreach (var skinDef in Skins)
+        {
+            var rSkin = new RuntimeSkin
+            {
+                Name = skinDef.Name,
+                ScriptPath = skinDef.ScriptPath
+            };
+
+            foreach (var elem in skinDef.Elements)
+            {
+                if (elem is SkinImageElement img)
+                {
+                    string full = Path.Combine(SpriteFolder, img.AssetPath);
+                    var graphic = GraphicLoader.LoadCached(full);
+
+                    rSkin.Elements.Add(new RuntimeImageElement
+                    {
+                        InstanceName = elem.InstanceName,
+                        X = elem.Transform.X,
+                        Y = elem.Transform.Y,
+                        Rotation = elem.Transform.Rotation,
+                        ScaleX = elem.Transform.ScaleX,
+                        ScaleY = elem.Transform.ScaleY,
+                        ZIndex = elem.ZIndex,
+                        Graphic = (Graphic)graphic
+                    });
+                }
+                else if (elem is SkinVideoElement vid)
+                {
+                    string full = Path.Combine(SpriteFolder, vid.AssetPath);
+                    var player = VideoPlayer.Load(full);
+
+                    rSkin.Elements.Add(new RuntimeVideoElement
+                    {
+                        InstanceName = elem.InstanceName,
+                        X = elem.Transform.X,
+                        Y = elem.Transform.Y,
+                        Rotation = elem.Transform.Rotation,
+                        ScaleX = elem.Transform.ScaleX,
+                        ScaleY = elem.Transform.ScaleY,
+                        ZIndex = elem.ZIndex,
+                        Player = player,
+                        Loop = vid.Loop,
+                        AutoPlay = vid.AutoPlay
+                    });
+                }
+            }
+
+            runtime.Skins.Add(rSkin);
+        }
+
+        return runtime;
+    }
+
+    // ------------------------------------------------------------
+    // Static operations
+    // ------------------------------------------------------------
+    public static void Delete(PaintSprite sprite)
+    {
+        if (Directory.Exists(sprite.SpriteFolder))
+            Directory.Delete(sprite.SpriteFolder, recursive: true);
+    }
+
+    public static void Rename(PaintSprite sprite, string newName)
+    {
+        string parent = Directory.GetParent(sprite.SpriteFolder)!.FullName;
+        string newFolder = Path.Combine(parent, newName);
+
+        Directory.Move(sprite.SpriteFolder, newFolder);
+
+        sprite.SpriteFolder = newFolder;
+        sprite.Name = newName;
+    }
+
+    public static string? SafeRename(string baseName, string parentFolder)
+    {
+        var invalidChars = Path.GetInvalidFileNameChars();
+        baseName = string.Concat(baseName.Where(c => !invalidChars.Contains(c)));
+
+        if (string.IsNullOrWhiteSpace(baseName))
+            return null;
+
+        string target = Path.Combine(parentFolder, baseName);
+        if (!Directory.Exists(target))
+            return baseName;
+
+        int number = 1;
+        string nameWithoutNumber = baseName;
+
+        int i = baseName.Length - 1;
+        while (i >= 0 && char.IsDigit(baseName[i]))
+            i--;
+
+        if (i < baseName.Length - 1)
+        {
+            string digits = baseName[(i + 1)..];
+            nameWithoutNumber = baseName[..(i + 1)];
+
+            if (int.TryParse(digits, out int parsed))
+                number = parsed + 1;
+        }
+
+        string newName;
+        do
+        {
+            newName = $"{nameWithoutNumber}{number}";
+            number++;
+        }
+        while (Directory.Exists(Path.Combine(parentFolder, newName)));
+
+        return newName;
+    }
+
+    public static PaintSprite Duplicate(PaintSprite sprite)
+    {
+        string parent = Directory.GetParent(sprite.SpriteFolder)!.FullName;
+
+        string newName = SafeRename(sprite.Name, parent);
+        string newFolder = Path.Combine(parent, newName);
+
+        CopyDirectory(sprite.SpriteFolder, newFolder);
+
+        return new PaintSprite
+        {
+            Name = newName,
+            SpriteFolder = newFolder
+        };
+    }
+
+    private static void CopyDirectory(string sourceDir, string destDir)
+    {
+        Directory.CreateDirectory(destDir);
+
+        foreach (var file in Directory.GetFiles(sourceDir))
+        {
+            string dest = Path.Combine(destDir, Path.GetFileName(file));
+            File.Copy(file, dest, overwrite: true);
+        }
+
+        foreach (var dir in Directory.GetDirectories(sourceDir))
+        {
+            string dest = Path.Combine(destDir, Path.GetFileName(dir));
+            CopyDirectory(dir, dest);
+        }
+    }
+}
+
+using System.Collections.Generic;
+
+namespace PaintPower.ProjectSystem
+{
+    public class SkinDefinition
+    {
+        public string Name { get; set; } = "";
+        public string ScriptPath { get; set; } = ""; // path inside items/
+
+        public List<SkinElement> Elements { get; set; } = new();
+
+        public override string ToString() => Name;
+    }
+}
+
+
+using System;
+
+namespace PaintPower.ProjectSystem
+{
+    public abstract class SkinElement
+    {
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string InstanceName { get; set; } = "";
+        public SkinTransform Transform { get; set; } = new();
+        public int ZIndex { get; set; } = 0;
+        public string AssetPath { get; set; } = ""; // relative to items/
+    }
+}
+
+namespace PaintPower.ProjectSystem
+{
+    public class SkinImageElement : SkinElement
+    {
+        public string AssetPath { get; set; } = ""; // relative to items/
+    }
+}
+
+namespace PaintPower.ProjectSystem
+{
+    public class SkinTransform
+    {
+        public double X { get; set; } = 0;
+        public double Y { get; set; } = 0;
+        public double Rotation { get; set; } = 0;
+        public double ScaleX { get; set; } = 1;
+        public double ScaleY { get; set; } = 1;
+    }
+}
+
+namespace PaintPower.ProjectSystem
+{
+    public class SkinVideoElement : SkinElement
+    {
+        public string AssetPath { get; set; } = "";
+        public bool Loop { get; set; } = true;
+        public bool AutoPlay { get; set; } = true;
+    }
+}
+
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="PaintPower.VMPanel.VmPanel" xmlns:vm="clr-namespace:PaintPower.VMPanel">
+	<Grid>
+		<Grid.Background>
+			<ImageBrush Source="avares://PaintPower/src/Assets/Background Dark.png" Stretch="None" TileMode="Tile" DestinationRect="0,0,10,10" />
+		</Grid.Background>
+		<Rectangle Fill="#80000000" />
+		<Border Padding="10">
+			<StackPanel Background="White">
+				<TextBlock x:Name="VMPanelText" Text="VM Panel" FontSize="20" Foreground="Black" Margin="0 0 0 10" />
+				<vm:StageAreaPart x:Name="StageArea"/>
+				<!-- To be removed, no code refrences it anyway. -->
+				<StackPanel Orientation="Horizontal">
+					<Button x:Name="PlayButton" Classes="gray" Content="Play" Margin="0 5" />
+					<Button x:Name="StopButton" Classes="gray" Content="Stop" Margin="0 5" />
+					<Button x:Name="BuildAndRunButton" Classes="gray" Content="Build and Run" Margin="0 5" />
+				</StackPanel>
+			</StackPanel>
+		</Border>
+	</Grid>
+</UserControl>
+
+using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
+
+using PaintPower.Accessibility.Translation;
+using PaintPower.Logging;
+
+namespace PaintPower.VMPanel;
+
+public partial class VmPanel : UserControl
+{
+
+    public VmPanel()
+    {
+        InitializeComponent();
+
+        this.AttachedToVisualTree += (_, __) =>
+        {
+            Translator.LanguageChanged += translate;
+            translate();
+        };
+
+        this.DetachedFromVisualTree += (_, __) =>
+        {
+            Translator.LanguageChanged -= translate;
+        };
+    }
+
+    public void refresh()
+    {
+        translate();
+        InvalidateVisual();
+    }
+
+    public void translate()
+    {
+        if (VMPanelText != null) VMPanelText.Text = Translator.Map("VM Panel");
+        else
+        {
+            Log.QuickLog("VMPanelText is null, cannot translate.");
+        }
+        ;
+        if (PlayButton != null) PlayButton.Content = Translator.Map("Play");
+        else
+        {
+            Log.QuickLog("PlayButton is null, cannot translate.");
+        }
+        ;
+        if (StopButton != null) StopButton.Content = Translator.Map("Stop");
+        else
+        {
+            Log.QuickLog("StopButton is null, cannot translate.");
+        }
+        ;
+        if (BuildAndRunButton != null) BuildAndRunButton.Content = Translator.Map("Build and Run");
+        else
+        {
+            Log.QuickLog("BuildAndRunButton is null, cannot translate.");
+        }
+        ;
+    }
+}
+
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PaintPower.VMPanel.TopBarStagePart">
+
+    <Border Background="#f0f0f0"
+            CornerRadius="8,8,0,0"
+            BorderBrush="#c0c0c0"
+            BorderThickness="1"
+            Padding="6">
+
+        <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto"
+              VerticalAlignment="Center">
+
+            <!-- Left side: Stage title or empty space -->
+            <TextBlock Text="Stage"
+                       FontSize="14"
+                       Foreground="#444"
+                       VerticalAlignment="Center"
+                       Margin="4 0"/>
+
+            <!-- Spacer -->
+            <Grid Grid.Column="1"/>
+
+            <!-- Fullscreen button -->
+            <Button Grid.Column="2"
+                    Width="28" Height="28"
+                    Background="#4da3ff"
+                    BorderBrush="#3a8bd6"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Margin="4 0"
+                    x:Name="FullscreenButton">
+                <TextBlock Text="[+]"
+                           FontSize="16"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Button>
+
+            <!-- Green flag -->
+            <Button Grid.Column="3"
+                    Width="28" Height="28"
+                    Background="#4caf50"
+                    BorderBrush="#3e8c41"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Margin="4 0"
+                    x:Name="GreenFlagButton">
+                <TextBlock Text=">"
+                           FontSize="16"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Button>
+
+            <!-- Red stop -->
+            <Button Grid.Column="4"
+                    Width="28" Height="28"
+                    Background="#e53935"
+                    BorderBrush="#b52c2a"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Margin="4 0"
+                    x:Name="StopButton">
+                <TextBlock Text="||"
+                           FontSize="16"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Button>
+
+        </Grid>
+    </Border>
+</UserControl>
+
+using System;
+using Avalonia.Controls;
+
+namespace PaintPower.VMPanel;
+
+public partial class TopBarStagePart : UserControl
+{
+    public event Action? PlayClicked;
+    public event Action? StopClicked;
+    public event Action? FullscreenClicked;
+
+    public TopBarStagePart()
+    {
+        InitializeComponent();
+
+        GreenFlagButton.Click += (_, _) => PlayClicked?.Invoke();
+        StopButton.Click += (_, _) => StopClicked?.Invoke();
+        FullscreenButton.Click += (_, _) => FullscreenClicked?.Invoke();
+    }
+}
+
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:PaintPower.VMPanel"
+             x:Class="PaintPower.VMPanel.StageAreaPart">
+
+    <Viewbox Stretch="Uniform"
+             HorizontalAlignment="Center"
+             VerticalAlignment="Center"
+             StretchDirection="DownOnly">
+
+        <Grid RowDefinitions="Auto,*">
+            <vm:TopBarStagePart Grid.Row="0" />
+            <Grid Grid.Row="1">
+                <vm:Stage x:Name="StageControl" />
+                <vm:ProcessingPanel x:Name="LoadingPart" />
+            </Grid>
+        </Grid>
+
+    </Viewbox>
+</UserControl>
+
+using Avalonia.Controls;
+
+namespace PaintPower.VMPanel;
+
+public partial class StageAreaPart : UserControl
+{
+    public StageAreaPart()
+    {
+        InitializeComponent();
+    }
+}
+
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="clr-namespace:PaintPower.VMPanel" x:Class="PaintPower.VMPanel.ProcessingPanel">
+    <Grid>
+        <Border Background="#90000000" CornerRadius="0,0,8,8">
+            <Border Width="250" Height="130" BorderBrush="gray" Background="white" BorderThickness="3" CornerRadius="0,0,8,8" Padding="10" BoxShadow="0 4 12 0 #80000000" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="12" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <vm:LoadingBar x:Name="Loader" />
+                    <TextBlock Text="Loading Project..." FontSize="16" FontWeight="SemiBold" Foreground="#5c5d5f" HorizontalAlignment="Center" x:Name="HeaderText" />
+                    <TextBlock Text="29449 of 398484 assets loaded" FontSize="11" FontWeight="SemiBold" Foreground="#5c5d5f" HorizontalAlignment="Center" x:Name="SubHeaderText" />
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>
+
+using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
+using System.Threading.Tasks;
+
+using PaintPower.Logging;
+using PaintPower.Accessibility.Translation;
+using PaintPower.Tools.Math.Formulas;
+
+
+namespace PaintPower.VMPanel;
+
+public partial class ProcessingPanel : UserControl
+{
+    public ProcessingPanel()
+    {
+        InitializeComponent();
+    }
+
+    public void Reset()
+    {
+        SetPercent(0);
+        SetSubheaderText("0 of 0 assets loaded");
+    }
+
+    public void SetPercent(int percent)
+    {
+        Loader.SetPercent(percent);
+    }
+
+    public void SetText(string? header = null, string? subheader = null)
+    {
+        if (header != null) SetHeaderText(header);
+        if (subheader != null) SetSubheaderText(subheader);
+    }
+
+    public void SetHeaderText(string? text)
+    {
+        HeaderText.Text = text;
+        HeaderText.InvalidateVisual();
+    }
+
+    public void SetSubheaderText(string? text)
+    {
+        SubHeaderText.Text = text;
+        SubHeaderText.InvalidateVisual();
+    }
+
+}
+
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PaintPower.VMPanel.LoadingBar">
+
+    <Grid x:Name="Root" Width="210" Height="22" ClipToBounds="True">
+
+        <!-- Background -->
+        <Border Background="#d0d0d0"
+                CornerRadius="6"/>
+
+        <!-- Fill -->
+        <Border x:Name="FillBar"
+                Background="#179fd7"
+                CornerRadius="6"
+                Width="0"
+                HorizontalAlignment="Left"/>
+    </Grid>
+</UserControl>
+
+using Avalonia;
+using Avalonia.Controls;
+
+namespace PaintPower.VMPanel
+{
+    public partial class LoadingBar : UserControl
+    {
+        private int _pendingPercent = -1;
+
+        public LoadingBar()
+        {
+            InitializeComponent();
+
+            // Listen for size changes — this fires when layout is ready
+            Root.SizeChanged += OnSizeChanged;
+        }
+
+        private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
+        {
+            if (_pendingPercent >= 0)
+            {
+                ApplyPercent(_pendingPercent);
+                _pendingPercent = -1;
+            }
+        }
+
+        public void SetPercent(int percent)
+        {
+            if (percent < 0) percent = 0;
+            if (percent > 100) percent = 100;
+
+            // If width is still 0, wait until SizeChanged fires
+            if (Root.Bounds.Width <= 0)
+            {
+                _pendingPercent = percent;
+                return;
+            }
+
+            ApplyPercent(percent);
+        }
+
+        private void ApplyPercent(int percent)
+        {
+            double totalWidth = Root.Bounds.Width;
+            double newWidth = (percent / 100.0) * totalWidth;
+
+            FillBar.Width = newWidth;
+        }
+    }
+}
+
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PaintPower.VMPanel.Stage">
+
+    <Border x:Name="StageBorder"
+            BorderBrush="gray"
+            Background="White"
+            BorderThickness="1"
+            CornerRadius="0,0,8,8"
+            Padding="0">
+
+        <!-- DIPlay will push rendered frames here -->
+        <Image x:Name="StageImage"
+               Stretch="Fill"
+               HorizontalAlignment="Stretch"
+               VerticalAlignment="Stretch"/>
+    </Border>
+
+</UserControl>
+
+using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
+using Avalonia.Media.Imaging;
+using PaintPower.Tools;
+
+namespace PaintPower.VMPanel;
+
+public partial class Stage : UserControl
+{
+    public PaintPower.Display.DisplayIntegration.DIPlay Diplay { get; private set; }
+
+    public Stage()
+    {
+        InitializeComponent();
+
+        double stageWidth = 640;
+        double stageHeight = 450;
+
+        Diplay = new PaintPower.Display.DisplayIntegration.DIPlay(
+            (int)stageWidth,
+            (int)stageHeight,
+            this,
+            stageWidth,
+            stageHeight
+        );
+
+        SetSize(stageWidth, stageHeight);
+        Diplay.Start();
+    }
+
+    public void SetSize(double width, double height)
+    {
+        Width = width;
+        Height = height;
+
+        StageBorder.Width = width;
+        StageBorder.Height = height;
+
+        Diplay.StageSize = new Point(width, height);
+    }
+
+    public void SetBitmap(Bitmap bmp)
+    {
+        StageImage.Source = bmp;
+    }
+}
+
+using System;
+using PaintPower.Tools.Graphics;
+
+namespace PaintPower.Display.DisplayIntegration;
+
+public abstract class DIItem
+{
+    public double? x;
+    public double? y;
+
+    public float ScaleX = 1f;
+    public float ScaleY = 1f;
+
+    public bool IsVisible = true;
+
+    public float Scale
+    {
+        get => ScaleX;
+        set { ScaleX = value; ScaleY = value; }
+    }
+
+    public int Z = 0;
+
+    public float Rotation = 0f; // 90 is normal, goes from 0 - 360.
+    public double StageWidth { get; set; } = 640;
+    public double StageHeight { get; set; } = 450;
+
+    public virtual void SetStageSize(double width, double height)
+    {
+        StageWidth = width;
+        StageHeight = height;
+    }
+
+    public DIItem() { }
+
+    public abstract object DrawAs();
+
+}
+
+using System;
+using System.Collections.Generic;
+using Avalonia;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using PaintPower.Tools;
+using PaintPower.Tools.Graphics;
+using PaintPower.Sprites;
+using Point = PaintPower.Tools.Point;
+
+namespace PaintPower.Display.DisplayIntegration
+{
+    // DIPlay or Diplay. You know, like Dip-lay, like "Display" with out the 's'. (Inspired by a typo while learning CSS)
+    public class DIPlay
+    {
+        public GfxPane gfxPane;
+
+        public Point StageSize { get; set; }
+
+        public List<DIItem> items = new();
+
+        private readonly VMPanel.Stage _stage;
+
+        private int _t = 0;
+
+        public DIPlay(int width, int height, VMPanel.Stage stage, double stageWidth, double stageHeight)
+        {
+            _stage = stage;
+            gfxPane = new GfxPane(width, height);
+            StageSize = new Point(stageWidth, stageHeight);
+        }
+
+        public void Start()
+        {
+            var timer = new System.Timers.Timer(1000.0 / 60.0);
+            timer.Elapsed += async (_, __) => Tick();
+            timer.Start();
+        }
+
+        public async void Tick()
+        {
+            var pane = gfxPane;
+
+            List<DrawCommand> batch = new();
+
+            foreach (DIItem item in items)
+            {
+                if (!item.IsVisible)
+                    continue;
+
+                // Resolve safe position (old projects may have null x/y)
+                double ix = item.x ?? 0;
+                double iy = item.y ?? 0;
+
+                // Snapshot-based sprites
+                if (item is Sprite sprite)
+                {
+                    if (sprite.SnapshotDirty)
+                        sprite.RenderSnapshot();
+
+                    var g = sprite.SnapshotGraphic;
+                    if (g == null)
+                        continue;
+
+                    if (IsCulled(g, (float)ix, (float)iy, sprite.ScaleX, sprite.ScaleY))
+                        continue;
+
+                    batch.Add(new DrawCommand(
+                        g,
+                        (float)ix,
+                        (float)iy,
+                        sprite.Rotation,
+                        sprite.ScaleX,
+                        sprite.ScaleY,
+                        sprite.Z
+                    ));
+
+                    continue;
+                }
+
+                // Other DIItems that return a Graphic directly
+                var graphic = item.DrawAs() as Graphic;
+                if (graphic != null)
+                {
+                    if (IsCulled(graphic, (float)ix, (float)iy, item.ScaleX, item.ScaleY))
+                        continue;
+
+                    batch.Add(new DrawCommand(
+                        graphic,
+                        (float)ix,
+                        (float)iy,
+                        item.Rotation,
+                        item.ScaleX,
+                        item.ScaleY,
+                        item.Z
+                    ));
+                }
+            }
+
+            batch.Sort((a, b) => a.Z.CompareTo(b.Z));
+
+            pane.Renderer.Clear(0xFF202020);
+            pane.Renderer.DrawBatch(batch);
+
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                _stage.SetBitmap(CreateBitmapFromPane());
+            });
+
+            _t++;
+        }
+
+        private bool IsCulled(Graphic g, float x, float y, float scaleX, float scaleY)
+        {
+            float halfW = g.Width * scaleX / 2f;
+            float halfH = g.Height * scaleY / 2f;
+
+            float left = x - halfW;
+            float right = x + halfW;
+            float top = y - halfH;
+            float bottom = y + halfH;
+
+            return right < 0 ||
+                left > StageSize.x ||
+                bottom < 0 ||
+                top > StageSize.y;
+
+        }
+
+        private Bitmap CreateBitmapFromPane()
+        {
+            return new Bitmap(
+                PixelFormat.Bgra8888,
+                AlphaFormat.Premul,
+                gfxPane.BufferPtr,
+                new PixelSize((int)gfxPane.Width, (int)gfxPane.Height),
+                new Vector(96, 96),
+                gfxPane.Stride
+            );
+        }
+    }
+}
+
+namespace PaintPower.Compiler;
+
+public class CompileFromSource
+{
+    void CompileToSource(string linkToProjectRoot) {}
+}   
+
+using System;
+using System.Collections.Generic;
+using PaintPower.Runtime.Bytecode;
+using PaintPower.Vm.Processing;
+
+namespace PaintPower.Compiler.PreBytecode;
+
+public static class BuiltinRegistry
+{
+    private static readonly Dictionary<string, Action<InstructionSet, List<string>>> _builtins =
+        new()
+        {
+            ["PopularIds.functions.print"] = EmitPrint
+        };
+
+    public static bool TryEmit(string id, InstructionSet set, List<string> args)
+    {
+        if (_builtins.TryGetValue(id, out var emitter))
+        {
+            emitter(set, args);
+            return true;
+        }
+        return false;
+    }
+
+    private static void EmitPrint(InstructionSet set, List<string> args)
+    {
+        if (args.Count > 0)
+        {
+            // Literal print: print("Hello")
+            int c = set.AddConstant(args[0]);
+            set.Emit(OpCode.LoadConst, c);
+        }
+        else
+        {
+            // Stack print: print([#get "x"])
+            // Do nothing — value is already on the stack
+        }
+
+        set.Emit(OpCode.Print);
+    }
+
+}
+
+using System.Collections.Generic;
+
+public class CompilerScope
+{
+    public Dictionary<string, int> Locals = new();
+}
+
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using PaintPower.Runtime.Bytecode;
+using PaintPower.Vm.Processing;
+using PaintPower.Logging;
+
+namespace PaintPower.Compiler.PreBytecode
+{
+    /// <summary>
+    /// Compiles KiteScript AST nodes into PaintPower bytecode.
+    /// Handles variables, blocks, calls, and if/else control flow.
+    /// </summary>
+    public static class KiteScriptCompiler
+    {
+        // ------------------------------------------------------------
+        // Resolve a variable name to a local slot index.
+        // Searches from innermost scope outward.
+        // ------------------------------------------------------------
+        private static int ResolveLocal(string id, Stack<Dictionary<string, int>> scopes)
+        {
+            foreach (var scope in scopes.Reverse())
+                if (scope.TryGetValue(id, out int slot))
+                    return slot;
+
+            throw new Exception("Unknown variable: " + id);
+        }
+
+        // ------------------------------------------------------------
+        // Compile a single AST node.
+        // Used by both the top-level compiler loop and nested structures.
+        // ------------------------------------------------------------
+        private static void CompileNode(KsNode node, InstructionSet set, Stack<Dictionary<string, int>> scopes)
+        {
+            switch (node)
+            {
+                case KsBlockStart:
+                    scopes.Push(new Dictionary<string, int>());
+                    break;
+
+                case KsBlockEnd:
+                    scopes.Pop();
+                    break;
+
+                case KsInstruction inst:
+                    if (inst.Name == "define" && inst.Params[0] == "var")
+                    {
+                        string id = inst.Params[1];
+                        int slot = set.AddLocal();
+                        scopes.Peek()[id] = slot;
+                    }
+                    break;
+
+                case KsCall call:
+                    BuiltinRegistry.TryEmit(call.TargetId, set, call.Args);
+                    break;
+
+                case KsSet setNode:
+                    int slotSet = ResolveLocal(setNode.Id, scopes);
+                    int constIndex = set.AddConstant(setNode.Value);
+                    set.Emit(OpCode.LoadConst, constIndex);
+                    set.Emit(OpCode.StoreLocal, slotSet);
+                    break;
+
+                case KsGet getNode:
+                    int slotGet = ResolveLocal(getNode.Id, scopes);
+                    set.Emit(OpCode.LoadLocal, slotGet);
+                    break;
+
+                case KsIf ifNode:
+                    CompileIf(ifNode, set, scopes);
+                    break;
+
+                case KsElse elseNode:
+                    foreach (var n in elseNode.Body)
+                        CompileNode(n, set, scopes);
+                    break;
+            }
+        }
+
+        // ------------------------------------------------------------
+        // Compile an if node.
+        // Emits conditional jumps and compiles nested bodies.
+        // ------------------------------------------------------------
+        private static void CompileIf(KsIf ifNode, InstructionSet set, Stack<Dictionary<string, int>> scopes)
+        {
+            // Compile condition expression
+            CompileCondition(ifNode.ConditionRaw, set, scopes);
+
+            // Emit JumpIfFalse with placeholder
+            int jumpFalseIndex = set.EmitWithPlaceholder(OpCode.JumpIfFalse);
+
+            // Compile IF body
+            foreach (var n in ifNode.Body)
+                CompileNode(n, set, scopes);
+
+            if (ifNode.ElseBranch != null)
+            {
+                // Jump over ELSE
+                int jumpEndIndex = set.EmitWithPlaceholder(OpCode.Jump);
+
+                // Patch JumpIfFalse to ELSE start
+                set.PatchJump(jumpFalseIndex);
+
+                // Compile ELSE body
+                foreach (var n in ifNode.ElseBranch.Body)
+                    CompileNode(n, set, scopes);
+
+                // Patch Jump to end
+                set.PatchJump(jumpEndIndex);
+            }
+            else
+            {
+                // No ELSE: patch JumpIfFalse to end of IF block
+                set.PatchJump(jumpFalseIndex);
+            }
+        }
+
+        // ------------------------------------------------------------
+        // Compile a condition expression.
+        // Supports:
+        //   - literal booleans
+        //   - literal integers
+        //   - variable names
+        // ------------------------------------------------------------
+        private static void CompileCondition(string cond, InstructionSet set, Stack<Dictionary<string, int>> scopes)
+        {
+            cond = cond.Trim();
+
+            // 1. Check for binary relational operators
+            if (TryParseBinaryCondition(cond, out string left, out string op, out string right))
+            {
+                // Compile left operand
+                CompileCondition(left, set, scopes);
+
+                // Compile right operand
+                CompileCondition(right, set, scopes);
+
+                // Emit comparison opcode
+                switch (op)
+                {
+                    case "==": set.Emit(OpCode.CompareEqual); break;
+                    case "!=": set.Emit(OpCode.CompareNotEqual); break;
+                    case "<": set.Emit(OpCode.CompareLess); break;
+                    case ">": set.Emit(OpCode.CompareGreater); break;
+                    case "<=": set.Emit(OpCode.CompareLessEqual); break;
+                    case ">=": set.Emit(OpCode.CompareGreaterEqual); break;
+                }
+
+                return;
+            }
+
+            // 2. Literal boolean
+            if (cond == "true" || cond == "false")
+            {
+                int c = set.AddConstant(cond == "true");
+                set.Emit(OpCode.LoadConst, c);
+                return;
+            }
+
+            // 3. Literal integer
+            if (int.TryParse(cond, out int num))
+            {
+                int c = set.AddConstant(num);
+                set.Emit(OpCode.LoadConst, c);
+                return;
+            }
+
+            // 4. Variable reference
+            int slot = ResolveLocal(cond, scopes);
+            set.Emit(OpCode.LoadLocal, slot);
+        }
+
+        private static bool TryParseBinaryCondition(
+    string cond,
+    out string left,
+    out string op,
+    out string right)
+        {
+            string[] ops = { "==", "!=", "<=", ">=", "<", ">" };
+
+            foreach (var o in ops)
+            {
+                int idx = cond.IndexOf(o, StringComparison.Ordinal);
+                if (idx > 0)
+                {
+                    left = cond.Substring(0, idx).Trim();
+                    op = o;
+                    right = cond.Substring(idx + o.Length).Trim();
+                    return true;
+                }
+            }
+
+            left = right = op = "";
+            return false;
+        }
+
+        // ------------------------------------------------------------
+        // Entry point: compile KiteScript text into bytecode.
+        // ------------------------------------------------------------
+        public static Bytecode Compile(string text)
+        {
+            var nodes = KiteScriptParser.Parse(text);
+            var set = new InstructionSet();
+
+            Stack<Dictionary<string, int>> scopes = new();
+            scopes.Push(new Dictionary<string, int>());
+
+            foreach (var node in nodes)
+                CompileNode(node, set, scopes);
+
+            set.Emit(OpCode.Return);
+
+            return set.ToBytecode();
+        }
+    }
+}
+
+// KiteScriptParser.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace PaintPower.Compiler.PreBytecode
+{
+    public static class KiteScriptParser
+    {
+        // ------------------------------------------------------------
+        // TOKEN TYPES
+        // ------------------------------------------------------------
+        private enum TokenType
+        {
+            If,
+            Else,
+            ElseIf,
+            BlockStart,
+            BlockEnd,
+            Call,
+            Set,
+            Get,
+            Instruction
+        }
+
+        private readonly record struct Token(TokenType Type, string Data, int LineNumber);
+
+        // ------------------------------------------------------------
+        // PUBLIC ENTRY POINT
+        // ------------------------------------------------------------
+        public static List<KsNode> Parse(string text)
+        {
+            text = text.Replace("\"\"", "\"");
+
+            var tokens = Tokenize(text);
+            int i = 0;
+            var nodes = ParseSequence(tokens, ref i);
+
+            // If we ended early, there was an unmatched block
+            if (i < tokens.Count && tokens[i].Type == TokenType.BlockEnd)
+                throw SyntaxError("Unmatched [/#block]", tokens[i].LineNumber);
+
+            return nodes;
+        }
+
+        // ------------------------------------------------------------
+        // ERROR HELPER
+        // ------------------------------------------------------------
+        private static Exception SyntaxError(string message, int line)
+        {
+            return new Exception($"Syntax error on line {line}: {message}");
+        }
+
+        // ------------------------------------------------------------
+        // TOKENIZER (NO REGEX)
+        // ------------------------------------------------------------
+        private static List<Token> Tokenize(string text)
+        {
+            var tokens = new List<Token>();
+
+            var lines = text.Split('\n')
+                            .Select((l, idx) => new { Text = l.Trim(), Line = idx + 1 })
+                            .Where(x => x.Text.Length > 0 && !x.Text.StartsWith("@@!"))
+                            .ToList();
+
+            foreach (var entry in lines)
+            {
+                string line = entry.Text;
+                int lineNum = entry.Line;
+
+                // BLOCKS
+                if (line == "[#block]")
+                {
+                    tokens.Add(new Token(TokenType.BlockStart, "", lineNum));
+                    continue;
+                }
+
+                if (line == "[/#block]")
+                {
+                    tokens.Add(new Token(TokenType.BlockEnd, "", lineNum));
+                    continue;
+                }
+
+                // IF
+                if (line.StartsWith("[#if "))
+                {
+                    var cond = ExtractBetween(line, "[#if ", "]");
+                    tokens.Add(new Token(TokenType.If, cond.Trim(), lineNum));
+                    continue;
+                }
+
+                // ELSE IF
+                if (line.StartsWith("[#else if "))
+                {
+                    var cond = ExtractBetween(line, "[#else if ", "]");
+                    tokens.Add(new Token(TokenType.ElseIf, cond.Trim(), lineNum));
+                    continue;
+                }
+
+                // ELSE
+                if (line == "[#else]")
+                {
+                    tokens.Add(new Token(TokenType.Else, "", lineNum));
+                    continue;
+                }
+
+                // CALL
+                if (line.StartsWith("[#call "))
+                {
+                    tokens.Add(new Token(TokenType.Call, line, lineNum));
+                    continue;
+                }
+
+                // SET
+                if (line.StartsWith("[#set "))
+                {
+                    tokens.Add(new Token(TokenType.Set, line, lineNum));
+                    continue;
+                }
+
+                // GET
+                if (line.StartsWith("[#get "))
+                {
+                    tokens.Add(new Token(TokenType.Get, line, lineNum));
+                    continue;
+                }
+
+                // INSTRUCTION
+                if (line.StartsWith("[#"))
+                {
+                    tokens.Add(new Token(TokenType.Instruction, line, lineNum));
+                    continue;
+                }
+
+                // Anything else is invalid
+                throw SyntaxError("Unknown or malformed tag", lineNum);
+            }
+
+            return tokens;
+        }
+
+        // ------------------------------------------------------------
+        // PARSE A SEQUENCE OF STATEMENTS
+        // ------------------------------------------------------------
+        private static List<KsNode> ParseSequence(List<Token> tokens, ref int i)
+        {
+            var list = new List<KsNode>();
+
+            while (i < tokens.Count)
+            {
+                var t = tokens[i];
+
+                if (t.Type == TokenType.BlockEnd)
+                    break;
+
+                if (t.Type == TokenType.If)
+                {
+                    list.Add(ParseIf(tokens, ref i));
+                    continue;
+                }
+
+                if (t.Type == TokenType.Else)
+                    throw SyntaxError("ELSE without matching IF", t.LineNumber);
+
+                if (t.Type == TokenType.ElseIf)
+                    throw SyntaxError("ELSE IF without matching IF", t.LineNumber);
+
+                // BLOCK
+                if (t.Type == TokenType.BlockStart)
+                {
+                    i++;
+                    list.Add(new KsBlockStart());
+                    var inner = ParseSequence(tokens, ref i);
+                    list.AddRange(inner);
+
+                    if (i >= tokens.Count || tokens[i].Type != TokenType.BlockEnd)
+                        throw SyntaxError("Block not closed with [/#block]", t.LineNumber);
+
+                    i++;
+                    list.Add(new KsBlockEnd());
+                    continue;
+                }
+
+                list.Add(ParseSingle(tokens[i]));
+                i++;
+            }
+
+            return list;
+        }
+
+        // ------------------------------------------------------------
+        // PARSE IF / ELSE IF / ELSE
+        // ------------------------------------------------------------
+        private static KsIf ParseIf(List<Token> tokens, ref int i)
+        {
+            var ifToken = tokens[i++];
+            var ifNode = new KsIf { ConditionRaw = ifToken.Data };
+
+            // Parse IF body
+            ParseBody(tokens, ref i, ifNode.Body, ifToken.LineNumber);
+
+            // Parse ELSE IF chain
+            while (i < tokens.Count && tokens[i].Type == TokenType.ElseIf)
+            {
+                var elifToken = tokens[i++];
+                var elifNode = new KsIf { ConditionRaw = elifToken.Data };
+
+                ParseBody(tokens, ref i, elifNode.Body, elifToken.LineNumber);
+
+                // Wrap ELSE IF inside an ELSE node
+                if (ifNode.ElseBranch == null)
+                    ifNode.ElseBranch = new KsElse();
+
+                ifNode.ElseBranch.Body.Add(elifNode);
+            }
+
+            // Parse ELSE
+            if (i < tokens.Count && tokens[i].Type == TokenType.Else)
+            {
+                var elseToken = tokens[i++];
+                var elseNode = new KsElse();
+
+                ParseBody(tokens, ref i, elseNode.Body, elseToken.LineNumber);
+
+                // ELSE always attaches at the end of the chain
+                ifNode.ElseBranch = elseNode;
+
+                ifNode.ElseBranch = elseNode;
+            }
+
+            return ifNode;
+        }
+
+        // ------------------------------------------------------------
+        // PARSE BODY OF IF/ELSE/ELSE IF
+        // ------------------------------------------------------------
+        private static void ParseBody(List<Token> tokens, ref int i, List<KsNode> body, int line)
+        {
+            if (i >= tokens.Count)
+                throw SyntaxError("IF has no body", line);
+
+            var t = tokens[i];
+
+            // BLOCK BODY
+            if (t.Type == TokenType.BlockStart)
+            {
+                i++;
+                body.Add(new KsBlockStart());
+                var inner = ParseSequence(tokens, ref i);
+                body.AddRange(inner);
+
+                if (i >= tokens.Count || tokens[i].Type != TokenType.BlockEnd)
+                    throw SyntaxError("Block not closed with [/#block]", line);
+
+                i++;
+                body.Add(new KsBlockEnd());
+                return;
+            }
+
+            // SINGLE STATEMENT BODY
+            body.Add(ParseSingle(tokens[i]));
+            i++;
+        }
+
+        // ------------------------------------------------------------
+        // PARSE LEAF NODES
+        // ------------------------------------------------------------
+        private static KsNode ParseSingle(Token token)
+        {
+            return token.Type switch
+            {
+                TokenType.Call => ParseCall(token.Data, token.LineNumber),
+                TokenType.Set => ParseSet(token.Data, token.LineNumber),
+                TokenType.Get => ParseGet(token.Data, token.LineNumber),
+                TokenType.Instruction => ParseInstruction(token.Data, token.LineNumber),
+                _ => throw SyntaxError("Unexpected token", token.LineNumber)
+            };
+        }
+
+        // ------------------------------------------------------------
+        // CALL
+        // ------------------------------------------------------------
+        private static KsNode ParseCall(string line, int lineNum)
+        {
+            int close = line.IndexOf(']');
+            if (close < 0)
+                throw SyntaxError("CALL missing closing ']'", lineNum);
+
+            int openParen = line.IndexOf('(', close);
+            if (openParen < 0)
+                throw SyntaxError("CALL missing '('", lineNum);
+
+            int closeParen = line.LastIndexOf(')');
+            if (closeParen < 0)
+                throw SyntaxError("CALL missing ')'", lineNum);
+
+            var id = ExtractBetween(line, "[#call ", "]");
+            var argsPart = ExtractBetween(line, "](", ")");
+            argsPart = TrimTrailingSemicolon(argsPart);
+
+            // GET inside CALL
+            if (argsPart.StartsWith("[#get "))
+            {
+                var getId = ExtractBetween(argsPart, "[#get \"", "\"]");
+                return new KsGet { Id = getId };
+            }
+
+            var args = SplitArgs(argsPart);
+
+            var call = new KsCall { TargetId = id.Trim('"') };
+            call.Args.AddRange(args);
+            return call;
+        }
+
+        // ------------------------------------------------------------
+        // SET
+        // ------------------------------------------------------------
+        private static KsNode ParseSet(string line, int lineNum)
+        {
+            if (!line.Contains("\""))
+                throw SyntaxError("SET missing quoted identifier", lineNum);
+
+            var id = ExtractBetween(line, "[#set \"", "\"");
+            var argsPart = ExtractBetween(line, "\"](", ")");
+            argsPart = TrimTrailingSemicolon(argsPart);
+
+            var value = argsPart.Trim();
+            if (value.StartsWith("\"") && value.EndsWith("\""))
+                value = value.Substring(1, value.Length - 2);
+
+            return new KsSet { Id = id, Value = value };
+        }
+
+        // ------------------------------------------------------------
+        // GET
+        // ------------------------------------------------------------
+        private static KsNode ParseGet(string line, int lineNum)
+        {
+            if (!line.Contains("\""))
+                throw SyntaxError("GET missing quoted identifier", lineNum);
+
+            var id = ExtractBetween(line, "[#get \"", "\"]");
+            return new KsGet { Id = id };
+        }
+
+        // ------------------------------------------------------------
+        // INSTRUCTION
+        // ------------------------------------------------------------
+        private static KsNode ParseInstruction(string line, int lineNum)
+        {
+            var inner = line.Substring(2, line.Length - 3); // strip [# and ]
+            var parts = inner.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length == 0)
+                throw SyntaxError("Empty instruction", lineNum);
+
+            var name = parts[0];
+            var parameters = new List<string>();
+
+            if (parts.Length > 1)
+            {
+                parameters.Add(parts[1]);
+                parameters.AddRange(ExtractQuoted(inner));
+            }
+
+            var inst = new KsInstruction { Name = name };
+            inst.Params.AddRange(parameters);
+            return inst;
+        }
+
+        // ------------------------------------------------------------
+        // STRING HELPERS
+        // ------------------------------------------------------------
+        private static string ExtractBetween(string text, string start, string end)
+        {
+            int s = text.IndexOf(start, StringComparison.Ordinal);
+            if (s < 0) return "";
+            s += start.Length;
+            int e = text.IndexOf(end, s, StringComparison.Ordinal);
+            if (e < 0) return "";
+            return text.Substring(s, e - s);
+        }
+
+        private static string TrimTrailingSemicolon(string s)
+        {
+            s = s.Trim();
+            if (s.EndsWith(";"))
+                s = s.Substring(0, s.Length - 1).TrimEnd();
+            return s;
+        }
+
+        private static List<string> SplitArgs(string argsPart)
+        {
+            var result = new List<string>();
+            var s = argsPart.Trim();
+            if (s.Length == 0)
+                return result;
+
+            var pieces = s.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var p in pieces)
+            {
+                var v = p.Trim();
+                if (v.StartsWith("\"") && v.EndsWith("\""))
+                    v = v.Substring(1, v.Length - 2);
+                result.Add(v);
+            }
+
+            return result;
+        }
+
+        private static IEnumerable<string> ExtractQuoted(string text)
+        {
+            var list = new List<string>();
+            int i = 0;
+            while (i < text.Length)
+            {
+                if (text[i] == '"')
+                {
+                    int start = i + 1;
+                    int end = text.IndexOf('"', start);
+                    if (end < 0) break;
+                    list.Add(text.Substring(start, end - start));
+                    i = end + 1;
+                }
+                else i++;
+            }
+            return list;
+        }
+    }
+}
+
+
+// KiteScriptTest.cs
+
+namespace PaintPower.Compiler.PreBytecode;
+
+using System;
+using System.IO;
+using PaintPower.Logging;
+using PaintPower.Runtime.Bytecode;
+using PaintPower.Vm;
+
+public static class KiteScriptTest
+{
+    public async static void Run()
+    {
+        // 1. Load the script text
+        string script = File.ReadAllText("Assets/KiteScript/Test.kite");
+
+        Log.QuickLog(script);
+
+        // 2. Compile to bytecode
+        Bytecode bytecode = KiteScriptCompiler.Compile(script);
+
+        // 3. Create a VM thread
+        var thread = new VmThread();
+        thread.LoadBytecode(bytecode);
+
+        // 4. Execute until finished
+        Log.QuickLog("Running KiteScript program:");
+        while (!thread.isPaused)
+        {
+            thread.Step().Wait();
+        }
+
+        Log.QuickLog("Done.");
+    }
+}
+
+// KsNode.cs
+
+using System.Collections.Generic;
+
+namespace PaintPower.Compiler.PreBytecode;
+
+public abstract class KsNode {}
+
+public sealed class KsInstruction : KsNode
+{
+    public string Name { get; init; } = "";
+    public List<string> Params { get; } = new();
+}
+
+public sealed class KsCall : KsNode
+{
+    public string TargetId { get; init; } = "";
+    public List<string> Args { get; } = new();
+}
+
+public sealed class KsBlockStart : KsNode {}
+public sealed class KsBlockEnd : KsNode {}
+
+public sealed class KsSet : KsNode
+{
+    public string Id { get; init; } = "";
+    public string Value { get; init; } = "";
+}
+
+public sealed class KsGet : KsNode
+{
+    public string Id { get; init; } = "";
+}
+
+public sealed class KsIf : KsNode
+{
+    public string ConditionRaw { get; init; } = "";
+    public List<KsNode> Body { get; } = new();
+    public KsElse? ElseBranch { get; set; }
+}
+
+public sealed class KsElse : KsNode
+{
+    public List<KsNode> Body { get; } = new();
+}
