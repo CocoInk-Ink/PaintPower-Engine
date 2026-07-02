@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using PaintPower.Compiler.PreBytecode;
 using PaintPower.Tools.Keyboard;
 using System;
 
@@ -23,6 +24,14 @@ public partial class MainWindow : Window
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
         window = this;
+
+        TestRunner.RunPrintTestAsync().ContinueWith(t =>
+        {
+            if (t.Exception != null)
+            {
+                Console.WriteLine($"Error running print test: {t.Exception}");
+            }
+        });
     }
 
     protected override async void OnOpened(EventArgs e)

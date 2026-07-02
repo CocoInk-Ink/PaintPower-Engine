@@ -1,181 +1,335 @@
+// File: PaintPower.Runtime.Interpreter/Interpreter.cs
 using System;
 using System.Collections.Generic;
-using PaintPower.Logging;
-using PaintPower.Runtime.Bytecode;
+using System.Threading.Tasks;
+using PaintPower.Runtime.Ksa;
+using PaintPower.Vm;
+using PaintPower.Sprites;
 
-namespace PaintPower.Runtime.Interpreter;
-
-public class Interpreter
+namespace PaintPower.Runtime.Interpreter
 {
-    private readonly Bytecode.Bytecode _code;
-    private readonly Stack<object> _stack = new();
-    private readonly object[] _locals;
-    private int _ip = 0; // instruction pointer
-
-    public bool IsFinished => _ip >= _code.Instructions.Length;
-
-    public Interpreter(Bytecode.Bytecode code)
+    public sealed class Interpreter
     {
-        _code = code;
-        _locals = new object[_code.LocalCount];
-    }
+        private readonly Bytecode _code;
+        private int _ip;
+        private readonly Stack<object?> _eval = new();
+        private readonly List<CallFrame> _callStack = new();
+        private readonly object?[] _locals;
+        private readonly VmThread _thread;
+        private readonly RuntimeBridge _runtime;
 
-    private static bool SafeToBool(object? value)
-    {
-        if (value == null)
-            return false;
+        public bool IsFinished { get; private set; }
 
-        try
+        public Interpreter(Bytecode code, VmThread thread, RuntimeBridge runtime)
         {
-            // Numbers: 0 = false, nonzero = true
-            if (value is int i)
-                return i != 0;
-            if (value is double d)
-                return d != 0.0;
+            _code = code ?? throw new ArgumentNullException(nameof(code));
+            _thread = thread ?? throw new ArgumentNullException(nameof(thread));
+            _runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
+            _locals = new object?[code.LocalCount];
+            _ip = 0;
+            IsFinished = false;
+        }
 
-            // Strings: empty or "0" = false
-            if (value is string s)
+        public void Step()
+        {
+            if (IsFinished) return;
+            if (_ip < 0 || _ip >= _code.Instructions.Length)
             {
-                if (string.IsNullOrWhiteSpace(s))
-                    return false;
-                if (s == "0")
-                    return false;
-                if (bool.TryParse(s, out bool b))
-                    return b;
-                return true; // any non-empty, non-"0" string is true
+                Finish();
+                return;
             }
 
-            // Fallback to Convert
-            return Convert.ToBoolean(value);
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    private static double SafeToDouble(object? value)
-    {
-        if (value == null)
-            return 0;
-
-        try
-        {
-            if (value is int i)
-                return i;
-            if (value is double d)
-                return d;
-            if (value is string s && double.TryParse(s, out double parsed))
-                return parsed;
-
-            return Convert.ToDouble(value);
-        }
-        catch
-        {
-            return 0;
-        }
-    }
-
-    public void Step()
-    {
-        if (IsFinished)
-            return;
-
-        var instr = _code.Instructions[_ip];
-
-        switch (instr.OpCode)
-        {
-            case OpCode.Nop:
-                break;
-
-            case OpCode.LoadConst:
-                _stack.Push(_code.Constants[instr.Operand]);
-                break;
-
-            case OpCode.LoadLocal:
-                _stack.Push(_locals[instr.Operand]);
-                break;
-
-            case OpCode.StoreLocal:
-                _locals[instr.Operand] = _stack.Pop();
-                break;
-
-            case OpCode.Return:
-                _ip = _code.Instructions.Length;
-                return;
-
-            case OpCode.Print:
-                {
-                    var value = _stack.Pop();
-                    Log.QuickLog(value);
+            var instr = _code.Instructions[_ip++];
+            switch (instr.OpCode)
+            {
+                case OpCode.Nop:
                     break;
-                }
 
-            case OpCode.JumpIfFalse:
-                {
-                    var value = _stack.Pop();
-                    bool cond = SafeToBool(value);
-                    if (!cond)
+                case OpCode.PushConst:
+                case OpCode.LoadConstIndex:
+                    {
+                        var c = _code.Constants[instr.Operand];
+                        _eval.Push(c);
+                        break;
+                    }
+
+                case OpCode.PushNull:
+                    _eval.Push(null);
+                    break;
+
+                case OpCode.LoadLocal:
+                    {
+                        int idx = instr.Operand;
+                        _eval.Push(_locals[idx]);
+                        break;
+                    }
+
+                case OpCode.StoreLocal:
+                    {
+                        int idx = instr.Operand;
+                        var v = _eval.Pop();
+                        _locals[idx] = v;
+                        break;
+                    }
+
+                case OpCode.Add:
+                case OpCode.Sub:
+                case OpCode.Mul:
+                case OpCode.Div:
+                    {
+                        var b = _eval.Pop();
+                        var a = _eval.Pop();
+                        _eval.Push(Arithmetic(instr.OpCode, a, b));
+                        break;
+                    }
+
+                case OpCode.CompareEqual:
+                case OpCode.CompareNotEqual:
+                case OpCode.CompareLess:
+                case OpCode.CompareLessEqual:
+                case OpCode.CompareGreater:
+                case OpCode.CompareGreaterEqual:
+                    {
+                        var right = _eval.Pop();
+                        var left = _eval.Pop();
+                        _eval.Push(Compare(instr.OpCode, left, right));
+                        break;
+                    }
+
+                case OpCode.Jump:
+                    _ip = instr.Operand;
+                    break;
+
+                case OpCode.JumpIfFalse:
+                    {
+                        var cond = _eval.Pop();
+                        if (!IsTruthy(cond)) _ip = instr.Operand;
+                        break;
+                    }
+
+                case OpCode.Call:
+                    {
+                        // operand is target IP
+                        _callStack.Add(new CallFrame(_ip));
                         _ip = instr.Operand;
-                    else
-                        _ip++;
-                    return;
-                }
+                        break;
+                    }
 
-            case OpCode.Jump:
-                _ip = instr.Operand;
-                return;
+                case OpCode.Ret:
+                    {
+                        object? ret = _eval.Count > 0 ? _eval.Pop() : null;
+                        if (_callStack.Count == 0)
+                        {
+                            Finish();
+                            return;
+                        }
+                        var frame = _callStack[^1];
+                        _callStack.RemoveAt(_callStack.Count - 1);
+                        _ip = frame.ReturnIp;
+                        if (ret != null) _eval.Push(ret);
+                        break;
+                    }
 
-            case OpCode.CompareEqual:
-                {
-                    var b = _stack.Pop();
-                    var a = _stack.Pop();
-                    _stack.Push(Equals(a, b));
+                case OpCode.Sys:
+                    {
+                        var id = (SyscallId)instr.Operand;
+                        HandleSyscall(id);
+                        break;
+                    }
+
+                case OpCode.AllocObject:
+                    {
+                        var typeToken = _eval.Pop();
+                        int typeId = Convert.ToInt32(typeToken);
+                        var handle = _runtime.AllocObject(typeId);
+                        _eval.Push(handle);
+                        break;
+                    }
+
+                case OpCode.GetField:
+                    {
+                        var fieldName = (string)_code.Constants[instr.Operand]!;
+                        var obj = _eval.Pop();
+                        var val = _runtime.GetField(obj, fieldName);
+                        _eval.Push(val);
+                        break;
+                    }
+
+                case OpCode.SetField:
+                    {
+                        var fieldName = (string)_code.Constants[instr.Operand]!;
+                        var value = _eval.Pop();
+                        var obj = _eval.Pop();
+                        _runtime.SetField(obj, fieldName, value);
+                        break;
+                    }
+
+                case OpCode.Yield:
+                    // cooperative yield: stop stepping this thread this tick
+                    _thread.IsYielded = true;
                     break;
-                }
 
-            case OpCode.CompareNotEqual:
-                {
-                    var b = _stack.Pop();
-                    var a = _stack.Pop();
-                    _stack.Push(!Equals(a, b));
+                case OpCode.Halt:
+                    Finish();
                     break;
-                }
 
-            case OpCode.CompareLess:
-                {
-                    var b = SafeToDouble(_stack.Pop());
-                    var a = SafeToDouble(_stack.Pop());
-                    _stack.Push(a < b);
-                    break;
-                }
-
-            case OpCode.CompareGreater:
-                {
-                    var b = SafeToDouble(_stack.Pop());
-                    var a = SafeToDouble(_stack.Pop());
-                    _stack.Push(a > b);
-                    break;
-                }
-
-            case OpCode.CompareLessEqual:
-                {
-                    var b = SafeToDouble(_stack.Pop());
-                    var a = SafeToDouble(_stack.Pop());
-                    _stack.Push(a <= b);
-                    break;
-                }
-
-            case OpCode.CompareGreaterEqual:
-                {
-                    var b = SafeToDouble(_stack.Pop());
-                    var a = SafeToDouble(_stack.Pop());
-                    _stack.Push(a >= b);
-                    break;
-                }
-
+                default:
+                    throw new NotSupportedException($"Opcode not implemented: {instr.OpCode}");
+            }
         }
 
-        _ip++;
+        private void Finish()
+        {
+            IsFinished = true;
+            _thread.IsFinished = true;
+        }
+
+        private static object Arithmetic(OpCode op, object? a, object? b)
+        {
+            if (a is int ai && b is int bi)
+            {
+                return op switch
+                {
+                    OpCode.Add => ai + bi,
+                    OpCode.Sub => ai - bi,
+                    OpCode.Mul => ai * bi,
+                    OpCode.Div => bi == 0 ? 0 : ai / bi,
+                    _ => 0
+                };
+            }
+
+            if (a is double ad || b is double bd)
+            {
+                double da = Convert.ToDouble(a ?? 0);
+                double db = Convert.ToDouble(b ?? 0);
+                return op switch
+                {
+                    OpCode.Add => da + db,
+                    OpCode.Sub => da - db,
+                    OpCode.Mul => da * db,
+                    OpCode.Div => db == 0 ? 0.0 : da / db,
+                    _ => 0.0
+                };
+            }
+
+            // string concat for Add
+            if (op == OpCode.Add)
+                return $"{a}{b}";
+
+            return 0;
+        }
+
+        private static bool Compare(OpCode op, object? left, object? right)
+        {
+            int cmp = Comparer<object?>.Default.Compare(left, right);
+            return op switch
+            {
+                OpCode.CompareEqual => Equals(left, right),
+                OpCode.CompareNotEqual => !Equals(left, right),
+                OpCode.CompareLess => cmp < 0,
+                OpCode.CompareLessEqual => cmp <= 0,
+                OpCode.CompareGreater => cmp > 0,
+                OpCode.CompareGreaterEqual => cmp >= 0,
+                _ => false
+            };
+        }
+
+        private void HandleSyscall(SyscallId id)
+        {
+            switch (id)
+            {
+                case SyscallId.Print:
+                    {
+                        var arg = _eval.Pop();
+                        _runtime.SysPrint(arg?.ToString() ?? "");
+                        break;
+                    }
+
+                case SyscallId.Log:
+                    {
+                        var arg = _eval.Pop();
+                        _runtime.SysLog(arg?.ToString() ?? "");
+                        break;
+                    }
+
+                case SyscallId.SpriteCenter:
+                    {
+                        var spriteHandle = _eval.Pop();
+                        _runtime.CenterSprite(spriteHandle);
+                        break;
+                    }
+
+                case SyscallId.SpriteGlide:
+                    {
+                        var y = Convert.ToDouble(_eval.Pop() ?? 0.0);
+                        var x = Convert.ToDouble(_eval.Pop() ?? 0.0);
+                        var duration = Convert.ToDouble(_eval.Pop() ?? 0.0);
+                        var spriteHandle = _eval.Pop();
+                        _runtime.GlideSprite(spriteHandle, duration, x, y);
+                        break;
+                    }
+
+                case SyscallId.WaitMs:
+                    {
+                        var ms = Convert.ToInt32(_eval.Pop() ?? 0);
+                        _thread.IsWaiting = true;
+                        _thread.WakeAt = DateTime.UtcNow.AddMilliseconds(ms);
+                        break;
+                    }
+
+                case SyscallId.Broadcast:
+                    {
+                        var message = _eval.Pop()?.ToString() ?? "";
+                        _runtime.Broadcast(message, _thread);
+                        break;
+                    }
+
+                case SyscallId.BroadcastAndWait:
+                    {
+                        var message = _eval.Pop()?.ToString() ?? "";
+                        _runtime.BroadcastAndWait(message, _thread);
+                        break;
+                    }
+
+                case SyscallId.ExitThread:
+                    {
+                        Finish();
+                        break;
+                    }
+
+                default:
+                    // For unimplemented syscalls, log and continue
+                    _runtime.SysLog($"Unimplemented syscall: {id}");
+                    break;
+            }
+        }
+
+        private static bool IsTruthy(object? v)
+        {
+            if (v == null) return false;
+            if (v is bool b) return b;
+            if (v is int i) return i != 0;
+            if (v is double d) return Math.Abs(d) > double.Epsilon;
+            if (v is string s) return s.Length > 0;
+            return true;
+        }
+
+        private sealed class CallFrame
+        {
+            public int ReturnIp { get; }
+            public CallFrame(int returnIp) => ReturnIp = returnIp;
+        }
+    }
+
+    // small extension methods for stack
+    internal static class StackExtensions
+    {
+        public static void Push<T>(this Stack<T> s, T v) => s.Push(v);
+        public static T Pop<T>(this Stack<T> s)
+        {
+            var v = s.Peek();
+            s.Pop();
+            return v;
+        }
     }
 }

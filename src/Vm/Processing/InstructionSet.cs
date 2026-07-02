@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using PaintPower.Runtime.Bytecode;
+using PaintPower.Runtime.Ksa;
 
 namespace PaintPower.Vm.Processing;
 
@@ -36,7 +36,7 @@ public class InstructionSet
 
     public void EmitPrint()
     {
-        Emit(OpCode.Print);
+        Emit(OpCode.Sys, (int)SyscallId.Print);
     }
 
     public int EmitWithPlaceholder(OpCode op)
