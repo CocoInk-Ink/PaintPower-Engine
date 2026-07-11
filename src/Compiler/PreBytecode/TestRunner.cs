@@ -13,7 +13,7 @@ namespace PaintPower.Compiler.PreBytecode
             Log.QuickLog("Starting VM print test...");
 
             // 1) Build bytecode
-            Bytecode bc = TestBytecodeGenerator.CreatePrintProgram();
+            Bytecode bc = TestBytecodeGenerator.CreateOopTestProgram();
 
             // 2) Create a VM and a thread
             var vm = new Vm.Vm();

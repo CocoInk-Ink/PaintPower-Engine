@@ -16,6 +16,7 @@ using PaintPower.Compiler.PreBytecode;
 using PaintPower.Sprites;
 using PaintPower.VMPanel;
 using PaintPower.Display.DisplayIntegration;
+using PaintPower.Runtime.ObjectModel;
 
 namespace PaintPower.Vm;
 
@@ -27,6 +28,8 @@ public class Vm
     public static Vm? vm;
 
     public static bool isProjectLoading = false;
+
+    public TypeSystem Types { get; } = new();
 
     // =======================
     // Project Loading:

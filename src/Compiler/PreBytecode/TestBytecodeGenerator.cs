@@ -6,26 +6,34 @@ namespace PaintPower.Compiler.PreBytecode
 {
     public static class TestBytecodeGenerator
     {
-        /// <summary>
-        /// Build a tiny program:
-        ///   PushConst "Hello from VM"
-        ///   Sys Print
-        ///   Halt
-        /// </summary>
-        public static Bytecode CreatePrintProgram()
+        public static Bytecode CreateOopTestProgram()
         {
             var set = new InstructionSet();
 
-            // Add the string constant
-            int constIndex = set.AddConstant("Hello from VM");
+            // Constants
+            int typeId = set.AddConstant(1); // Our test type
+            int fieldName = set.AddConstant("value");
+            int methodName = set.AddConstant("PrintValue");
+            int number = set.AddConstant(42);
 
-            // Push the constant onto the VM stack
-            set.Emit(OpCode.PushConst, constIndex);
+            // Allocate object
+            set.Emit(OpCode.PushConst, typeId);
+            set.Emit(OpCode.AllocObject);
 
-            // Call syscall Print (operand is syscall id)
-            set.Emit(OpCode.Sys, (int)PaintPower.Runtime.Ksa.SyscallId.Print);
+            // Duplicate object reference (simple trick: store in local)
+            int localObj = set.AddLocal();
+            set.Emit(OpCode.StoreLocal, localObj);
 
-            // End program
+            // Set field "value" = 42
+            set.Emit(OpCode.LoadLocal, localObj);
+            set.Emit(OpCode.PushConst, number);
+            set.Emit(OpCode.SetField, fieldName);
+
+            // Call method PrintValue()
+            set.Emit(OpCode.LoadLocal, localObj);
+            set.Emit(OpCode.CallMethod, methodName);
+
+            // Halt
             set.Emit(OpCode.Halt);
 
             return set.ToBytecode();

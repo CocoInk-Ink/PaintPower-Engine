@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using PaintPower.Runtime.Ksa;
 using PaintPower.Vm;
 using PaintPower.Sprites;
+using PaintPower.Runtime.ObjectModel;
 
 namespace PaintPower.Runtime.Interpreter
 {
@@ -112,6 +113,23 @@ namespace PaintPower.Runtime.Interpreter
                         // operand is target IP
                         _callStack.Add(new CallFrame(_ip));
                         _ip = instr.Operand;
+                        break;
+                    }
+
+                case OpCode.CallMethod:
+                    {
+                        // operand = constant index containing method name
+                        string methodName = (string)_code.Constants[instr.Operand];
+
+                        var obj = _eval.Pop();
+
+                        if (obj is VmObject o)
+                        {
+                            int entry = o.Type.MethodMap[methodName];
+
+                            _callStack.Add(new CallFrame(_ip));
+                            _ip = entry;
+                        }
                         break;
                     }
 

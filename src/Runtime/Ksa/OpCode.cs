@@ -36,6 +36,7 @@ public enum OpCode : int
     Halt,
     // convenience
     LoadConstIndex, // alias for PushConst (keeps old names)
+    CallMethod,
 }
 
 public readonly struct Instruction

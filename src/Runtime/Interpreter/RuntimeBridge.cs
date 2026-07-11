@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using PaintPower.Vm;
 using PaintPower.Sprites;
 using PaintPower.Logging;
+using PaintPower.Runtime.ObjectModel;
 
 namespace PaintPower.Runtime.Interpreter
 {
@@ -26,42 +27,28 @@ namespace PaintPower.Runtime.Interpreter
             Log.QuickLog(text);
         }
 
-        public object? AllocObject(int typeId)
+        public object AllocObject(int typeId)
         {
-            // Minimal: if typeId maps to DIItem, create Sprite; otherwise create a simple dictionary-backed object
-            // You should replace this with your TypeSystem lookup.
-            var sprite = new Sprite();
-            // Add to DIPlay if you have a reference; for now return the Sprite instance as handle
-            return sprite;
+            var desc = _vm.Types.Get(typeId);
+            return new VmObject(desc);
         }
 
-        public object? GetField(object? obj, string fieldName)
+        public object? GetField(object obj, string fieldName)
         {
-            if (obj is Sprite s)
+            if (obj is VmObject o)
             {
-                return fieldName switch
-                {
-                    "x" => s.x,
-                    "y" => s.y,
-                    "Skin" => s.CurrentSkin,
-                    _ => null
-                };
+                int index = o.Type.FieldMap[fieldName];
+                return o.GetField(index);
             }
-
-            // fallback for VmObject (not implemented here)
             return null;
         }
 
-        public void SetField(object? obj, string fieldName, object? value)
+        public void SetField(object obj, string fieldName, object? value)
         {
-            if (obj is Sprite s)
+            if (obj is VmObject o)
             {
-                switch (fieldName)
-                {
-                    case "x": s.x = Convert.ToDouble(value ?? 0.0); s.SnapshotDirty = true; break;
-                    case "y": s.y = Convert.ToDouble(value ?? 0.0); s.SnapshotDirty = true; break;
-                    default: break;
-                }
+                int index = o.Type.FieldMap[fieldName];
+                o.SetField(index, value);
             }
         }
 
