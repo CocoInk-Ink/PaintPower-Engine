@@ -25,12 +25,6 @@ public abstract class DIItem
     public double StageWidth { get; set; } = 640;
     public double StageHeight { get; set; } = 450;
 
-    public virtual void SetStageSize(double width, double height)
-    {
-        StageWidth = width;
-        StageHeight = height;
-    }
-
     public DIItem() { }
 
     public abstract object DrawAs();

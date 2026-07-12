@@ -630,7 +630,6 @@ public partial class SkinEditorView : SpriteEditor
         _sprite.SaveSkins();
 
         _runtimeSprite = _sprite.ToRuntimeSprite();
-        _runtimeSprite.SetStageSize(_stageWidth, _stageHeight);
         _runtimeSprite.SetSkin(_sprite.Skins.IndexOf(_skin));
         _runtimeSprite.SnapshotDirty = true;
         _runtimeSprite.RenderSnapshot();

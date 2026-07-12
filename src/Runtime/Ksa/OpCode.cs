@@ -1,4 +1,6 @@
 // File: PaintPower.Runtime.Ksa/OpCode.cs
+using System.Collections.Generic;
+
 namespace PaintPower.Runtime.Ksa;
 
 public enum OpCode : int
@@ -43,11 +45,13 @@ public readonly struct Instruction
 {
     public OpCode OpCode { get; }
     public int Operand { get; }
+    public List<object?>? args { get; }
 
-    public Instruction(OpCode op, int operand = 0)
+    public Instruction(OpCode op, int operand = 0, List<object?>? args = null)
     {
         OpCode = op;
         Operand = operand;
+        this.args = args;
     }
 }
 

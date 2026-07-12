@@ -57,13 +57,6 @@ namespace PaintPower.Sprites
             }
         }
 
-        public override void SetStageSize(double width, double height)
-        {
-            StageWidth = width;
-            StageHeight = height;
-            SnapshotDirty = true;
-        }
-
 
         // ---------------------------------------------------------
         // Snapshot Rendering
