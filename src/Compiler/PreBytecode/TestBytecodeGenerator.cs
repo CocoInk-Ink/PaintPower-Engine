@@ -1,6 +1,6 @@
 // File: PaintPower.Compiler.PreBytecode/TestBytecodeGenerator.cs
 using PaintPower.Vm.Processing;
-using PaintPower.Runtime.Ksa;
+using PaintPower.Vm.Runtime.Ksa;
 
 namespace PaintPower.Compiler.PreBytecode
 {

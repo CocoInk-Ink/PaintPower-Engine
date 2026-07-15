@@ -1,22 +1,26 @@
 using System;
 using System.Collections.Generic;
-using PaintPower.Runtime.Ksa;
-using PaintPower.Sprites;
+using PaintPower.Display.DisplayIntegration;
+using PaintPower.Vm.Runtime.Ksa;
+using PaintPower.Vm.Runtime.Sprites;
 
-namespace PaintPower.Runtime.Primitives;
+namespace PaintPower.Vm.Runtime.Primitives;
 
 public class Primitives
 {
-	public void addPrimsTo(Dictionary<OpCode, Func<Stack<object?>, OpCode, int, Sprite, object?>> primTable)
+	public void addPrimsTo(Dictionary<string?, Func<Stack<object?>, OpCode, int, DIItem, object?>> primTable)
 	{
 		// Operators.
-		primTable[OpCode.Add] = Arithmetic;
-		primTable[OpCode.Sub] = Arithmetic;
-		primTable[OpCode.Mul] = Arithmetic;
-		primTable[OpCode.Div] = Arithmetic;
+		primTable["math:add"] = Arithmetic;
+		primTable["math:sub"] = Arithmetic;
+		primTable["math:mul"] = Arithmetic;
+		primTable["math:div"] = Arithmetic;
+        primTable["math:mod"] = Arithmetic;
+
+        new SpritePrims.SpritePrimitives().addPrimsTo(primTable);
 	}
 
-	private static object? Arithmetic(Stack<object?> _eval, OpCode op, int operand, Sprite s)
+	private static object? Arithmetic(Stack<object?> _eval, OpCode op, int operand, DIItem item)
         {
 			object? a, b;
 

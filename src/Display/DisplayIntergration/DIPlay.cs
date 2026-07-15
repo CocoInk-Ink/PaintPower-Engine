@@ -5,7 +5,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using PaintPower.Tools;
 using PaintPower.Tools.Graphics;
-using PaintPower.Sprites;
+using PaintPower.Vm.Runtime.Sprites;
 using Point = PaintPower.Tools.Point;
 
 namespace PaintPower.Display.DisplayIntegration

@@ -4,7 +4,7 @@ using Avalonia.Media.Imaging;
 using System.Drawing;
 using System.Drawing.Imaging;
 
-using PaintPower.Sprites;
+using PaintPower.Vm.Runtime.Sprites;
 using System.IO;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;

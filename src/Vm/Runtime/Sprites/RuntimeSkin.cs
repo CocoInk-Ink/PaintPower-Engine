@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace PaintPower.Sprites
+namespace PaintPower.Vm.Runtime.Sprites
 {
     public class RuntimeSkin
     {

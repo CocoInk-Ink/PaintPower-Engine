@@ -1,6 +1,6 @@
 ﻿using PaintPower.Display.DisplayIntegration;
 using PaintPower.Logging;
-using PaintPower.Sprites;
+using PaintPower.Vm.Runtime.Sprites;
 using PaintPower.Tools.Graphics;
 using System;
 using System.Collections.Generic;

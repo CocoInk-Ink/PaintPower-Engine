@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using PaintPower.ProjectSystem;
-using PaintPower.Sprites;
+using PaintPower.Vm.Runtime.Sprites;
 using System;
 using System.IO;
 using System.Linq;

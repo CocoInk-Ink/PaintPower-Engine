@@ -1,12 +1,12 @@
-// File: PaintPower.Runtime.Interpreter/RuntimeBridge.cs
+// File: PaintPower.Vm.Runtime.Interpreter/RuntimeBridge.cs
 using System;
 using System.Collections.Generic;
 using PaintPower.Vm;
-using PaintPower.Sprites;
+using PaintPower.Vm.Runtime.Sprites;
 using PaintPower.Logging;
-using PaintPower.Runtime.ObjectModel;
+using PaintPower.Vm.Runtime.ObjectModel;
 
-namespace PaintPower.Runtime.Interpreter
+namespace PaintPower.Vm.Runtime.Interpreter
 {
     public sealed class RuntimeBridge
     {

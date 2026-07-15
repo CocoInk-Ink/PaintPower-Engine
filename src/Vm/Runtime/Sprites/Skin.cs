@@ -4,7 +4,7 @@ using System.IO.Compression;
 using PaintPower.Logging;
 using PaintPower.Tools.Graphics;
 
-namespace PaintPower.Sprites;
+namespace PaintPower.Vm.Runtime.Sprites;
 
 public class Skin
 {

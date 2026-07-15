@@ -1,5 +1,5 @@
 using System;
-using PaintPower.Sprites;
+using PaintPower.Vm.Runtime.Sprites;
 
 namespace PaintPower.Display.Stage;
 

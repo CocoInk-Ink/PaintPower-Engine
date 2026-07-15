@@ -1,4 +1,4 @@
-namespace PaintPower.Sprites
+namespace PaintPower.Vm.Runtime.Sprites
 {
     public class RuntimeVideoElement : RuntimeSkinElement
     {

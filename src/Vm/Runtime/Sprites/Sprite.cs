@@ -4,7 +4,7 @@ using PaintPower.Display.DisplayIntegration;
 using PaintPower.Tools.Graphics;
 using System.Collections.Generic;
 
-namespace PaintPower.Sprites
+namespace PaintPower.Vm.Runtime.Sprites
 {
     public class Sprite : DIItem
     {

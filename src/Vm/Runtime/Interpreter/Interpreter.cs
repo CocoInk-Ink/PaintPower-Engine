@@ -1,12 +1,13 @@
-// File: PaintPower.Runtime.Interpreter/Interpreter.cs
+// File: PaintPower.Vm.Runtime.Interpreter/Interpreter.cs
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using PaintPower.Runtime.Ksa;
+using PaintPower.Vm.Runtime.Ksa;
 using PaintPower.Vm;
-using PaintPower.Sprites;
+using PaintPower.Vm.Runtime.Sprites;
+using PaintPower.Display.DisplayIntegration;
 
-namespace PaintPower.Runtime.Interpreter
+namespace PaintPower.Vm.Runtime.Interpreter
 {
     public sealed class Interpreter
     {
@@ -15,14 +16,18 @@ namespace PaintPower.Runtime.Interpreter
         private Stack<object?> _eval = new();
         private readonly List<CallFrame> _callStack = new();
         private readonly object?[] _locals;
-        private readonly VmThread _thread;
+        private readonly VmThread _thread; // Parent.
         private readonly RuntimeBridge _runtime;
+
+        // It's "diplay" don't you dare change it. "DisplayIntegration Item" (DII),
+        // An item for the "DisplayIntegration Player" (DIPlay/Diplay)
+        private readonly DIItem diplay_item;
 
         public bool IsFinished { get; private set; }
         public Primitives.Primitives primitives = new();
-        public Dictionary<OpCode, Func<Stack<object?>, OpCode, int, object?>> functions = new();
+        public Dictionary<OpCode, Func<Stack<object?>, OpCode, int, DIItem, object?>> functions = new();
 
-        public Interpreter(Bytecode code, VmThread thread, RuntimeBridge runtime)
+        public Interpreter(Bytecode code, VmThread thread, RuntimeBridge runtime, DIItem diplay_item)
         {
             _code = code ?? throw new ArgumentNullException(nameof(code));
             _thread = thread ?? throw new ArgumentNullException(nameof(thread));
@@ -30,6 +35,8 @@ namespace PaintPower.Runtime.Interpreter
             _locals = new object?[code.LocalCount];
             _ip = 0;
             IsFinished = false;
+
+            this.diplay_item = diplay_item;
 
             primitives.addPrimsTo(functions);
         }
@@ -48,7 +55,7 @@ namespace PaintPower.Runtime.Interpreter
             var instr = _code.Instructions[_ip++];
             var function = functions[instr.OpCode];
 
-            function(_eval, instr.OpCode, instr.Operand);
+            function(_eval, instr.OpCode, instr.Operand, sprite);
 
         }
 
@@ -56,41 +63,6 @@ namespace PaintPower.Runtime.Interpreter
         {
             IsFinished = true;
             _thread.IsFinished = true;
-        }
-
-        private static object Arithmetic(OpCode op, object? a, object? b)
-        {
-            if (a is int ai && b is int bi)
-            {
-                return op switch
-                {
-                    OpCode.Add => ai + bi,
-                    OpCode.Sub => ai - bi,
-                    OpCode.Mul => ai * bi,
-                    OpCode.Div => bi == 0 ? 0 : ai / bi,
-                    _ => 0
-                };
-            }
-
-            if (a is double ad || b is double bd)
-            {
-                double da = Convert.ToDouble(a ?? 0);
-                double db = Convert.ToDouble(b ?? 0);
-                return op switch
-                {
-                    OpCode.Add => da + db,
-                    OpCode.Sub => da - db,
-                    OpCode.Mul => da * db,
-                    OpCode.Div => db == 0 ? 0.0 : da / db,
-                    _ => 0.0
-                };
-            }
-
-            // string concat for Add
-            if (op == OpCode.Add)
-                return $"{a}{b}";
-
-            return 0;
         }
 
         private static bool Compare(OpCode op, object? left, object? right)

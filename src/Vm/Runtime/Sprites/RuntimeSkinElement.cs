@@ -1,6 +1,6 @@
 using PaintPower.Tools.Graphics;
 
-namespace PaintPower.Sprites
+namespace PaintPower.Vm.Runtime.Sprites
 {
     public abstract class RuntimeSkinElement
     {

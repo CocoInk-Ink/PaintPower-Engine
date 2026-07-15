@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using PaintPower.Vm;
 using PaintPower.Logging;
-using PaintPower.Runtime.Ksa;
+using PaintPower.Vm.Runtime.Ksa;
 
 namespace PaintPower.Compiler.PreBytecode
 {

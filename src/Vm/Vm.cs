@@ -13,10 +13,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using PaintPower.Compiler.PreBytecode;
 
-using PaintPower.Sprites;
+using PaintPower.Vm.Runtime.Sprites;
 using PaintPower.VMPanel;
 using PaintPower.Display.DisplayIntegration;
-using PaintPower.Runtime.ObjectModel;
+using PaintPower.Vm.Runtime.ObjectModel;
 
 namespace PaintPower.Vm;
 
@@ -29,7 +29,11 @@ public class Vm
 
     public static bool isProjectLoading = false;
 
-    public TypeSystem Types { get; } = new();
+    // Memory!
+    // Use a string instead of a number, it's more versatile.
+
+    // Example: 0xFFF, 0x5934
+    public Dictionary<string, object?> memory;
 
     // =======================
     // Project Loading:
@@ -75,6 +79,8 @@ public class Vm
             Log.QuickLog(e);
         }
         ;
+
+        memory = new(); // Add memory, note for next time you open this Nino!
     }
 
     public static bool isThreadSafe(VmThread? thread)
@@ -95,6 +101,10 @@ public class Vm
     public void AddThread(VmThread? thread, string? id = null)
     {
         id ??= CreateId(true);
+        if (thread != null)
+        {
+            thread.memory = memory;
+        }
         Threads[id] = thread!; // safe replace-or-add
     }
 
