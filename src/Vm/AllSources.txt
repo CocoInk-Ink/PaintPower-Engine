@@ -1,0 +1,970 @@
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Vm.cs 
+===============================================
+
+// Vm.cs
+
+using System;
+using PaintPower.Logging;
+using PaintPower.Dialogs;
+using PaintPower.FileEditors;
+using PaintPower.FileExplorer;
+using PaintPower.Networking;
+using PaintPower.ProjectSystem;
+using PaintPower.ProjectSystem.SpriteEditor;
+using PaintPower.Time;
+using System.Threading;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using PaintPower.Compiler.PreBytecode;
+
+using PaintPower.Vm.Runtime.Sprites;
+using PaintPower.VMPanel;
+using PaintPower.Display.DisplayIntegration;
+using PaintPower.Vm.Processing.memory;
+
+namespace PaintPower.Vm;
+
+// VM runtime, runtime for the project player virtual machine.
+
+public class Vm
+{
+
+    public static Vm? vm;
+
+    public static bool isProjectLoading = false;
+
+    // Memory!
+    // Use a string instead of a number, it's more versatile.
+
+    // Example: 0xFFF, 0x5934
+    public Memory memory;
+
+    // =======================
+    // Project Loading:
+    // =======================
+    public static async Task LoadProject(PaintProject project, DIPlay display)
+{
+    isProjectLoading = true;
+    LoadSpritesIntoDisplay(project, display);
+    isProjectLoading = false;
+}
+
+    // =======================
+    // Virtual Machine Parts:
+    // =======================
+
+    public string Id { get; set; }
+
+#pragma warning disable IDE0044 // Add readonly modifier
+    private List<string> IdList = new();
+
+#pragma warning restore IDE0044 // Add readonly modifier
+    public int threadsCount = 0;
+
+    public int currentThread = 0;
+
+    // If 3D processing is enabled, use the system's processing power to run the VM. Use the GPU for 3D Acceleration.
+    public bool usingSystemProcessing = false;
+
+    public Dictionary<string, VmThread> Threads { get; } = new();
+
+    // For embedded VMs.
+    public Dictionary<string, Vm> VMs { get; } = new();
+
+#pragma warning disable
+    public Vm()
+    {
+        try
+        {
+            Id = CreateId();
+        }
+        catch (Exception e)
+        {
+            Log.QuickLog(e);
+        }
+        ;
+
+        memory = new(256);
+    }
+
+    public static bool isThreadSafe(VmThread? thread)
+    {
+        return thread.isPaused == false;
+    }
+
+#pragma warning restore
+
+    public string CreateId(bool forThreads = true)
+    {
+        string id;
+        do id = Guid.NewGuid().ToString();
+        while (forThreads ? Threads.ContainsKey(id) : VMs.ContainsKey(id));
+        return id;
+    }
+
+    public void AddThread(VmThread? thread, string? id = null)
+    {
+        id ??= CreateId(true);
+        if (thread != null)
+        {
+            thread.memory = memory;
+        }
+        Threads[id] = thread!; // safe replace-or-add
+    }
+
+    public void AddVM(Vm? vm, string? id = null)
+    {
+        id ??= CreateId(false);
+
+        if (vm != null) vm.Id = id;
+
+        VMs[id] = vm!;
+    }
+
+    public void CreateNewThread()
+    {
+        AddThread(new VmThread());
+    }
+
+    public void CreateNewVm()
+    {
+        AddVM(new Vm());
+    }
+
+    public void RemoveThread(string id)
+    {
+        Threads.Remove(id);
+    }
+
+    public void RemoveVM(string id)
+    {
+        VMs.Remove(id);
+    }
+
+    public static void LoadSpritesIntoDisplay(PaintProject project, DIPlay display)
+    {
+        if (project == null) return;
+        if (display == null) return;
+
+        display.items.Clear();
+
+        foreach (var sprite in project.Sprites)
+            display.items.Add(sprite.ToRuntimeSprite());
+    }
+
+    public async Task Tick()
+    {
+
+        if (isProjectLoading) return; // Make sure project is not loading! (Pasted multiple times for good measure.)
+        foreach (Vm vm in VMs.Values)
+        {
+            if (isProjectLoading) return; // Make sure project is not loading! (Pasted multiple times for good measure.)
+            await vm.Tick();
+        }
+
+        foreach (VmThread thread in Threads.Values)
+        {
+            // Check if thread is valid:
+
+            if (isProjectLoading) return; // Make sure project is not loading! (Pasted multiple times for good measure.)
+
+            if (!isThreadSafe(thread)) continue;
+            await thread.Step();
+
+        }
+    }
+}
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\VmThread.cs 
+===============================================
+
+// VmThread.cs
+
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using PaintPower.Display.DisplayIntegration;
+using PaintPower.Vm.Runtime.Interpreter;
+using PaintPower.Vm.Processing;
+using PaintPower.Vm.Processing.memory;
+
+namespace PaintPower.Vm;
+
+public class VmThread
+{
+    public bool isPaused = false;
+    private Interpreter? _interpreter;
+
+    public bool IsWaiting = false;
+    public DateTime? WakeAt = null;
+    public bool IsYielded = false;
+    public bool IsFinished = false;
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+
+    // Code effects who?
+	public DIItem target;
+
+	public Memory memory; // Passed by a VM, don't init.
+
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+
+
+    public void LoadBytecode(Vm vm, DIItem target)
+    {
+        _interpreter = new Interpreter(code, this, target);
+        if (target == null) return;
+        this.target = target;
+    }
+
+    public async Task Step()
+    {
+        if (_interpreter == null || isPaused || IsWaiting || IsYielded || IsFinished)
+            return;
+
+        _interpreter.Step();
+
+        // reset yield flag so next tick can run again
+        IsYielded = false;
+
+        if (_interpreter.IsFinished)
+            isPaused = true;
+    }
+}
+
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Processing\Block.cs 
+===============================================
+
+// Block.cs
+
+using System;
+using System.Collections.Generic;
+using PaintPower.Vm.Processing.memory;
+using PaintPower.Vm.Processing.memory.Variables;
+
+namespace PaintPower.Vm.Processing;
+
+public class ScopeBlock
+{
+	public List<ScopeBlock>? children;
+	public List<Variable>? Variables;
+
+}
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Processing\Class.cs 
+===============================================
+
+// Class.cs
+
+using System;
+
+namespace PaintPower.Vm.Processing.memory;
+
+public class Class {}
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Processing\memory\Memory.cs 
+===============================================
+
+// Memory.cs
+
+using System;
+using System.Collections.Generic;
+
+namespace PaintPower.Vm.Processing.memory;
+
+public class Memory
+{
+	public int limit = 0;
+	public Dictionary<string, MemorySlot> MemorySlots = new();
+	public bool isAssigned(string key) => MemorySlots.ContainsKey(key);
+	public void PushValue(string slot, object? value)
+	{
+		if (limit == MemorySlots.Count) throw new OutOfMemoryException("No more memory is available.");
+	}
+
+	public int SlotsLeft => limit - MemorySlots.Count;
+	public bool AnySlotsAvailable => SlotsLeft >= 1;
+
+	public Memory(int slots)
+	{
+		limit = slots;
+	}
+}
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Processing\memory\MemoryItem.cs 
+===============================================
+
+// MemoryItem.cs
+
+using System;
+
+namespace PaintPower.Vm.Processing.memory;
+
+public class MemoryItem
+{
+	public object? value;
+}
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Processing\memory\MemorySlot.cs 
+===============================================
+
+// MemorySlot.cs
+
+using System;
+
+namespace PaintPower.Vm.Processing.memory;
+
+public class MemorySlot
+{
+	private MemoryItem? data;
+	public string? slotid;
+}
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Processing\memory\Variables\Variable.cs 
+===============================================
+
+// Variable.cs
+
+using System;
+
+namespace PaintPower.Vm.Processing.memory.Variables;
+
+public class Variable : MemoryItem
+{
+	public bool isMutable = true;
+	public VarType? type;
+}
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Processing\memory\Variables\VarType.cs 
+===============================================
+
+// VarType.cs
+
+using System;
+
+namespace PaintPower.Vm.Processing.memory.Variables;
+
+public class VarType
+{
+	// The general stuff
+	public static string[] GeneralBuiltins = { "int", "float", "double", "short", "long", "byte", "char", "array", "object" };
+	public MemorySlot? definition;
+}
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Runtime\OpCode.cs 
+===============================================
+
+// File: PaintPower.Vm.Runtime/OpCode.cs
+using System.Collections.Generic;
+
+namespace PaintPower.Vm.Runtime;
+
+// Enum is now unused, use prims instead.
+public enum OpCode : int
+{
+    Nop = 0,
+    // stack / constants
+    PushConst,
+    PushNull,
+    LoadLocal,
+    StoreLocal,
+    // arithmetic / logic
+    Add,
+    Sub,
+    Mul,
+    Div,
+    CompareEqual,
+    CompareNotEqual,
+    CompareLess,
+    CompareLessEqual,
+    CompareGreater,
+    CompareGreaterEqual,
+    // control flow
+    Jump,
+    JumpIfFalse,
+    Call,       // direct call to IP
+    Ret,
+    // objects / fields
+    AllocObject,
+    GetField,   // operand = constant index (field name)
+    SetField,   // operand = constant index (field name)
+                // syscalls
+    Sys,        // operand = syscall id (int)
+                // thread / scheduling
+    Yield,
+    Halt,
+    // convenience
+    LoadConstIndex, // alias for PushConst (keeps old names)
+    CallMethod,
+}
+
+public readonly struct Instruction
+{
+    public string OpCode { get; }
+    public List<object?>? args { get; }
+
+    public Instruction(string op, List<object?>? args = null)
+    {
+        OpCode = op;
+        this.args = args;
+    }
+}
+
+// User defined runtime variables start with 0x12300000,
+// Example: 0x12377304
+
+public enum SyscallId : int
+{
+    // System operations 0x000
+    Print = 0x000,
+    Log = 0x001,
+    Error = 0x002,
+    Breakpoint = 0x003,
+
+    // Sprite operations 0x200
+
+    // Sprite motion 20x
+    SpriteSay = 0x200,
+    SpriteGlide = 0x201,
+    SpriteSetPos = 0x202,
+    SpriteTurn = 0x203,
+    SpriteSetVisible = 0x204,
+    SpriteDirectionSet = 0x205,
+
+    // Sprite skins 21x
+    SpriteSwitchSkin = 0x210,
+    SpriteGetSkinChild = 0x211,
+
+    // Timing / events
+    WaitMs = 0x300,
+    WaitUntilVarTrue = 0x301,
+    Await = 0x302,
+
+    // Messaging
+    Broadcast = 0x400,
+    BroadcastAndWait = 0x401,
+    MessageExists = 0x402,
+
+    // Object model
+    AllocObject = 0x500,
+    GetField = 0x501,
+    SetField = 0x502,
+
+    // Pointers and memory
+    Pointer = 0x6001,
+    Push = 0x6002,
+    Pull = 0x6003,
+
+    ExitThread = 0xFFF
+}
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Runtime\Interpreter\Interpreter.cs 
+===============================================
+
+// File: PaintPower.Vm.Runtime.Interpreter/Interpreter.cs
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using PaintPower.Vm;
+using PaintPower.Vm.Runtime.Sprites;
+using PaintPower.Display.DisplayIntegration;
+
+namespace PaintPower.Vm.Runtime.Interpreter;
+
+public sealed class Interpreter
+{
+    private readonly List<Instruction> _code;
+    private int _ip;
+    private readonly VmThread _thread; // Parent.
+
+    // It's "diplay", not a typo, don't you dare change it. "DisplayIntegration Item" (DII),
+    // An item for the "DisplayIntegration Player" (DIPlay/Diplay)
+    private readonly DIItem diplay_item;
+
+    public bool IsFinished { get; private set; }
+    public Primitives.Primitives primitives = new();
+    public Dictionary<string, Func<string, List<object?>?, DIItem, object?>> functions = new();
+
+    public Interpreter(List<Instruction> code, VmThread thread, DIItem diplay_item)
+    {
+        _code = code ?? throw new ArgumentNullException(nameof(code));
+        _thread = thread ?? throw new ArgumentNullException(nameof(thread));
+        this.diplay_item = diplay_item ?? throw new ArgumentNullException(nameof(diplay_item));
+        _ip = 0;
+        IsFinished = false;
+
+        this.diplay_item = diplay_item;
+
+        addPrimsTo(functions);
+    }
+
+    public void addPrimsTo(Dictionary<string, Func<string, List<object?>?, DIItem, object?>> primTable)
+    {
+        new Primitives.Primitives().addPrimsTo(primTable);
+    }
+
+    public void Step()
+    {
+        if (IsFinished) return;
+        if (_ip < 0 || _ip >= _code.Count)
+        {
+            Finish();
+            return;
+        }
+
+        var instr = _code[_ip++];
+        var function = functions[instr.OpCode];
+
+        function(instr.OpCode, instr.args, diplay_item);
+
+    }
+
+    private void Finish()
+    {
+        IsFinished = true;
+        _thread.IsFinished = true;
+    }
+}
+
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Runtime\primitives\Primitives.cs 
+===============================================
+
+using System;
+using System.Collections.Generic;
+using PaintPower.Display.DisplayIntegration;
+using PaintPower.Vm.Runtime.Sprites;
+
+namespace PaintPower.Vm.Runtime.Primitives;
+
+public static class PrimitiveHelpers
+{
+    // When multiple opcodes use the same function, it's not really preferred to write
+    // the same code over and over. This function reduces redundancy.
+    public static void StickTogether(
+        Dictionary<string, Func<string, List<object?>?, DIItem, object?>> primTable,
+        Func<string, List<object?>?, DIItem, object?> func,
+        params string[] opcodes
+    )
+    {
+        foreach (var opcode in opcodes)
+        {
+            primTable[opcode] = func;
+        }
+    }
+}
+
+public class Primitives
+{
+    public void addPrimsTo(Dictionary<string, Func<string, List<object?>?, DIItem, object?>> primTable)
+    {
+        // Operators
+        PrimitiveHelpers.StickTogether(primTable, Arithmetic, "math:add", "math:sub", "math:mul", "math:div", "math:mod");
+
+        // Comparison
+        PrimitiveHelpers.StickTogether(primTable, Compare, ">", "<", "=>", ">=", "<=", "=<", "==", "===");
+
+        new MemoryPrims.MemoryPrimitives().addPrimsTo(primTable);
+        new JavaScriptPrims.JSPrimitives().addPrimsTo(primTable);
+    }
+
+    private static object? Arithmetic(string op, List<object?>? args, DIItem item)
+    {
+        object? a, b;
+
+        if (args == null) throw new Exception("Params are required for this function");
+
+        a = args[0];
+        b = args[1];
+
+        if (a == null || b == null) throw new Exception("Two parameters are required");
+
+        if (a is int ai && b is int bi)
+        {
+            return op switch
+            {
+                "math:add" => ai + bi,
+                "math:sub" => ai - bi,
+                "math:mul" => ai * bi,
+                "math:div" => bi == 0 ? 0 : ai / bi,
+                "math:mod" => bi == 0 ? 0 : ai % bi,
+                _ => 0
+            };
+        }
+
+        if (a is double || b is double)
+        {
+            double ad = Convert.ToDouble(a ?? 0);
+            double bd = Convert.ToDouble(b ?? 0);
+            return op switch
+            {
+                "math:add" => ad + bd,
+                "math:sub" => ad - bd,
+                "math:mul" => ad * bd,
+                "math:div" => bd == 0 ? 0.0 : ad / bd,
+                "math:mod" => bd == 0 ? 0.0 : ad % bd,
+                _ => 0.0
+            };
+        }
+
+        // string concat for Add
+        if (op == "math:add" && a is string astr && b is string bstr)
+            return $"{astr}{bstr}";
+
+        return 0;
+    }
+    private static object? Compare(string op, List<object?>? args, DIItem item)
+    {
+
+        object? left, right;
+
+        if (args == null) throw new Exception("Params are required for this function");
+
+        left = args[0];
+        right = args[1];
+
+        if (left == null || right == null) throw new Exception("Two parameters are required");
+
+
+        int cmp = Comparer<object?>.Default.Compare(left, right);
+        return op switch
+        {
+            "==" => Equals(left, right),
+            "!=" => !Equals(left, right),
+            "<" => cmp < 0,
+            "<=" => cmp <= 0,
+            "=<" => cmp <= 0,
+            ">" => cmp > 0,
+            ">=" => cmp >= 0,
+            "=>" => cmp >= 0,
+            _ => false
+        };
+    }
+}
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Runtime\primitives\JavaScriptPrims\JSPrimitives.cs 
+===============================================
+
+using System;
+using System.Collections.Generic;
+using PaintPower.Display.DisplayIntegration;
+
+namespace PaintPower.Vm.Runtime.Primitives.JavaScriptPrims;
+
+public class JSPrimitives
+{
+	public void addPrimsTo(Dictionary<string, Func<string, List<object?>?, DIItem, object?>> primTable)
+	{
+		// Add prims here.
+	}
+}
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Runtime\primitives\MemoryPrims\MemoryPrimitives.cs 
+===============================================
+
+// MemoryPrimitives
+using System;
+using System.Collections.Generic;
+using PaintPower.Display.DisplayIntegration;
+
+namespace PaintPower.Vm.Runtime.Primitives.MemoryPrims;
+
+public class MemoryPrimitives
+{
+	public void addPrimsTo(Dictionary<string, Func<string, List<object?>?, DIItem, object?>> primTable)
+	{
+		// Add prims here.
+	}
+}
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Runtime\Sprites\RuntimeImageElement.cs 
+===============================================
+
+// RuntimeImageElement.cs
+
+using PaintPower.Tools.Graphics;
+
+namespace PaintPower.Vm.Runtime.Sprites
+{
+    public class RuntimeImageElement : RuntimeSkinElement
+    {
+        public Graphic Graphic { get; set; }
+    }
+}
+
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Runtime\Sprites\RuntimeSkin.cs 
+===============================================
+
+// RuntimeElement.cs
+
+using System.Collections.Generic;
+
+namespace PaintPower.Vm.Runtime.Sprites
+{
+    public class RuntimeSkin
+    {
+        public string Name { get; set; } = "";
+        public string ScriptPath { get; set; } = "";
+
+        public List<RuntimeSkinElement> Elements { get; set; } = new();
+    }
+}
+
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Runtime\Sprites\RuntimeSkinElement.cs 
+===============================================
+
+// RuntimeSkinElement.cs
+
+using PaintPower.Tools.Graphics;
+
+namespace PaintPower.Vm.Runtime.Sprites
+{
+    public abstract class RuntimeSkinElement
+    {
+        public string InstanceName { get; set; } = "";
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double Rotation { get; set; }
+        public double ScaleX { get; set; } = 1;
+        public double ScaleY { get; set; } = 1;
+        public int ZIndex { get; set; }
+
+        public int Width { get; set; }
+        public int Height { get; set; }
+    }
+}
+
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Runtime\Sprites\RuntimeVideoElement.cs 
+===============================================
+
+// RuntimeVideoElement.cs
+
+namespace PaintPower.Vm.Runtime.Sprites
+{
+    public class RuntimeVideoElement : RuntimeSkinElement
+    {
+        public VideoPlayer Player { get; set; }
+        public bool Loop { get; set; }
+        public bool AutoPlay { get; set; }
+    }
+}
+
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Runtime\Sprites\Skin.cs 
+===============================================
+
+// Skin.cs
+
+using System;
+using System.IO;
+using System.IO.Compression;
+using PaintPower.Logging;
+using PaintPower.Tools.Graphics;
+
+namespace PaintPower.Vm.Runtime.Sprites;
+
+public class Skin
+{
+    public string Name;
+    public string Path;
+    public object Graphic; // Graphic or GraphicAnimation
+
+    public Skin(string name, string path)
+    {
+        Name = name;
+        Path = path;
+        Graphic = GraphicLoader.LoadCached(path);
+    }
+}
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Runtime\Sprites\Sprite.cs 
+===============================================
+
+// Sprite.cs
+
+using System;
+using System.Linq;
+using PaintPower.Display.DisplayIntegration;
+using PaintPower.Tools.Graphics;
+using System.Collections.Generic;
+
+namespace PaintPower.Vm.Runtime.Sprites
+{
+    public class Sprite : DIItem
+    {
+
+
+        // All skins (loaded from Skins.xml)
+        public List<RuntimeSkin> Skins = new();
+        public int CurrentSkinIndex = 0;
+
+        // Snapshot graphic (what DIPlay draws)
+        public Graphic SnapshotGraphic { get; private set; }
+
+        // Whether the snapshot needs to be rebuilt
+        public bool SnapshotDirty { get; set; } = true;
+
+        public RuntimeSkin? CurrentSkin
+        {
+            get
+            {
+                if (Skins.Count == 0)
+                    return null;
+
+                if (CurrentSkinIndex < 0 || CurrentSkinIndex >= Skins.Count)
+                    CurrentSkinIndex = 0;
+
+                return Skins[CurrentSkinIndex];
+            }
+        }
+
+        public Sprite(double? x = null, double? y = null, int? skin = null)
+        {
+            if (x != null)
+                this.x = x;
+            else
+                this.x = Tools.Math.Random.calc(StageWidth, StageHeight);
+
+            if (y != null)
+                this.y = y;
+
+            if (skin != null)
+                this.CurrentSkinIndex = (int)skin;
+        }
+
+        public void SetSkin(int index)
+        {
+            if (index >= 0 && index < Skins.Count)
+            {
+                CurrentSkinIndex = index;
+                SnapshotDirty = true;
+            }
+        }
+
+
+        // ---------------------------------------------------------
+        // Snapshot Rendering
+        // ---------------------------------------------------------
+        public void RenderSnapshot()
+        {
+            var skin = CurrentSkin;
+            if (skin == null)
+                return;
+
+            int w = (int)StageWidth;
+            int h = (int)StageHeight;
+
+            // Create a temporary render target
+            var target = new RenderTarget2D(w, h);
+            var renderer = new Renderer2D(target);
+
+            // Clear transparent
+            renderer.Clear(0x00000000);
+
+            // Draw each element in Z order
+            foreach (var elem in skin.Elements.OrderBy(e => e.ZIndex))
+            {
+                double finalX = elem.X + w / 2;
+                double finalY = elem.Y + h / 2;
+
+                if (elem is RuntimeImageElement img)
+                {
+                    if (img.Graphic != null)
+                    {
+                        renderer.DrawGraphic(
+                            img.Graphic,
+                            (int)finalX,
+                            (int)finalY,
+                            (float)elem.Rotation,
+                            (float)elem.ScaleX,
+                            (float)elem.ScaleY
+                        );
+                    }
+                }
+                else if (elem is RuntimeVideoElement vid)
+                {
+                    var frame = vid.Player?.GetCurrentFrame();
+                    if (frame != null)
+                    {
+                        renderer.DrawGraphic(
+                            frame,
+                            (int)finalX,
+                            (int)finalY,
+                            (float)elem.Rotation,
+                            (float)elem.ScaleX,
+                            (float)elem.ScaleY
+                        );
+                    }
+                }
+            }
+
+            // Convert RenderTarget2D → Graphic
+            SnapshotGraphic = new Graphic(w, h, target.Bitmap.CopyPixelsToArray());
+
+            SnapshotDirty = false;
+        }
+
+        // ---------------------------------------------------------
+        // DIPlay calls this to get the final rendered image
+        // ---------------------------------------------------------
+        public override object? DrawAs()
+        {
+            return SnapshotGraphic;
+        }
+    }
+}
+
+===============================================
+FILE: c:\Users\ninoe\Documents\GitHub\The-xPaint-Project\PaintPower\PaintPower\src\Vm\Runtime\Sprites\VideoPlayer.cs 
+===============================================
+
+// VideoPlayer.cs
+
+using PaintPower.Tools.Graphics;
+
+namespace PaintPower.Vm.Runtime.Sprites
+{
+    public class VideoPlayer
+    {
+        private readonly string _path;
+
+        // Placeholder frame (optional)
+        private Graphic? _placeholderFrame;
+
+        private VideoPlayer(string path)
+        {
+            _path = path;
+
+            // Optional: load a placeholder image so videos show something
+            // You can remove this if you prefer null.
+            try
+            {
+                _placeholderFrame = GraphicLoader.LoadRaster(path) as Graphic;
+            }
+            catch
+            {
+                _placeholderFrame = null;
+            }
+        }
+
+        public static VideoPlayer Load(string path)
+        {
+            return new VideoPlayer(path);
+        }
+
+        // Called every frame by Sprite.RenderSnapshot()
+        public Graphic? GetCurrentFrame()
+        {
+            // TODO: real video decoding later
+            return _placeholderFrame;
+        }
+    }
+}
+
