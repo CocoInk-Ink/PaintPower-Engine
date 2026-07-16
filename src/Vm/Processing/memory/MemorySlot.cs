@@ -1,3 +1,5 @@
+// MemorySlot.cs
+
 using System;
 
 namespace PaintPower.Vm.Processing.memory;

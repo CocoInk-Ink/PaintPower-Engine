@@ -1,3 +1,5 @@
+// RuntimeImageElement.cs
+
 using PaintPower.Tools.Graphics;
 
 namespace PaintPower.Vm.Runtime.Sprites

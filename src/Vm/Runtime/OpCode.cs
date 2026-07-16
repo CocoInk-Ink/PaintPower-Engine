@@ -1,8 +1,9 @@
-// File: PaintPower.Vm.Runtime.Ksa/OpCode.cs
+// File: PaintPower.Vm.Runtime/OpCode.cs
 using System.Collections.Generic;
 
-namespace PaintPower.Vm.Runtime.Ksa;
+namespace PaintPower.Vm.Runtime;
 
+// Enum is now unused, use prims instead.
 public enum OpCode : int
 {
     Nop = 0,
@@ -52,21 +53,6 @@ public readonly struct Instruction
         this.args = args;
     }
 }
-
-public sealed class Bytecode
-{
-    public Instruction[] Instructions { get; }
-    public object[] Constants { get; }
-    public int LocalCount { get; }
-
-    public Bytecode(Instruction[] instructions, object[] constants, int localCount)
-    {
-        Instructions = instructions;
-        Constants = constants;
-        LocalCount = localCount;
-    }
-}
-
 
 // User defined runtime variables start with 0x12300000,
 // Example: 0x12377304

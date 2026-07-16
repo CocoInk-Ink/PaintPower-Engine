@@ -7,9 +7,9 @@ using PaintPower.Vm.Processing.memory.Variables;
 
 namespace PaintPower.Vm.Processing;
 
-public class Block
+public class ScopeBlock
 {
-	public List<Block>? children;
+	public List<ScopeBlock>? children;
 	public List<Variable>? Variables;
 
 }

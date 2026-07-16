@@ -1,3 +1,5 @@
+// Vm.cs
+
 using System;
 using PaintPower.Logging;
 using PaintPower.Dialogs;
@@ -16,7 +18,7 @@ using PaintPower.Compiler.PreBytecode;
 using PaintPower.Vm.Runtime.Sprites;
 using PaintPower.VMPanel;
 using PaintPower.Display.DisplayIntegration;
-using PaintPower.Vm.Runtime.ObjectModel;
+using PaintPower.Vm.Processing.memory;
 
 namespace PaintPower.Vm;
 
@@ -33,7 +35,7 @@ public class Vm
     // Use a string instead of a number, it's more versatile.
 
     // Example: 0xFFF, 0x5934
-    public Dictionary<string, object?> memory;
+    public Memory memory;
 
     // =======================
     // Project Loading:
@@ -80,7 +82,7 @@ public class Vm
         }
         ;
 
-        memory = new(); // Add memory, note for next time you open this Nino!
+        memory = new(256);
     }
 
     public static bool isThreadSafe(VmThread? thread)

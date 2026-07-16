@@ -1,3 +1,5 @@
+// Sprite.cs
+
 using System;
 using System.Linq;
 using PaintPower.Display.DisplayIntegration;
