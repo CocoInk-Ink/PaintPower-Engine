@@ -30,7 +30,7 @@ public class VmThread
     public DIItem target;
 
     public Memory memory; // Passed by a VM, don't init.
-    public Stack<ScopeBlock> ScopeStack { get; } = new(); // How deep are we inside? >:)
+    public Stack<ScopeBlock> ScopeStack { get; } = new(); // How deep are we inside?
 
     public HashSet<string> ActiveQuirks { get; } = new();
 
