@@ -7,6 +7,7 @@ using PaintPower.Display.DisplayIntegration;
 using PaintPower.Vm.Runtime.Interpreter;
 using PaintPower.Vm.Processing;
 using PaintPower.Vm.Processing.memory;
+using PaintPower.Vm.Runtime;
 
 namespace PaintPower.Vm;
 
@@ -31,7 +32,7 @@ public class VmThread
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
 
-    public void LoadBytecode(Vm vm, DIItem target)
+    public void LoadDIItem(Vm vm, List<Instruction> code, DIItem target)
     {
         _interpreter = new Interpreter(code, this, target);
         if (target == null) return;

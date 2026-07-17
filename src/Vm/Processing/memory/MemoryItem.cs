@@ -6,5 +6,5 @@ namespace PaintPower.Vm.Processing.memory;
 
 public class MemoryItem
 {
-	public object? value;
+    public object? Value { get; set; }
 }
