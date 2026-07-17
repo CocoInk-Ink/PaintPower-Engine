@@ -23,6 +23,9 @@ public sealed class Interpreter
     public Primitives.Primitives primitives;
     public Dictionary<string, Func<string, List<object?>?, DIItem, object?>> functions = new();
 
+    public int CurrentIp => _ip;
+    public void JumpTo(int ip) => _ip = ip;
+
     public Interpreter(List<Instruction> code, VmThread thread, DIItem diplay_item)
     {
         _code = code ?? throw new ArgumentNullException(nameof(code));
@@ -102,9 +105,16 @@ public sealed class Interpreter
 
     private object? PrimRet(string op, List<object?>? args, DIItem item)
     {
-        // later: pop return address
-        _thread.IsFinished = true;
-        IsFinished = true;
+        if (_thread.CallStack.Count == 0)
+        {
+            // No caller → end program
+            _thread.IsFinished = true;
+            IsFinished = true;
+            return null;
+        }
+
+        int returnIp = _thread.CallStack.Pop();
+        _ip = returnIp;
         return null;
     }
 

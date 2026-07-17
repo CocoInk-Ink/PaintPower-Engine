@@ -19,13 +19,15 @@ public class MemoryPrimitives
 
     public void addPrimsTo(Dictionary<string, Func<string, List<object?>?, DIItem, object?>> primTable)
     {
-        primTable["mem:getVar"]     = MemGetVar;
-        primTable["mem:setVar"]     = MemSetVar;
+        primTable["mem:getVar"] = MemGetVar;
+        primTable["mem:setVar"] = MemSetVar;
         primTable["mem:declareVar"] = MemDeclareVar;
-        primTable["mem:exists"]     = MemExists;
-        primTable["mem:delete"]     = MemDelete;
-        primTable["mem:pushSlot"]   = MemPushSlot;
-        primTable["mem:pullSlot"]   = MemPullSlot;
+        primTable["mem:exists"] = MemExists;
+        primTable["mem:delete"] = MemDelete;
+        primTable["mem:pushSlot"] = MemPushSlot;
+        primTable["mem:pullSlot"] = MemPullSlot;
+        primTable["mem:method:declare"] = MethodDeclare;
+        primTable["mem:method:call"] = MethodCall;
     }
 
     // -----------------------------
@@ -140,4 +142,45 @@ public class MemoryPrimitives
 
         return null;
     }
+
+    // ------------------------------
+    // mem:method:declare
+    // ------------------------------
+
+    private object? MethodDeclare(string op, List<object?>? args, DIItem item)
+    {
+        string name = (string)args![0]!;
+        int startIp = Convert.ToInt32(args[1]);
+
+        thread.Methods[name] = startIp;
+        return null;
+    }
+
+    // ---------------------------------
+    // mem:method:call
+    // ---------------------------------
+    private object? MethodCall(string op, List<object?>? args, DIItem item)
+    {
+        string name = (string)args![0]!;
+
+        // Look up method start IP
+        if (!thread.Methods.TryGetValue(name, out int targetIp))
+            throw new Exception($"Method '{name}' not found.");
+
+        // Save return address
+        thread.CallStack.Push(thread._interpreter!.CurrentIp);
+
+        // Optional: store parameters as arg1, arg2, arg3...
+        for (int i = 1; i < args.Count; i++)
+        {
+            object? value = PrimitiveHelpers.Eval(args[i], thread, item);
+            thread.memory.PushValue($"arg{i}", value);
+        }
+
+        // Jump to method start
+        thread._interpreter.JumpTo(targetIp);
+
+        return null;
+    }
+
 }

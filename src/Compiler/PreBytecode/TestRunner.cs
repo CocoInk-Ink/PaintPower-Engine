@@ -18,7 +18,7 @@ namespace PaintPower.Compiler.PreBytecode
             // Create VM
             var vm = new Vm.Vm();
 
-            // Create a fake DIItem (your VM requires one)
+            // Create a fake DIItem (VM requires one)
             var diplay = new DIItem
             {
                 x = 0,
