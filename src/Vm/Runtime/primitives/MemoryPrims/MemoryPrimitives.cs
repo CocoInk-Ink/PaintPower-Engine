@@ -150,9 +150,18 @@ public class MemoryPrimitives
     private object? MethodDeclare(string op, List<object?>? args, DIItem item)
     {
         string name = (string)args![0]!;
-        int startIp = Convert.ToInt32(args[1]);
+        var paramNames = (List<string>)args[1]!;
+        string? returnTypeName = args.Count > 2 ? (string?)args[2] : null;
+        var body = (List<Instruction>)args[3]!;
 
-        thread.Methods[name] = startIp;
+        VarType? returnType = returnTypeName != null ? new VarType(returnTypeName) : null;
+
+        var fn = new VmFunction(name, paramNames, returnType, body);
+        var slot = new MemorySlot(name, fn);
+
+        // put function in current scope
+        thread.ScopeStack.Peek().Variables[name] = slot;
+
         return null;
     }
 
@@ -163,24 +172,56 @@ public class MemoryPrimitives
     {
         string name = (string)args![0]!;
 
-        // Look up method start IP
-        if (!thread.Methods.TryGetValue(name, out int targetIp))
-            throw new Exception($"Method '{name}' not found.");
+        // Resolve function from scope/memory
+        var slot = thread.ResolveVariable(name);
+        if (slot.Item.Value is not VmFunction fn)
+            throw new Exception($"'{name}' is not a function.");
 
-        // Save return address
-        thread.CallStack.Push(thread._interpreter!.CurrentIp);
-
-        // Optional: store parameters as arg1, arg2, arg3...
-        for (int i = 1; i < args.Count; i++)
+        // Evaluate arguments
+        var evaluatedArgs = new List<object?>();
+        for (int i = 0; i < fn.ParameterNames.Count; i++)
         {
-            object? value = PrimitiveHelpers.Eval(args[i], thread, item);
-            thread.memory.PushValue($"arg{i}", value);
+            object? rawArg = args![i + 1];
+            object? val = PrimitiveHelpers.Eval(rawArg, thread, item);
+            evaluatedArgs.Add(val);
         }
 
-        // Jump to method start
-        thread._interpreter.JumpTo(targetIp);
+        // Enter function scope
+        thread.EnterScope();
+        var funcScope = thread.ScopeStack.Peek();
 
-        return null;
+        // Bind parameters as variables
+        for (int i = 0; i < fn.ParameterNames.Count; i++)
+        {
+            string paramName = fn.ParameterNames[i];
+            var varType = new VarType("auto"); // or param type if you add it
+            var paramVar = new Variable(varType, true, evaluatedArgs[i]);
+            funcScope.Variables[paramName] = new MemorySlot(paramName, paramVar);
+        }
+
+        // Execute body
+        thread.IsReturningFromFunction = false;
+        thread.FunctionReturnValue = null;
+
+        foreach (var instr in fn.Body)
+        {
+            var prim = thread._interpreter!.functions[instr.OpCode];
+            prim(instr.OpCode, instr.args, item);
+
+            if (thread.IsReturningFromFunction)
+                break;
+        }
+
+        object? returnValue = thread.FunctionReturnValue;
+
+        // Enforce return type if needed
+        if (fn.ReturnType != null && returnValue == null)
+            throw new Exception($"Function '{fn.Name}' must return '{fn.ReturnType.Name}'.");
+
+        // Exit function scope
+        thread.ExitScope();
+
+        return returnValue;
     }
 
 }

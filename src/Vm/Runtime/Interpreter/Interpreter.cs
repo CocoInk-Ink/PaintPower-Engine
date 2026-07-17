@@ -105,18 +105,18 @@ public sealed class Interpreter
 
     private object? PrimRet(string op, List<object?>? args, DIItem item)
     {
-        if (_thread.CallStack.Count == 0)
-        {
-            // No caller → end program
-            _thread.IsFinished = true;
-            IsFinished = true;
-            return null;
-        }
+        // Evaluate return expression (if any)
+        object? value = null;
+        if (args != null && args.Count > 0)
+            value = PrimitiveHelpers.Eval(args[0], _thread, item);
 
-        int returnIp = _thread.CallStack.Pop();
-        _ip = returnIp;
-        return null;
+        // Store return value for the function executor
+        _thread.FunctionReturnValue = value;
+        _thread.IsReturningFromFunction = true;
+
+        return value;
     }
+
 
     private object? PrimYield(string op, List<object?>? args, DIItem item)
     {

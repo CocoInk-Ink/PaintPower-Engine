@@ -36,6 +36,8 @@ public class VmThread
 
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
+public object? FunctionReturnValue { get; set; }
+public bool IsReturningFromFunction { get; set; }
 
     public void Load(Vm vm, List<Instruction> code, DIItem target)
     {
