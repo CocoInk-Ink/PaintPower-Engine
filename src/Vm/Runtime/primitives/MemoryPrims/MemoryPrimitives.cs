@@ -35,7 +35,7 @@ public class MemoryPrimitives
     {
         string name = (string)args![0]!;
         var slot = thread.ResolveVariable(name);
-        return slot.Item.Value;
+        return slot.Item.Value ?? thread.memory.GetValue(name);
     }
 
     // -----------------------------
@@ -48,7 +48,18 @@ public class MemoryPrimitives
 
         object? value = PrimitiveHelpers.Eval(rawValue, thread, item);
 
+        try
+        {
+            var slot = thread.ResolveVariable(name);
+            slot.Item.Value = value;
+        }
+        catch
+        {
+            // fall back to the shared memory map if the variable has not been declared yet
+        }
+
         thread.memory.PushValue(name, value);
+
         return null;
     }
 
@@ -69,6 +80,8 @@ public class MemoryPrimitives
         if (args.Count > 3)
         {
             object? initial = PrimitiveHelpers.Eval(args[3], thread, item);
+            var slot = thread.ResolveVariable(name);
+            slot.Item.Value = initial;
             thread.memory.PushValue(name, initial);
         }
 

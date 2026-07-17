@@ -11,7 +11,7 @@ namespace PaintPower.Compiler.PreBytecode
 {
     public static class TestRunner
     {
-        internal static async Task RunTest()
+        public static async Task RunTest()
         {
             Console.WriteLine("=== VM Test Start ===");
 
@@ -77,6 +77,9 @@ namespace PaintPower.Compiler.PreBytecode
             Console.WriteLine($"x = {x}");
             Console.WriteLine($"y = {y}");
             Console.WriteLine($"z = {z}");
+
+            if (Convert.ToInt32(z) != 10)
+                throw new InvalidOperationException($"Expected z = 10, got {z}");
 
             Console.WriteLine("=== VM Test End ===");
         }
