@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using PaintPower.Vm;
 using PaintPower.Vm.Runtime.Sprites;
 using PaintPower.Display.DisplayIntegration;
+using PaintPower.Vm.Runtime.Primitives;
 
 namespace PaintPower.Vm.Runtime.Interpreter;
 
@@ -19,7 +20,7 @@ public sealed class Interpreter
     private readonly DIItem diplay_item;
 
     public bool IsFinished { get; private set; }
-    public Primitives.Primitives primitives = new();
+    public Primitives.Primitives primitives;
     public Dictionary<string, Func<string, List<object?>?, DIItem, object?>> functions = new();
 
     public Interpreter(List<Instruction> code, VmThread thread, DIItem diplay_item)
@@ -32,12 +33,22 @@ public sealed class Interpreter
 
         this.diplay_item = diplay_item;
 
+        // Primitives
+        primitives = new(thread);
         addPrimsTo(functions);
     }
 
     public void addPrimsTo(Dictionary<string, Func<string, List<object?>?, DIItem, object?>> primTable)
     {
-        new Primitives.Primitives().addPrimsTo(primTable);
+
+        primTable["jump"] = PrimJump;
+        primTable["jumpIfFalse"] = PrimJumpIfFalse;
+        primTable["call"] = PrimCall;
+        primTable["ret"] = PrimRet;
+        primTable["yield"] = PrimYield;
+        primTable["halt"] = PrimHalt;
+
+        primitives.addPrimsTo(primTable);
     }
 
     public void Step()
@@ -60,5 +71,53 @@ public sealed class Interpreter
     {
         IsFinished = true;
         _thread.IsFinished = true;
+    }
+
+    private object? PrimJump(string op, List<object?>? args, DIItem item)
+    {
+        int target = Convert.ToInt32(args![0]);
+        _ip = target;
+        return null;
+    }
+
+    private object? PrimJumpIfFalse(string op, List<object?>? args, DIItem item)
+    {
+        bool cond = Convert.ToBoolean(args![0]);
+        int target = Convert.ToInt32(args[1]);
+
+        if (!cond)
+            _ip = target;
+
+        return null;
+    }
+
+    private object? PrimCall(string op, List<object?>? args, DIItem item)
+    {
+        int target = Convert.ToInt32(args![0]);
+
+        // later: push return address on call stack
+        _ip = target;
+        return null;
+    }
+
+    private object? PrimRet(string op, List<object?>? args, DIItem item)
+    {
+        // later: pop return address
+        _thread.IsFinished = true;
+        IsFinished = true;
+        return null;
+    }
+
+    private object? PrimYield(string op, List<object?>? args, DIItem item)
+    {
+        _thread.IsYielded = true;
+        return null;
+    }
+
+    private object? PrimHalt(string op, List<object?>? args, DIItem item)
+    {
+        _thread.IsFinished = true;
+        IsFinished = true;
+        return null;
     }
 }

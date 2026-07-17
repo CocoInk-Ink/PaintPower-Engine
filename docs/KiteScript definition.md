@@ -1,3 +1,6 @@
+AI wrote this, it's is pretty wrong in some places.
+
+
 Overview
 This document is the final, authoritative plain‑text specification for KiteScript (KS) — the high‑level language used throughout the xPaint toolchain. KS is the human‑readable intermediate language that all supported source languages lower into. KS compiles to KiteScript Assembly (KSA) and executes on the Sprite VM, which is DIItem‑based and supports sprite operations, GUI rendering, and DIItem interaction.
 
@@ -515,8 +518,6 @@ A KiteScript file is divided into sections, each introduced by a tag:
 [#gui] — graphical user interface
 
 [#kxml] — markup language (XKML)
-
-[#data] — structured data
 
 [#diplay : #html] — HTML GUI section
 

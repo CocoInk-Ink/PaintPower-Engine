@@ -4,7 +4,7 @@ This roadmap outlines the planned development of the PaintPower Engine and the l
 
 ---
 
-## Editors
+## File Editors
 
 ### Paint Editor
 - Basic tools (brush, eraser, fill)

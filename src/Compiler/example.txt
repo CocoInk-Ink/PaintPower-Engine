@@ -1,5 +1,8 @@
 @@! Example pre-bytecode:
 
+@@! This is an early example of what is now KiteScript.
+@@! Don't take this seriously, it is outdated.
+
 @@! <- Single line comment.
 
 @@!! <- Multiline comment. -> !!@@

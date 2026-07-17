@@ -6,8 +6,9 @@ namespace PaintPower.Vm.Processing.memory.Variables;
 
 public class Variable : MemoryItem
 {
-    public bool IsMutable { get; set; } = true;
-    public VarType? Type { get; set; }
+
+    public bool IsReadonly = false;
+    public bool HasBeenAssigned = false;
 
     public Variable(VarType? type = null, bool isMutable = true, object? initialValue = null)
     {

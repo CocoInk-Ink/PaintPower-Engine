@@ -9,7 +9,18 @@ namespace PaintPower.Vm.Processing;
 
 public class ScopeBlock
 {
-	public List<ScopeBlock>? children;
-	public List<Variable>? Variables;
+    public Dictionary<string, MemorySlot> Variables { get; } = new();
+    public ScopeBlock? Parent { get; set; }
 
+    public bool TryGetVariable(string name, out MemorySlot slot)
+    {
+        if (Variables.TryGetValue(name, out slot))
+            return true;
+
+        if (Parent != null)
+            return Parent.TryGetVariable(name, out slot);
+
+        slot = null!;
+        return false;
+    }
 }
