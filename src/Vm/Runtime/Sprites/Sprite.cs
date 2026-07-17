@@ -39,15 +39,19 @@ namespace PaintPower.Vm.Runtime.Sprites
         public Sprite(double? x = null, double? y = null, int? skin = null)
         {
             if (x != null)
-                this.x = x;
+                this.x = (double)x;
             else
-                this.x = Tools.Math.Random.calc(StageWidth, StageHeight);
+                this.x = Tools.Math.Random.calc((StageWidth / 2) * -1, (StageWidth / 2));
 
             if (y != null)
-                this.y = y;
+                this.y = (double)y;
+             else
+                this.y = Tools.Math.Random.calc((StageHeight / 2) * -1, (StageHeight / 2));
 
             if (skin != null)
                 this.CurrentSkinIndex = (int)skin;
+            else
+                this.CurrentSkinIndex = 0;
         }
 
         public void SetSkin(int index)
@@ -82,8 +86,8 @@ namespace PaintPower.Vm.Runtime.Sprites
             // Draw each element in Z order
             foreach (var elem in skin.Elements.OrderBy(e => e.ZIndex))
             {
-                double finalX = elem.X + w / 2;
-                double finalY = elem.Y + h / 2;
+                double finalX = elem.x + w / 2;
+                double finalY = elem.x + h / 2;
 
                 if (elem is RuntimeImageElement img)
                 {

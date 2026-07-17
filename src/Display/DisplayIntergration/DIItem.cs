@@ -3,17 +3,17 @@ using PaintPower.Tools.Graphics;
 
 namespace PaintPower.Display.DisplayIntegration;
 
-public abstract class DIItem
+public class DIItem
 {
-    public double? x;
-    public double? y;
+    public double x;
+    public double y;
 
-    public float ScaleX = 1f;
-    public float ScaleY = 1f;
+    public double ScaleX = 1f;
+    public double ScaleY = 1f;
 
     public bool IsVisible = true;
 
-    public float Scale
+    public double Scale
     {
         get => ScaleX;
         set { ScaleX = value; ScaleY = value; }
@@ -21,12 +21,16 @@ public abstract class DIItem
 
     public int Z = 0;
 
-    public float Rotation = 0f; // 90 is normal, goes from 0 - 360.
+    public double Rotation = 90; // 90 is straight (right), 0 (up) 180 (down) -90 (left).
     public double StageWidth { get; set; } = 640;
     public double StageHeight { get; set; } = 450;
 
     public DIItem() { }
 
-    public abstract object DrawAs();
+    // No longer abstract
+    public virtual object? DrawAs()
+    {
+        return null;
+    }
 
 }

@@ -1,4 +1,5 @@
 // MemoryPrimitives.cs
+
 using System;
 using System.Collections.Generic;
 using PaintPower.Display.DisplayIntegration;
@@ -18,13 +19,13 @@ public class MemoryPrimitives
 
     public void addPrimsTo(Dictionary<string, Func<string, List<object?>?, DIItem, object?>> primTable)
     {
-        primTable["mem:getVar"]    = MemGetVar;
-        primTable["mem:setVar"]    = MemSetVar;
+        primTable["mem:getVar"]     = MemGetVar;
+        primTable["mem:setVar"]     = MemSetVar;
         primTable["mem:declareVar"] = MemDeclareVar;
-        primTable["mem:exists"]    = MemExists;
-        primTable["mem:delete"]    = MemDelete;
-        primTable["mem:pushSlot"]  = MemPushSlot;
-        primTable["mem:pullSlot"]  = MemPullSlot;
+        primTable["mem:exists"]     = MemExists;
+        primTable["mem:delete"]     = MemDelete;
+        primTable["mem:pushSlot"]   = MemPushSlot;
+        primTable["mem:pullSlot"]   = MemPullSlot;
     }
 
     // -----------------------------
@@ -43,7 +44,9 @@ public class MemoryPrimitives
     private object? MemSetVar(string op, List<object?>? args, DIItem item)
     {
         string name = (string)args![0]!;
-        object? value = args[1];
+        object? rawValue = args[1];
+
+        object? value = PrimitiveHelpers.Eval(rawValue, thread, item);
 
         thread.memory.PushValue(name, value);
         return null;
@@ -51,11 +54,9 @@ public class MemoryPrimitives
 
     // -----------------------------
     // mem:declareVar
-    // Generic variable declaration
     // -----------------------------
     private object? MemDeclareVar(string op, List<object?>? args, DIItem item)
     {
-        // args: [name, typeName, mutableFlag]
         string name = (string)args![0]!;
         string typeName = (string)args[1]!;
         bool isMutable = args.Count > 2 ? Convert.ToBoolean(args[2]) : true;
@@ -63,6 +64,14 @@ public class MemoryPrimitives
         var type = new VarType(typeName);
 
         thread.DeclareVariable(name, type, isMutable, false);
+
+        // Optional initial value
+        if (args.Count > 3)
+        {
+            object? initial = PrimitiveHelpers.Eval(args[3], thread, item);
+            thread.memory.PushValue(name, initial);
+        }
+
         return null;
     }
 
@@ -95,12 +104,13 @@ public class MemoryPrimitives
 
     // -----------------------------
     // mem:pushSlot
-    // Create a raw memory slot manually
     // -----------------------------
     private object? MemPushSlot(string op, List<object?>? args, DIItem item)
     {
         string slotId = (string)args![0]!;
-        object? value = args.Count > 1 ? args[1] : null;
+        object? rawValue = args.Count > 1 ? args[1] : null;
+
+        object? value = PrimitiveHelpers.Eval(rawValue, thread, item);
 
         thread.memory.PushValue(slotId, value);
         return null;
@@ -108,7 +118,6 @@ public class MemoryPrimitives
 
     // -----------------------------
     // mem:pullSlot
-    // Return the raw MemorySlot object
     // -----------------------------
     private object? MemPullSlot(string op, List<object?>? args, DIItem item)
     {

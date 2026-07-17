@@ -83,8 +83,8 @@ public class Renderer2D
                     byte dr = dstPixels[dstIndex + 2];
                     byte da = dstPixels[dstIndex + 3];
 
-                    float a = sa / 255f;
-                    float ia = 1f - a;
+                    double a = sa / 255f;
+                    double ia = 1f - a;
 
                     dstPixels[dstIndex + 0] = (byte)(sb * a + db * ia);
                     dstPixels[dstIndex + 1] = (byte)(sg * a + dg * ia);
@@ -95,18 +95,18 @@ public class Renderer2D
         });
     }
 
-    public unsafe void DrawGraphic(Graphic g, int dstX, int dstY, float rotationDeg, float scaleX, float scaleY)
+    public unsafe void DrawGraphic(Graphic g, int dstX, int dstY, double rotationDeg, double scaleX, double scaleY)
     {
-        float radians = rotationDeg * (float)System.Math.PI / 180f;
+        double radians = (90.0 - rotationDeg) * System.Math.PI / 180.0;
 
-        float cos = (float)System.Math.Cos(radians);
-        float sin = (float)System.Math.Sin(radians);
+        double cos = System.Math.Cos(radians);
+        double sin = System.Math.Sin(radians);
 
         int srcW = g.Width;
         int srcH = g.Height;
 
-        float cx = srcW / 2f;
-        float cy = srcH / 2f;
+        double cx = srcW / 2f;
+        double cy = srcH / 2f;
 
         _target.WithLock((dstPtr, dstW, dstH, dstStride) =>
         {
@@ -119,11 +119,11 @@ public class Renderer2D
                 {
                     for (int x = 0; x < srcW; x++)
                     {
-                        float dx = (x - cx) * scaleX;
-                        float dy = (y - cy) * scaleY;
+                        double dx = (x - cx) * scaleX;
+                        double dy = (y - cy) * scaleY;
 
-                        float rx = dx * cos - dy * sin;
-                        float ry = dx * sin + dy * cos;
+                        double rx = dx * cos - dy * sin;
+                        double ry = dx * sin + dy * cos;
 
                         int px = (int)(dstX + rx + cx);
                         int py = (int)(dstY + ry + cy);
@@ -139,8 +139,8 @@ public class Renderer2D
                         byte sr = src[srcIndex + 2];
                         byte sa = src[srcIndex + 3];
 
-                        float a = sa / 255f;
-                        float ia = 1f - a;
+                        double a = sa / 255f;
+                        double ia = 1f - a;
 
                         byte db = dst[dstIndex + 0];
                         byte dg = dst[dstIndex + 1];
@@ -156,7 +156,7 @@ public class Renderer2D
         });
     }
 
-    public void DrawAnimation(GraphicAnimation anim, int x, int y, float rotation, float scaleX, float scaleY, int timeMs)
+    public void DrawAnimation(GraphicAnimation anim, int x, int y, double rotation, double scaleX, double scaleY, int timeMs)
     {
         int total = 0;
         int frame = 0;
@@ -175,70 +175,71 @@ public class Renderer2D
     }
 
     public unsafe void DrawBatch(List<DrawCommand> commands)
-{
-    _target.WithLock((dstPtr, dstW, dstH, dstStride) =>
     {
-        byte* dst = (byte*)dstPtr;
-
-        foreach (var cmd in commands)
+        _target.WithLock((dstPtr, dstW, dstH, dstStride) =>
         {
-            Graphic g = cmd.Graphic;
+            byte* dst = (byte*)dstPtr;
 
-            float radians = cmd.Rotation * (float)System.Math.PI / 180f;
-            float cos = (float)System.Math.Cos(radians);
-            float sin = (float)System.Math.Sin(radians);
-
-            int srcW = g.Width;
-            int srcH = g.Height;
-
-            float cx = srcW / 2f;
-            float cy = srcH / 2f;
-
-            byte[] srcPixels = g.Pixels;
-
-            fixed (byte* src = srcPixels)
+            foreach (var cmd in commands)
             {
-                for (int y = 0; y < srcH; y++)
+                Graphic g = cmd.Graphic;
+
+                double radians = (90.0 - cmd.Rotation) * System.Math.PI / 180.0;
+                double cos = System.Math.Cos(radians);
+                double sin = System.Math.Sin(radians);
+
+
+                int srcW = g.Width;
+                int srcH = g.Height;
+
+                double cx = srcW / 2f;
+                double cy = srcH / 2f;
+
+                byte[] srcPixels = g.Pixels;
+
+                fixed (byte* src = srcPixels)
                 {
-                    for (int x = 0; x < srcW; x++)
+                    for (int y = 0; y < srcH; y++)
                     {
-                        float dx = (x - cx) * cmd.ScaleX;
-                        float dy = (y - cy) * cmd.ScaleY;
+                        for (int x = 0; x < srcW; x++)
+                        {
+                            double dx = (x - cx) * cmd.ScaleX;
+                            double dy = (y - cy) * cmd.ScaleY;
 
-                        float rx = dx * cos - dy * sin;
-                        float ry = dx * sin + dy * cos;
+                            double rx = dx * cos - dy * sin;
+                            double ry = dx * sin + dy * cos;
 
-                        int px = (int)(cmd.X + rx + cx);
-                        int py = (int)(cmd.Y + ry + cy);
+                            int px = (int)(cmd.X + rx + cx);
+                            int py = (int)(cmd.Y + ry + cy);
 
-                        if (px < 0 || py < 0 || px >= dstW || py >= dstH)
-                            continue;
+                            if (px < 0 || py < 0 || px >= dstW || py >= dstH)
+                                continue;
 
-                        int srcIndex = (y * srcW + x) * 4;
-                        int dstIndex = py * dstStride + px * 4;
+                            int srcIndex = (y * srcW + x) * 4;
+                            int dstIndex = py * dstStride + px * 4;
 
-                        byte sb = src[srcIndex + 0];
-                        byte sg = src[srcIndex + 1];
-                        byte sr = src[srcIndex + 2];
-                        byte sa = src[srcIndex + 3];
+                            byte sb = src[srcIndex + 0];
+                            byte sg = src[srcIndex + 1];
+                            byte sr = src[srcIndex + 2];
+                            byte sa = src[srcIndex + 3];
 
-                        float a = sa / 255f;
-                        float ia = 1f - a;
+                            double a = sa / 255f;
+                            double ia = 1f - a;
 
-                        byte db = dst[dstIndex + 0];
-                        byte dg = dst[dstIndex + 1];
-                        byte dr = dst[dstIndex + 2];
+                            byte db = dst[dstIndex + 0];
+                            byte dg = dst[dstIndex + 1];
+                            byte dr = dst[dstIndex + 2];
 
-                        dst[dstIndex + 0] = (byte)(sb * a + db * ia);
-                        dst[dstIndex + 1] = (byte)(sg * a + dg * ia);
-                        dst[dstIndex + 2] = (byte)(sr * a + dr * ia);
-                        dst[dstIndex + 3] = 255;
+                            dst[dstIndex + 0] = (byte)(sb * a + db * ia);
+                            dst[dstIndex + 1] = (byte)(sg * a + dg * ia);
+                            dst[dstIndex + 2] = (byte)(sr * a + dr * ia);
+                            dst[dstIndex + 3] = 255;
+                        }
                     }
                 }
             }
-        }
-    });
-}
+        });
+    }
 
 
 }

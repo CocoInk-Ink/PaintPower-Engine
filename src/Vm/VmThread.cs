@@ -16,7 +16,7 @@ namespace PaintPower.Vm;
 public class VmThread
 {
     public bool isPaused = false;
-    private Interpreter? _interpreter;
+    public Interpreter? _interpreter;
 
     public bool IsWaiting = false;
     public DateTime? WakeAt = null;
@@ -39,7 +39,12 @@ public class VmThread
 
     public void Load(Vm vm, List<Instruction> code, DIItem target)
     {
+
+        if (ScopeStack.Count == 0)
+            EnterScope();
+
         _interpreter = new Interpreter(code, this, target);
+
         if (target == null) return;
         this.target = target;
     }

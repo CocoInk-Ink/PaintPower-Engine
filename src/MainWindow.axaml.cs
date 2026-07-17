@@ -25,7 +25,7 @@ public partial class MainWindow : Window
 
         window = this;
 
-        TestRunner.RunPrintTestAsync().ContinueWith(t =>
+        TestRunner.RunTest().ContinueWith(t =>
         {
             if (t.Exception != null)
             {

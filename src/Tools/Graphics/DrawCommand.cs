@@ -5,14 +5,14 @@ namespace PaintPower.Tools.Graphics;
 public struct DrawCommand
 {
     public Graphic Graphic;
-    public float X;
-    public float Y;
-    public float Rotation;
-    public float ScaleX;
-    public float ScaleY;
+    public double X;
+    public double Y;
+    public double Rotation;
+    public double ScaleX;
+    public double ScaleY;
     public int Z;
 
-    public DrawCommand(Graphic g, float x, float y, float rot, float sx, float sy, int z)
+    public DrawCommand(Graphic g, double x, double y, double rot, double sx, double sy, int z)
     {
         Graphic = g;
         X = x;

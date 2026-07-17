@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using PaintPower.Display.DisplayIntegration;
+using PaintPower.Logging;
 using PaintPower.Vm.Runtime.Sprites;
 
 namespace PaintPower.Vm.Runtime.Primitives;
@@ -20,6 +21,29 @@ public static class PrimitiveHelpers
             primTable[opcode] = func;
         }
     }
+
+    public static object? Eval(object? expr, VmThread thread, DIItem item)
+    {
+        if (thread == null || thread?._interpreter == null)
+        {
+            Log.QuickLog($"Interpreter or thread is null. Thread: {thread}, Interpreter: {thread?._interpreter}");
+            return null;
+        }
+
+        Log.QuickLog($"expr: {expr}");
+
+        // Literal value → return as-is
+        if (expr == null) return null;
+
+        // If it's not an Instruction, it's a literal
+        if (expr is not Instruction instr)
+            return expr;
+
+        // Evaluate nested instruction
+        var fn = thread._interpreter.functions[instr.OpCode];
+        return fn(instr.OpCode, instr.args, item);
+    }
+
 }
 
 public class Primitives
@@ -70,17 +94,20 @@ public class Primitives
         new JavaScriptPrims.JSPrimitives(thread).addPrimsTo(primTable);
     }
 
-    private static object? Arithmetic(string op, List<object?>? args, DIItem item)
+    private object? Arithmetic(string op, List<object?>? args, DIItem item)
     {
-        object? a, b;
+        if (args == null || args.Count < 2)
+            throw new Exception("Two parameters are required for arithmetic");
 
-        if (args == null) throw new Exception("Params are required for this function");
+        // Evaluate nested expressions
+        object? a = PrimitiveHelpers.Eval(args[0], thread, item);
+        object? b = PrimitiveHelpers.Eval(args[1], thread, item);
 
-        a = args[0];
-        b = args[1];
+        // Treat null as 0 (important!)
+        a ??= 0;
+        b ??= 0;
 
-        if (a == null || b == null) throw new Exception("Two parameters are required");
-
+        // int math
         if (a is int ai && b is int bi)
         {
             return op switch
@@ -94,10 +121,12 @@ public class Primitives
             };
         }
 
+        // double math
         if (a is double || b is double)
         {
-            double ad = Convert.ToDouble(a ?? 0);
-            double bd = Convert.ToDouble(b ?? 0);
+            double ad = Convert.ToDouble(a);
+            double bd = Convert.ToDouble(b);
+
             return op switch
             {
                 "math:add" => ad + bd,
@@ -109,12 +138,13 @@ public class Primitives
             };
         }
 
-        // string concat for Add
+        // string concat
         if (op == "math:add" && a is string astr && b is string bstr)
-            return $"{astr}{bstr}";
+            return astr + bstr;
 
         return 0;
     }
+
     private static object? Compare(string op, List<object?>? args, DIItem item)
     {
 

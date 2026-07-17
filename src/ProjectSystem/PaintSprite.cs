@@ -187,8 +187,8 @@ public class PaintSprite
                     rSkin.Elements.Add(new RuntimeImageElement
                     {
                         InstanceName = elem.InstanceName,
-                        X = elem.Transform.X,
-                        Y = elem.Transform.Y,
+                        x = elem.Transform.X,
+                        y = elem.Transform.Y,
                         Rotation = elem.Transform.Rotation,
                         ScaleX = elem.Transform.ScaleX,
                         ScaleY = elem.Transform.ScaleY,
@@ -204,8 +204,8 @@ public class PaintSprite
                     rSkin.Elements.Add(new RuntimeVideoElement
                     {
                         InstanceName = elem.InstanceName,
-                        X = elem.Transform.X,
-                        Y = elem.Transform.Y,
+                        x = elem.Transform.X,
+                        y = elem.Transform.Y,
                         Rotation = elem.Transform.Rotation,
                         ScaleX = elem.Transform.ScaleX,
                         ScaleY = elem.Transform.ScaleY,

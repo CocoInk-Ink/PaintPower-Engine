@@ -116,8 +116,8 @@ public partial class SkinEditorView : SpriteEditor
                 if (elem == null)
                     continue;
 
-                double sx = (elem.X * _zoom) + _pan.X;
-                double sy = (elem.Y * _zoom) + _pan.Y;
+                double sx = (elem.x * _zoom) + _pan.X;
+                double sy = (elem.y * _zoom) + _pan.Y;
                 double w = elem.Width * _zoom;
                 double h = elem.Height * _zoom;
 
@@ -127,8 +127,8 @@ public partial class SkinEditorView : SpriteEditor
 
         if (_selectedElement != null)
         {
-            double sx = (_selectedElement.X * _zoom) + _pan.X;
-            double sy = (_selectedElement.Y * _zoom) + _pan.Y;
+            double sx = (_selectedElement.x * _zoom) + _pan.X;
+            double sy = (_selectedElement.y * _zoom) + _pan.Y;
 
             double w = _selectedElement.Width * _zoom;
             double h = _selectedElement.Height * _zoom;
@@ -140,8 +140,8 @@ public partial class SkinEditorView : SpriteEditor
 
     private void DrawGizmos(DrawingContextWrapper ctx, RuntimeSkinElement elem)
     {
-        double cx = (elem.X * _zoom) + _pan.X;
-        double cy = (elem.Y * _zoom) + _pan.Y;
+        double cx = (elem.x * _zoom) + _pan.X;
+        double cy = (elem.y * _zoom) + _pan.Y;
 
         double w = elem.Width * _zoom;
         double h = elem.Height * _zoom;
@@ -163,8 +163,8 @@ public partial class SkinEditorView : SpriteEditor
 
     private GizmoMode HitTestGizmo(Point mouse, RuntimeSkinElement elem)
     {
-        double cx = (elem.X * _zoom) + _pan.X;
-        double cy = (elem.Y * _zoom) + _pan.Y;
+        double cx = (elem.x * _zoom) + _pan.X;
+        double cy = (elem.y * _zoom) + _pan.Y;
 
         double w = elem.Width * _zoom;
         double h = elem.Height * _zoom;
@@ -253,8 +253,8 @@ public partial class SkinEditorView : SpriteEditor
         {
             if (_gizmoMode == GizmoMode.Rotate)
             {
-                double cx = (_selectedElement.X * _zoom) + _pan.X;
-                double cy = (_selectedElement.Y * _zoom) + _pan.Y;
+                double cx = (_selectedElement.x * _zoom) + _pan.X;
+                double cy = (_selectedElement.y * _zoom) + _pan.Y;
 
                 double angle1 = Math.Atan2(_gizmoStartMouse.Y - cy, _gizmoStartMouse.X - cx);
                 double angle2 = Math.Atan2(pos.Y - cy, pos.X - cx);
@@ -363,8 +363,8 @@ public partial class SkinEditorView : SpriteEditor
             if (elem == null)
                 continue;
 
-            double sx = (elem.X * _zoom) + _pan.X;
-            double sy = (elem.Y * _zoom) + _pan.Y;
+            double sx = (elem.x * _zoom) + _pan.X;
+            double sy = (elem.y * _zoom) + _pan.Y;
 
             double w = elem.Width * _zoom;
             double h = elem.Height * _zoom;
@@ -416,8 +416,8 @@ public partial class SkinEditorView : SpriteEditor
         _suppressPropertyEvents = true;
 
         NameBox.Text = _selectedElement.InstanceName;
-        XBox.Text = _selectedElement.X.ToString();
-        YBox.Text = _selectedElement.Y.ToString();
+        XBox.Text = _selectedElement.x.ToString();
+        YBox.Text = _selectedElement.y.ToString();
         RotationBox.Text = _selectedElement.Rotation.ToString();
         ScaleXBox.Text = _selectedElement.ScaleX.ToString();
         ScaleYBox.Text = _selectedElement.ScaleY.ToString();
@@ -434,8 +434,8 @@ public partial class SkinEditorView : SpriteEditor
         try
         {
             _selectedElement.InstanceName = NameBox.Text ?? "";
-            _selectedElement.X = double.Parse(XBox.Text);
-            _selectedElement.Y = double.Parse(YBox.Text);
+            _selectedElement.x = double.Parse(XBox.Text);
+            _selectedElement.y = double.Parse(YBox.Text);
             _selectedElement.Rotation = double.Parse(RotationBox.Text);
             _selectedElement.ScaleX = double.Parse(ScaleXBox.Text);
             _selectedElement.ScaleY = double.Parse(ScaleYBox.Text);
@@ -463,8 +463,8 @@ public partial class SkinEditorView : SpriteEditor
         if (def == null)
             return;
 
-        def.Transform.X = _selectedElement.X;
-        def.Transform.Y = _selectedElement.Y;
+        def.Transform.X = _selectedElement.x;
+        def.Transform.Y = _selectedElement.y;
         def.Transform.Rotation = _selectedElement.Rotation;
         def.Transform.ScaleX = _selectedElement.ScaleX;
         def.Transform.ScaleY = _selectedElement.ScaleY;

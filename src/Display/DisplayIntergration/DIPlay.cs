@@ -49,8 +49,8 @@ namespace PaintPower.Display.DisplayIntegration
                     continue;
 
                 // Resolve safe position (old projects may have null x/y)
-                double ix = item.x ?? 0;
-                double iy = item.y ?? 0;
+                double ix = item.x;
+                double iy = item.y;
 
                 // Snapshot-based sprites
                 if (item is Sprite sprite)
@@ -62,13 +62,16 @@ namespace PaintPower.Display.DisplayIntegration
                     if (g == null)
                         continue;
 
-                    if (IsCulled(g, (float)ix, (float)iy, sprite.ScaleX, sprite.ScaleY))
+                    if (IsCulled(g, (double)ix, (double)iy, sprite.ScaleX, sprite.ScaleY))
                         continue;
+
+                    double drawX = ix - (g.Width * sprite.ScaleX) / 2.0;
+                    double drawY = iy - (g.Height * sprite.ScaleY) / 2.0;
 
                     batch.Add(new DrawCommand(
                         g,
-                        (float)ix,
-                        (float)iy,
+                        drawX,
+                        drawY,
                         sprite.Rotation,
                         sprite.ScaleX,
                         sprite.ScaleY,
@@ -82,13 +85,16 @@ namespace PaintPower.Display.DisplayIntegration
                 var graphic = item.DrawAs() as Graphic;
                 if (graphic != null)
                 {
-                    if (IsCulled(graphic, (float)ix, (float)iy, item.ScaleX, item.ScaleY))
+                    if (IsCulled(graphic, ix, iy, item.ScaleX, item.ScaleY))
                         continue;
+
+                    double drawX = ix - (graphic.Width * item.ScaleX) / 2.0;
+                    double drawY = iy - (graphic.Height * item.ScaleY) / 2.0;
 
                     batch.Add(new DrawCommand(
                         graphic,
-                        (float)ix,
-                        (float)iy,
+                        drawX,
+                        drawY,
                         item.Rotation,
                         item.ScaleX,
                         item.ScaleY,
@@ -110,15 +116,15 @@ namespace PaintPower.Display.DisplayIntegration
             _t++;
         }
 
-        private bool IsCulled(Graphic g, float x, float y, float scaleX, float scaleY)
+        private bool IsCulled(Graphic g, double x, double y, double scaleX, double scaleY)
         {
-            float halfW = g.Width * scaleX / 2f;
-            float halfH = g.Height * scaleY / 2f;
+            double halfW = g.Width * scaleX / 2f;
+            double halfH = g.Height * scaleY / 2f;
 
-            float left = x - halfW;
-            float right = x + halfW;
-            float top = y - halfH;
-            float bottom = y + halfH;
+            double left = x - halfW;
+            double right = x + halfW;
+            double top = y - halfH;
+            double bottom = y + halfH;
 
             return right < 0 ||
                 left > StageSize.x ||

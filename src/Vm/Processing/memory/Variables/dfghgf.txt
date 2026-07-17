@@ -97,3 +97,25 @@ int _main:
 ]
 
 I don't know what the format for the binary will be, but that's for later.
+
+Ok nice. I think it's time for project building.
+We sort of have something for that, but the problem is that we used a converter to convert from a PaintSprite -> Sprite (Aka runtime sprite)
+Directly, but that was when we wanted immediate updates and the vm panel was on the right side, but now that the
+system has changed, we no longer want that. Instead we have a build system, we compile, then we build, then the compiled output can run.
+What we should do is export each sprite as a folder like normal because thats what a sprite is in the project file, so it's the same thing.
+
+https://file.org/extension/xpup
+The output zip should look like this:
+
+XPUP (xPaint Universal Program)
+
+output.xpup/
+	data.bin
+	scripts.bin
+	Sprites/
+		Sprite1/
+			scripts.bin
+			images/
+			skins.xml
+
+Let's not start building yet, start sketching first.
