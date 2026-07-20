@@ -197,7 +197,8 @@ public partial class SkinEditorView : SpriteEditor
         double y = _pan.Y;
 
         ctx.DrawRect(x, y, w, h, Colors.Gray, 2);
-        ctx.DrawRect(x + w * 0.1, y + h * 0.1, w * 0.8, h * 0.8, Colors.Yellow, 1);
+        ctx.FillRect(x + w * 0.1, y + h * 0.1, w * 0.8, h * 0.8, Colors.Yellow, 1);
+        ctx.DrawRect(x + w * 0.1, y + h * 0.1, w * 0.8, h * 0.8, new Color(50, 74, 184, 94), 1);
         ctx.DrawRect(x - w * 0.1, y - h * 0.1, w * 1.2, h * 1.2, Colors.Red, 1);
     }
 
