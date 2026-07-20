@@ -95,7 +95,7 @@ public partial class SkinEditorView : SpriteEditor
         Viewport.Children.Clear();
 
         var ctx = new DrawingContextWrapper(Viewport);
-        ctx.Clear(Colors.Black);
+        ctx.Clear(Colors.White);
 
         if (_runtimeSprite?.SnapshotGraphic != null)
         {
@@ -196,7 +196,7 @@ public partial class SkinEditorView : SpriteEditor
         double x = _pan.X;
         double y = _pan.Y;
 
-        ctx.DrawRect(x, y, w, h, Colors.White, 2);
+        ctx.DrawRect(x, y, w, h, Colors.Gray, 2);
         ctx.DrawRect(x + w * 0.1, y + h * 0.1, w * 0.8, h * 0.8, Colors.Yellow, 1);
         ctx.DrawRect(x - w * 0.1, y - h * 0.1, w * 1.2, h * 1.2, Colors.Red, 1);
     }
