@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
 using Avalonia.Media;
 using PaintPower.Tools.Graphics;
 
@@ -45,6 +46,20 @@ namespace PaintPower.ProjectSystem.SpriteEditor
                 Width = w,
                 Height = h
             };
+
+            Canvas.SetLeft(rect, x);
+            Canvas.SetTop(rect, y);
+
+            _canvas.Children.Add(rect);
+        }
+
+        public void FillRect(double x, double y, double w, double h, Color color, double thickness)
+        {
+            Rectangle rect = new();
+
+            var brush = Brush.Parse(color.ToString());
+
+            rect.Fill = brush;
 
             Canvas.SetLeft(rect, x);
             Canvas.SetTop(rect, y);
