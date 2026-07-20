@@ -105,14 +105,23 @@ public sealed class Interpreter
 
     private object? PrimRet(string op, List<object?>? args, DIItem item)
     {
-        // Evaluate return expression (if any)
         object? value = null;
         if (args != null && args.Count > 0)
             value = PrimitiveHelpers.Eval(args[0], _thread, item);
 
+        // Complete future if async
+        if (_thread.Future != null)
+        {
+            _thread.Future.IsCompleted = true;
+            _thread.Future.Result = value;
+        }
+
         // Store return value for the function executor
         _thread.FunctionReturnValue = value;
         _thread.IsReturningFromFunction = true;
+
+        _thread.IsFinished = true;
+        IsFinished = true;
 
         return value;
     }

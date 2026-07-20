@@ -41,11 +41,11 @@ public class Vm
     // Project Loading:
     // =======================
     public static async Task LoadProject(PaintProject project, DIPlay display)
-{
-    isProjectLoading = true;
-    LoadSpritesIntoDisplay(project, display);
-    isProjectLoading = false;
-}
+    {
+        isProjectLoading = true;
+        LoadSpritesIntoDisplay(project, display);
+        isProjectLoading = false;
+    }
 
     // =======================
     // Virtual Machine Parts:
@@ -57,7 +57,7 @@ public class Vm
     private List<string> IdList = new();
 
 #pragma warning restore IDE0044 // Add readonly modifier
-    public int threadsCount = 0;
+    public int threadsCount => Threads.Count;
 
     public int currentThread = 0;
 
@@ -68,6 +68,16 @@ public class Vm
 
     // For embedded VMs.
     public Dictionary<string, Vm> VMs { get; } = new();
+
+    public bool AllThreadsStopped ()
+    {
+        int count = 0;
+        foreach (VmThread thread in Threads.Values)
+        {
+            if (!isThreadSafe(thread)) count++;
+        }
+        return count == threadsCount;
+    }
 
 #pragma warning disable
     public Vm()
@@ -87,7 +97,7 @@ public class Vm
 
     public static bool isThreadSafe(VmThread? thread)
     {
-        return thread.isPaused == false;
+        return !(thread.isPaused || thread.IsWaiting || thread.IsFinished);
     }
 
 #pragma warning restore
@@ -157,6 +167,7 @@ public class Vm
         foreach (Vm vm in VMs.Values)
         {
             if (isProjectLoading) return; // Make sure project is not loading! (Pasted multiple times for good measure.)
+            if (vm.AllThreadsStopped()) return;
             await vm.Tick();
         }
 
@@ -166,7 +177,15 @@ public class Vm
 
             if (isProjectLoading) return; // Make sure project is not loading! (Pasted multiple times for good measure.)
 
-            if (!isThreadSafe(thread)) continue;
+            if (thread.IsWaiting && thread.AwaitingFuture?.IsCompleted == true)
+            {
+                thread.IsWaiting = false;
+            }
+
+            bool isSafe = isThreadSafe(thread);
+
+            if (!isSafe) continue;
+
             await thread.Step();
 
         }

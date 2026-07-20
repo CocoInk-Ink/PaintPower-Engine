@@ -67,6 +67,8 @@ namespace PaintPower.Vm.Runtime.Sprites
         // ---------------------------------------------------------
         // Snapshot Rendering
         // ---------------------------------------------------------
+
+        // Drawing should be moved to each element, then the sprite puts it together.
         public void RenderSnapshot()
         {
             var skin = CurrentSkin;

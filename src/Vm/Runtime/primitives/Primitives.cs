@@ -89,6 +89,9 @@ public class Primitives
         primTable["di:setPos"] = DISetPos;
         primTable["di:setVisible"] = DISetVisible;
 
+        // Add external primitives
+        new AsyncPrimitives(thread).addPrimsTo(primTable);
+
         // Language-specific prims added later
         new MemoryPrims.MemoryPrimitives(thread).addPrimsTo(primTable);
         new JavaScriptPrims.JSPrimitives(thread).addPrimsTo(primTable);

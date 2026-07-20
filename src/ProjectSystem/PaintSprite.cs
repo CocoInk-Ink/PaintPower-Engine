@@ -95,7 +95,7 @@ public class PaintSprite
 
                 elem.Transform.X = (double?)elemNode.Attribute("x") ?? 0;
                 elem.Transform.Y = (double?)elemNode.Attribute("y") ?? 0;
-                elem.Transform.Rotation = (double?)elemNode.Attribute("rotation") ?? 0;
+                elem.Transform.Rotation = (double?)elemNode.Attribute("rotation") ?? 90;
                 elem.Transform.ScaleX = (double?)elemNode.Attribute("scaleX") ?? 1;
                 elem.Transform.ScaleY = (double?)elemNode.Attribute("scaleY") ?? 1;
 

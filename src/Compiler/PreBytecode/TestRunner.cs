@@ -29,7 +29,7 @@ namespace PaintPower.Compiler.PreBytecode
             {
                 // x = 3
                 new Instruction("mem:declareVar", new() { "x", "int", true }),
-                new Instruction("mem:setVar",     new() { "x", 7 }),
+                new Instruction("mem:setVar",     new() { "x", 3 }),
 
                 // y = 7
                 new Instruction("mem:declareVar", new() { "y", "int", true }),
@@ -38,18 +38,16 @@ namespace PaintPower.Compiler.PreBytecode
                 // z declared
                 new Instruction("mem:declareVar", new() { "z", "int", true }),
 
-                // ---------------------------------------------
-                // Define function add(a, b)
-                // ---------------------------------------------
+                // async function asyncAdd(a, b)
                 new Instruction("mem:method:declare", new()
                 {
-                    "add",                          // name
-                    new List<string> { "a", "b" },  // parameters
-                    "int",                          // return type
-                    new List<Instruction>           // body
+                    "asyncAdd",
+                    new List<string> { "a", "b" },
+                    "int",
+                    new List<Instruction>
                     {
-                        // return a + b
-                        new Instruction("ret", new()
+                        new Instruction("yield", null),
+                        new Instruction("return", new()
                         {
                             new Instruction("math:add", new()
                             {
@@ -60,17 +58,26 @@ namespace PaintPower.Compiler.PreBytecode
                     }
                 }),
 
-                // ---------------------------------------------
-                // z = add(x, y)
-                // ---------------------------------------------
+                // f = asyncAdd(x, y)
+                new Instruction("mem:declareVar", new() { "f", "future", true }),
+                new Instruction("mem:setVar", new()
+                {
+                    "f",
+                    new Instruction("async:call", new()
+                    {
+                        "asyncAdd",
+                        new Instruction("mem:getVar", new() { "x" }),
+                        new Instruction("mem:getVar", new() { "y" })
+                    })
+                }),
+
+                // z = await f
                 new Instruction("mem:setVar", new()
                 {
                     "z",
-                    new Instruction("mem:method:call", new()
+                    new Instruction("await", new()
                     {
-                        "add",
-                        new Instruction("mem:getVar", new() { "x" }),
-                        new Instruction("mem:getVar", new() { "y" })
+                        new Instruction("mem:getVar", new() { "f" })
                     })
                 }),
 
@@ -82,8 +89,10 @@ namespace PaintPower.Compiler.PreBytecode
 
             thread.Load(vm, code, diplay);
 
-            while (!thread.IsFinished)
-                await thread.Step();
+            vm.AddThread(thread);
+
+            while (!vm.AllThreadsStopped())
+                await vm.Tick();
 
             var x = thread.memory.GetValue("x");
             var y = thread.memory.GetValue("y");

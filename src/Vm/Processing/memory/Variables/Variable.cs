@@ -45,3 +45,21 @@ public class VmFunction : MemoryItem
         Value = this;           // the value *is* the function object
     }
 }
+
+public class VmFuture : MemoryItem
+{
+    public bool IsCompleted { get; set; }
+    public object? Result { get; set; }
+    public VmThread Thread { get; }
+
+    public VmFuture(VmThread thread)
+    {
+        Thread = thread;
+        IsCompleted = false;
+        Result = null;
+
+        Type = new VarType("future");
+        IsMutable = false;
+        Value = this;
+    }
+}

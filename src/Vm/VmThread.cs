@@ -15,6 +15,7 @@ namespace PaintPower.Vm;
 
 public class VmThread
 {
+
     public bool isPaused = false;
     public Interpreter? _interpreter;
 
@@ -34,10 +35,16 @@ public class VmThread
 
     public HashSet<string> ActiveQuirks { get; } = new();
 
+    public Vm parent;
+
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
 public object? FunctionReturnValue { get; set; }
 public bool IsReturningFromFunction { get; set; }
+
+public VmFuture? AwaitingFuture { get; set; }
+public VmFuture? Future { get; set; }
+
 
     public void Load(Vm vm, List<Instruction> code, DIItem target)
     {
@@ -46,6 +53,8 @@ public bool IsReturningFromFunction { get; set; }
             EnterScope();
 
         _interpreter = new Interpreter(code, this, target);
+
+        parent = vm;
 
         if (target == null) return;
         this.target = target;
@@ -125,7 +134,7 @@ public bool IsReturningFromFunction { get; set; }
 
     public async Task Step()
     {
-        if (_interpreter == null || isPaused || IsWaiting || IsYielded || IsFinished)
+        if (_interpreter == null || isPaused || IsWaiting || IsFinished)
             return;
 
         _interpreter.Step();
