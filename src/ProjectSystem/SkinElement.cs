@@ -8,6 +8,6 @@ namespace PaintPower.ProjectSystem
         public string InstanceName { get; set; } = "";
         public SkinTransform Transform { get; set; } = new();
         public int ZIndex { get; set; } = 0;
-        public string AssetPath { get; set; } = ""; // relative to items/
+        public virtual string AssetPath { get; set; } = ""; // relative to items/
     }
 }

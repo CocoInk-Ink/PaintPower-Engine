@@ -37,7 +37,32 @@ namespace PaintPower.ProjectSystem.SpriteEditor
             _canvas.Children.Add(img);
         }
 
-        public void DrawRect(double x, double y, double w, double h, Color color, double thickness)
+        public void DrawImage(IImage? image, double x, double y, double w, double h, double rotation = 0)
+        {
+            if (image == null)
+                return;
+
+            var img = new Image
+            {
+                Source = image,
+                Width = w,
+                Height = h,
+                Stretch = Stretch.Uniform
+            };
+
+            if (rotation != 0)
+            {
+                img.RenderTransform = new RotateTransform(rotation);
+                img.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+            }
+
+            Canvas.SetLeft(img, x);
+            Canvas.SetTop(img, y);
+
+            _canvas.Children.Add(img);
+        }
+
+        public void DrawRect(double x, double y, double w, double h, Color color, double thickness, double rotation = 0)
         {
             var rect = new Border
             {
@@ -46,6 +71,12 @@ namespace PaintPower.ProjectSystem.SpriteEditor
                 Width = w,
                 Height = h
             };
+
+            if (rotation != 0)
+            {
+                rect.RenderTransform = new RotateTransform(rotation);
+                rect.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+            }
 
             Canvas.SetLeft(rect, x);
             Canvas.SetTop(rect, y);

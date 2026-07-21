@@ -120,30 +120,10 @@ private static Graphic LoadSVGImage(string path)
         return new Graphic(width, height, pixels);
     }
 
-    public static GraphicAnimation FromGIF(string path)
+    public static Graphic FromGIF(string path)
     {
-        using Image<Rgba32> gif = Image.Load<Rgba32>(path);
-
-        var anim = new GraphicAnimation();
-
-        foreach (var frame in gif.Frames)
-        {
-            int width = frame.Width;
-            int height = frame.Height;
-
-            byte[] pixels = new byte[width * height * 4];
-            frame.CopyPixelDataTo(pixels);
-
-            ConvertRgbaToBgra(pixels);
-
-            anim.Frames.Add(new Graphic(width, height, pixels));
-
-            var meta = frame.Metadata.GetGifMetadata();
-            int delay = meta.FrameDelay * 10;
-            anim.FrameDelays.Add(delay == 0 ? 100 : delay);
-        }
-
-        return anim;
+        // For now, treat it as raster.
+        return LoadRaster(path);
     }
 
     private static void ConvertRgbaToBgra(byte[] pixels)
