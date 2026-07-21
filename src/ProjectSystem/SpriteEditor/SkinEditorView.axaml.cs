@@ -179,6 +179,24 @@ public partial class SkinEditorView : SpriteEditor
 
     private void DrawOverlays(DrawingContextWrapper ctx)
     {
+        /*
+            For those curious, the is how the overlay system works.
+
+            Everything within the Yellow is the main editor part.
+            This is where normal editor stuff happen. It is the size of the stage.
+            
+            Then we have the inner overlay, this is anything outside of the yellow main editor part.
+            This part has a gray border and has a clear light gray fill that tints
+            any item under it because it draws on top. This section acts like padding between the
+            outer and the main overlays.
+
+            Finally is the Outer overlay, which is anything beyond the inner overlay.
+            This part covers anything that goes under it, it is not meant for dropping items there.
+            It's the final border, and is a solid color, dark gray. 
+            The background for anything within the section has a checkerboard pattern under,
+            anything beyond has the solid color covering it which might be covered by a repeating background image. (Assets/Background Dark.png)
+        */
+
         double w = _stageWidth * _zoom;
         double h = _stageHeight * _zoom;
 
