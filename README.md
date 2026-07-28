@@ -4,7 +4,7 @@
 
 ### Open‑source engine powering the Coco xPaint Project
 
-**Current version:** Pre‑Alpha 1.0.1.2 — build ???
+**Current version:** Pre‑Alpha 1.1.0.0
 
 ---
 
