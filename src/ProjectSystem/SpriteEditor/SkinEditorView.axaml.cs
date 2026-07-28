@@ -67,7 +67,12 @@ public partial class SkinEditorView : SpriteEditor
     private bool _draggingAsset = false;
     private AssetEntry? _dragAssetEntry;
     private Border? _dragGhost;
-    private readonly Point _dragGhostOffset = new Point(16, 16);
+    private readonly Point _dragGhostOffset = new Point(-16, -16);
+
+    private record HistoryAction(Action Undo, Action Redo);
+
+    private readonly Stack<HistoryAction> _undoStack = new();
+    private readonly Stack<HistoryAction> _redoStack = new();
 
     public SkinEditorView(PaintSprite sprite, SkinDefinition skin, double stageWidth, double stageHeight)
     {
@@ -101,6 +106,67 @@ public partial class SkinEditorView : SpriteEditor
         RefreshAssetList();
 
         InvalidateVisual();
+    }
+
+    private void PushHistory(Action undo, Action redo)
+    {
+        _undoStack.Push(new HistoryAction(undo, redo));
+        _redoStack.Clear();
+    }
+
+    private void Undo()
+    {
+        if (_undoStack.Count == 0)
+            return;
+
+        var action = _undoStack.Pop();
+        action.Undo();
+
+        _redoStack.Push(action);
+
+        Redraw();
+    }
+
+    private void Redo()
+    {
+        if (_redoStack.Count == 0)
+            return;
+
+        var action = _redoStack.Pop();
+        action.Redo();
+
+        _undoStack.Push(action);
+
+        Redraw();
+    }
+
+
+    public void DeleteSelectedElement()
+    {
+        if (_selectedElement != null)
+        {
+            // Clear selection
+            SkinElement element = _selectedElement;
+
+            ElementsList.SelectedItem = null;
+            ElementsList.SelectedIndex = -1;
+
+            var deleted = _selectedElement;
+
+            _skin.Elements.Remove(deleted);
+
+            PushHistory(
+                undo: () => _skin.Elements.Add(deleted),
+                redo: () => _skin.Elements.Remove(deleted)
+            );
+
+            _selectedElement = null;
+
+            _sprite.SaveSkins();
+            RefreshElementList();
+            LoadPropertiesFromElement();
+            Redraw();
+        }
     }
 
     // ---------------------------------------------------------
@@ -283,24 +349,10 @@ public partial class SkinEditorView : SpriteEditor
             {
                 _sprite.SaveSkins();
                 LoadPropertiesFromElement();
+                return;
             }
 
-            if (_selectedElement != null)
-            {
-                // Clear selection
-                SkinElement element = _selectedElement;
-
-                ElementsList.SelectedItem = null;
-                ElementsList.SelectedIndex = -1;
-
-                _skin.Elements.Remove(element);
-                _selectedElement = null;
-
-                _sprite.SaveSkins();
-                RefreshElementList();
-                LoadPropertiesFromElement();
-                Redraw();
-            }
+            DeleteSelectedElement();
 
             e.Handled = true;
             return;
@@ -317,6 +369,23 @@ public partial class SkinEditorView : SpriteEditor
             }
 
             e.Handled = true;
+        }
+
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        {
+            if (e.Key == Key.Y || (e.KeyModifiers.HasFlag(KeyModifiers.Shift) && e.Key == Key.Z))
+            {
+                Redo();
+                e.Handled = true;
+                return;
+            }
+            
+            if (e.Key == Key.Z)
+            {
+                Undo();
+                e.Handled = true;
+                return;
+            }
         }
     }
 
@@ -386,15 +455,54 @@ public partial class SkinEditorView : SpriteEditor
 
                 double delta = (angle2 - angle1) * (180 / Math.PI);
 
-                _selectedElement.Transform.Rotation = _gizmoStartRotation + delta;
+                double newRotation = _gizmoStartRotation + delta;
+
+                double oldRotation = _selectedElement.Transform.Rotation;
+
+                _selectedElement.Transform.Rotation = newRotation;
+
+                var elem = _selectedElement;
+
+                PushHistory(
+                    undo: () =>
+                    {
+                        elem.Transform.Rotation = oldRotation;
+                    },
+
+                    redo: () =>
+                    {
+                        elem.Transform.Rotation = newRotation;
+                    }
+                );
             }
             else if (_gizmoMode == GizmoMode.Scale)
             {
                 double dx = (pos.X - _gizmoStartMouse.X);
                 double dy = (pos.Y - _gizmoStartMouse.Y);
 
-                _selectedElement.Transform.ScaleX = Math.Max(0.1, _gizmoStartScaleX + dx * 0.01);
-                _selectedElement.Transform.ScaleY = Math.Max(0.1, _gizmoStartScaleY + dy * 0.01);
+                double oldSX = _selectedElement.Transform.ScaleX;
+                double oldSY = _selectedElement.Transform.ScaleY;
+
+                double newSX = Math.Max(0.1, _gizmoStartScaleX + dx * 0.01);
+                double newSY = Math.Max(0.1, _gizmoStartScaleY + dy * 0.01);
+
+                _selectedElement.Transform.ScaleX = newSX;
+                _selectedElement.Transform.ScaleY = newSY;
+
+                var elem = _selectedElement;
+
+                PushHistory(
+                    undo: () =>
+                    {
+                        elem.Transform.ScaleX = oldSX;
+                        elem.Transform.ScaleY = oldSY;
+                    },
+                    redo: () =>
+                    {
+                        elem.Transform.ScaleX = newSX;
+                        elem.Transform.ScaleY = newSY;
+                    }
+                );
             }
 
             SaveBackToSkinDefinition();
@@ -411,8 +519,29 @@ public partial class SkinEditorView : SpriteEditor
             double limitX = (_stageWidth / 2) + 500;
             double limitY = (_stageHeight / 2) + 500;
 
-            _selectedElement.Transform.X = Math.Clamp(_moveStartX + dx, -limitX, limitX);
-            _selectedElement.Transform.Y = Math.Clamp(_moveStartY + dy, -limitY, limitY);
+            double oldX = _selectedElement.Transform.X;
+            double oldY = _selectedElement.Transform.Y;
+
+            double newX = Math.Clamp(_moveStartX + dx, -limitX, limitX);
+            double newY = Math.Clamp(_moveStartY + dy, -limitY, limitY);
+
+            var elem = _selectedElement;
+            
+            elem.Transform.X = newX;
+            elem.Transform.Y = newY;
+
+            PushHistory(
+                undo: () =>
+                {
+                    elem.Transform.X = oldX;
+                    elem.Transform.Y = oldY;
+                },
+                redo: () =>
+                {
+                    elem.Transform.X = newX;
+                    elem.Transform.Y = newY;
+                }
+            );
 
             SaveBackToSkinDefinition();
             LoadPropertiesFromElement();
@@ -575,15 +704,59 @@ public partial class SkinEditorView : SpriteEditor
         if (_selectedElement == null || _suppressPropertyEvents)
             return;
 
+        // Store old data into undo
+        double oldX = _selectedElement.Transform.X;
+        double oldY = _selectedElement.Transform.Y;
+        double oldRot = _selectedElement.Transform.Rotation;
+        double oldSX = _selectedElement.Transform.ScaleX;
+        double oldSY = _selectedElement.Transform.ScaleY;
+        int oldZ = _selectedElement.ZIndex;
+        string oldName = _selectedElement.InstanceName;
+
+
+        // Apply changes
         try
         {
-            _selectedElement.InstanceName = NameBox.Text ?? "";
-            _selectedElement.Transform.X = double.TryParse(XBox.Text, out var x) ? x : _selectedElement.Transform.X;
-            _selectedElement.Transform.Y = double.TryParse(YBox.Text, out var y) ? y : _selectedElement.Transform.Y;
-            _selectedElement.Transform.Rotation = double.TryParse(RotationBox.Text, out var rotation) ? rotation : _selectedElement.Transform.Rotation;
-            _selectedElement.Transform.ScaleX = double.TryParse(ScaleXBox.Text, out var scaleX) ? scaleX : _selectedElement.Transform.ScaleX;
-            _selectedElement.Transform.ScaleY = double.TryParse(ScaleYBox.Text, out var scaleY) ? scaleY : _selectedElement.Transform.ScaleY;
-            _selectedElement.ZIndex = int.TryParse(ZBox.Text, out var zIndex) ? zIndex : _selectedElement.ZIndex;
+            string newName = NameBox.Text ?? "";
+            double newX = double.TryParse(XBox.Text, out var x) ? x : _selectedElement.Transform.X;
+            double newY = double.TryParse(YBox.Text, out var y) ? y : _selectedElement.Transform.Y;
+            double newRotation = double.TryParse(RotationBox.Text, out var rotation) ? rotation : _selectedElement.Transform.Rotation;
+            double newScaleX = double.TryParse(ScaleXBox.Text, out var scaleX) ? scaleX : _selectedElement.Transform.ScaleX;
+            double newScaleY = double.TryParse(ScaleYBox.Text, out var scaleY) ? scaleY : _selectedElement.Transform.ScaleY;
+            int newZIndex = int.TryParse(ZBox.Text, out var zIndex) ? zIndex : _selectedElement.ZIndex;
+
+            _selectedElement.InstanceName = newName;
+            _selectedElement.Transform.X = newX;
+            _selectedElement.Transform.Y = newY;
+            _selectedElement.Transform.Rotation = newRotation;
+            _selectedElement.Transform.ScaleX = newScaleX;
+            _selectedElement.Transform.ScaleY = newScaleY;
+            _selectedElement.ZIndex = newZIndex;
+
+            var elem = _selectedElement;
+
+            PushHistory(
+                undo: () =>
+                {
+                    elem.Transform.X = oldX;
+                    elem.Transform.Y = oldY;
+                    elem.Transform.Rotation = oldRot;
+                    elem.Transform.ScaleX = oldSX;
+                    elem.Transform.ScaleY = oldSY;
+                    elem.ZIndex = oldZ;
+                    elem.InstanceName = oldName;
+                },
+                redo: () =>
+                {
+                    elem.Transform.X = newX;
+                    elem.Transform.Y = newY;
+                    elem.Transform.Rotation = newRotation;
+                    elem.Transform.ScaleX = newScaleX;
+                    elem.Transform.ScaleY = newScaleY;
+                    elem.ZIndex = newZIndex;
+                    elem.InstanceName = newName;
+                }
+            );
         }
         catch
         {
@@ -754,8 +927,17 @@ public partial class SkinEditorView : SpriteEditor
         newElem.Transform = new SkinTransform { X = worldX, Y = worldY };
         newElem.ZIndex = 0;
 
-        _skin.Elements.Add(newElem);
+        var elem = newElem;
+
+        _skin.Elements.Add(elem);
+
         _sprite.SaveSkins();
+
+        PushHistory(
+            undo: () => _skin.Elements.Remove(elem),
+            redo: () => _skin.Elements.Add(elem)
+        );
+
 
         RefreshElementList();
         Redraw();
