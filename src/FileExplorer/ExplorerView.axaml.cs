@@ -523,7 +523,7 @@ public partial class ExplorerView : UserControl
         if (_forcedRoot == null)
             return;
 
-        var dialog = new InputDialog("New Folder", "Enter folder name:", "New empty folder");
+        var dialog = new InputDialog("New Folder", "Enter folder name:");
         var window = MainWindow.window;
         var name = await dialog.ShowAsync(window);
 
