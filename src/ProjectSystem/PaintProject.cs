@@ -46,7 +46,7 @@ public class PaintProject
     public void CreateNew(ProjectEditorLogic logic)
     {
         var loader = new ProjectLoader();
-        loader.LoadDefaultProject(this, logic);
+		_ = loader.LoadDefaultProject(this, logic);
 
         ProjectPath = "";
         Metadata = new ProjectMetadata { name = "Untitled", OpenFile = null };

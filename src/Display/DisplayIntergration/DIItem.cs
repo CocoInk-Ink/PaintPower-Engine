@@ -1,10 +1,14 @@
 using System;
+using PaintPower.Editors.Logic;
+using PaintPower.ProjectSystem;
 using PaintPower.Tools.Graphics;
 
 namespace PaintPower.Display.DisplayIntegration;
 
 public class DIItem
 {
+    private PaintProject? project => MainWindow.window.mainGui?.projectEditor?.Logic?.Project;
+
     public double x;
     public double y;
 
@@ -22,8 +26,8 @@ public class DIItem
     public int Z = 0;
 
     public double Rotation = 90; // 90 is straight (right), 0 (up) 180 (down) -90 (left).
-    public double StageWidth { get; set; } = 640;
-    public double StageHeight { get; set; } = 450;
+    public double StageWidth => (project == null || project?.Metadata?.StageWidth == null) ? 640 : (double)project.Metadata.StageWidth;
+    public double StageHeight => (project == null || project?.Metadata?.StageHeight == null) ? 450 : (double)project.Metadata.StageHeight;
 
     public DIItem() { }
 

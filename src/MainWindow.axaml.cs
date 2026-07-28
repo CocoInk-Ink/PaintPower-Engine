@@ -41,8 +41,7 @@ public partial class MainWindow : Window
         // Initialize keyboard system
         KeyPress.init();
 
-        // Attach window + MainGUI to the engine wrapper
-        App.attachWindow(this);
+        // Attach MainGUI to the engine wrapper
         App.attachMainGUI(mainGui);
 
         // Key handlers

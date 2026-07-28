@@ -22,8 +22,8 @@ public partial class PaintPower_Engine : FileEditor
     // --------------------------------------------------------------------
     // Static references preserved for compatibility
     // --------------------------------------------------------------------
-    public static PaintPower_Engine App { get; private set; }
-    public static MainWindow window;
+    public static PaintPower_Engine App;
+    public static MainWindow window => MainWindow.window;
 
     public static string version => "PaintPower Engine vPre-Alpha 1.1.0.0";
 
@@ -43,11 +43,6 @@ public partial class PaintPower_Engine : FileEditor
     // --------------------------------------------------------------------
     // Wiring from MainWindow
     // --------------------------------------------------------------------
-    public void attachWindow(MainWindow w)
-    {
-        window = w;
-    }
-
     public void attachMainGUI(MainGUI gui)
     {
         MainGui = gui;
@@ -98,24 +93,6 @@ public partial class PaintPower_Engine : FileEditor
     public void CloseCurrentEditor()
     {
         MainGui.CloseCurrentEditor();
-    }
-
-    // --------------------------------------------------------------------
-    // Networking (legacy stubs)
-    // --------------------------------------------------------------------
-    public async Task login(string username, string password)
-    {
-        await MainGui.Login(username, password);
-    }
-
-    public async Task DownloadProjectFromServer()
-    {
-        // UI layer handles dialogs
-    }
-
-    public async void SaveToServer()
-    {
-        // UI layer handles dialogs
     }
 
     // --------------------------------------------------------------------
