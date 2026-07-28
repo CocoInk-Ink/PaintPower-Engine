@@ -523,7 +523,7 @@ public partial class ExplorerView : UserControl
         if (_forcedRoot == null)
             return;
 
-        var dialog = new InputDialog("New Folder", "Enter folder name:");
+        var dialog = new InputDialog("New Folder", "Enter folder name:", "New empty folder");
         var window = MainWindow.window;
         var name = await dialog.ShowAsync(window);
 
@@ -645,7 +645,7 @@ public partial class ExplorerView : UserControl
 
         var item = row.Item;
 
-        var dialog = new InputDialog("Rename", $"Enter new name for \"{item.Name}\":");
+        var dialog = new InputDialog("Rename", $"Enter new name for \"{item.Name}\":", item.Name);
         var window = MainWindow.window;
         var name = await dialog.ShowAsync(window);
 
