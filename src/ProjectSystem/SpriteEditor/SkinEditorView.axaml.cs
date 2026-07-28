@@ -143,15 +143,15 @@ public partial class SkinEditorView : SpriteEditor
                 var previewControl = CreateElementPreview(elem);
                 if (previewControl is Image imageControl)
                 {
-                    ctx.DrawImage(imageControl.Source as IImage, sx - screenW / 2, sy - screenH / 2, screenW, screenH, elem.Transform.Rotation);
+                    ctx.DrawImage(imageControl.Source as IImage, sx - screenW / 2, sy - screenH / 2, screenW, screenH, elem.Transform.Rotation - 90);
                 }
                 else if (previewControl != null)
                 {
-                    ctx.DrawControl(previewControl, sx - screenW / 2, sy - screenH / 2, screenW, screenH, elem.Transform.Rotation);
+                    ctx.DrawControl(previewControl, sx - screenW / 2, sy - screenH / 2, screenW, screenH, elem.Transform.Rotation - 90);
                 }
                 else
                 {
-                    ctx.DrawRect(sx - screenW / 2, sy - screenH / 2, screenW, screenH, Colors.Gray, 1);
+                    ctx.DrawRect(sx - screenW / 2, sy - screenH / 2, screenW, screenH, Colors.Gray, elem.Transform.Rotation - 90);
                 }
             }
 
@@ -163,7 +163,7 @@ public partial class SkinEditorView : SpriteEditor
                 var screenW = w;
                 var screenH = h;
 
-                ctx.DrawRect(sx - screenW / 2, sy - screenH / 2, screenW, screenH, Colors.Cyan, 2, _selectedElement.Transform.Rotation);
+                ctx.DrawRect(sx - screenW / 2, sy - screenH / 2, screenW, screenH, Colors.Cyan, 2, _selectedElement.Transform.Rotation - 90);
                 DrawGizmos(ctx, _selectedElement);
             }
 
@@ -844,7 +844,7 @@ public partial class SkinEditorView : SpriteEditor
             new Point(0, -screenH / 2 - rotationHandleDistance)
         };
 
-        return points.Select(local => RotatePoint(local, new Point(0, 0), elem.Transform.Rotation * Math.PI / 180.0))
+        return points.Select(local => RotatePoint(local, new Point(0, 0), (elem.Transform.Rotation - 90) * Math.PI / 180.0))
             .Select(rotated => new Point(cx + rotated.X, cy + rotated.Y))
             .ToList();
     }
