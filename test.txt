@@ -1,0 +1,18 @@
+package {
+	import flash.display.*;
+    import flash.extenal.ExternalInterface;
+
+    public class Sprite1 extends Sprite {
+        public function Sprite1() {
+            var message:String = "Hello, World! :)";
+            log(message);
+        }
+
+        public function log(text:String):void {
+            if (ExtenalInterface.avalible) {
+                ExternalInterface.call("console.log", text);
+            }
+            trace(text);
+        }
+    }
+}

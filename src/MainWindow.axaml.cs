@@ -10,7 +10,7 @@ namespace PaintPower;
 public partial class MainWindow : Window
 {
     // Legacy compatibility wrapper
-    public static PaintPower_Engine App { get; } = new PaintPower_Engine();
+    public static PaintPower_Engine? App { get; } = new PaintPower_Engine();
 
     public string? StartupProjectPath { get; set; }
 
@@ -42,7 +42,7 @@ public partial class MainWindow : Window
         KeyPress.init();
 
         // Attach MainGUI to the engine wrapper
-        App.attachMainGUI(mainGui);
+        App?.attachMainGUI(mainGui);
 
         // Key handlers
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
