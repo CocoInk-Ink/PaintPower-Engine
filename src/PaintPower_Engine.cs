@@ -25,7 +25,7 @@ public partial class PaintPower_Engine : FileEditor
     public static PaintPower_Engine App { get; private set; }
     public static MainWindow window;
 
-    public static string version => "PaintPower Engine";
+    public static string version => "PaintPower Engine vPre-Alpha 1.1.0.0";
 
     // Reference to the active GUI (set by MainWindow)
     public MainGUI MainGui { get; private set; }
@@ -37,6 +37,7 @@ public partial class PaintPower_Engine : FileEditor
     {
         Translator.load("en");
         App = this;
+        Header.header.SetVersion(version);
     }
 
     // --------------------------------------------------------------------

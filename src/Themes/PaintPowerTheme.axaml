@@ -11,7 +11,7 @@
     <x:String x:Key="BrandName">PaintPower</x:String>
 
     <!-- Brand version (optional) -->
-    <x:String x:Key="BrandVersion">1.0</x:String>
+    <x:String x:Key="BrandVersion">Pre-Alpha 1.1.0.0</x:String>
 
     <!-- Brand logo (optional) -->
     <!-- If xPaint overrides this with its own logo, the UI switches automatically -->

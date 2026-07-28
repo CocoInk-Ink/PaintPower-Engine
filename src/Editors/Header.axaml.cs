@@ -6,9 +6,12 @@ namespace PaintPower.Editors;
 
 public partial class Header : UserControl
 {
+
+    public static Header header;
     public Header()
     {
         InitializeComponent();
+        header = this;
     }
 
     // ------------------------------------------------------------
