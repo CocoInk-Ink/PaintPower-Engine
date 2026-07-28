@@ -61,7 +61,7 @@ public partial class NewFileDialog : Window
         }
         else if (selected?.isCustom == true)
         {
-            var dialog = new InputDialog("Enter custom extension", "Enter a file extension (with dot):");
+            var dialog = new InputDialog("Enter custom extension", "Enter a file extension (with dot):", ".");
             ext = await dialog.ShowAsync(this);
 
             if (string.IsNullOrWhiteSpace(ext))

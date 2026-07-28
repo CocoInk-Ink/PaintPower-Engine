@@ -8,11 +8,12 @@ namespace PaintPower.Dialogs;
 
 public partial class InputDialog : Window
 {
-    public InputDialog(string title, string prompt)
+    public InputDialog(string title, string prompt, string placeholder = "")
     {
         InitializeComponent();
         Title = Translator.Map(title);
         PromptText.Text = Translator.Map(prompt);
+        InputBox.Text = placeholder;
     }
 
     public Task<string?> ShowAsync(Window parent)

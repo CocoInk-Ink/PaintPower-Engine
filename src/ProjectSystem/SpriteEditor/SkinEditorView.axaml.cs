@@ -277,7 +277,7 @@ public partial class SkinEditorView : SpriteEditor
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Delete)
+        if (e.Key == Key.Delete || e.Key == Key.Back)
         {
             if (e.Source is TextBox)
             {
@@ -287,9 +287,15 @@ public partial class SkinEditorView : SpriteEditor
 
             if (_selectedElement != null)
             {
-                _skin.Elements.Remove(_selectedElement);
+                // Clear selection
+                SkinElement element = _selectedElement;
+
+                ElementsList.SelectedItem = null;
+                ElementsList.SelectedIndex = -1;
+
+                _skin.Elements.Remove(element);
                 _selectedElement = null;
-                if (ElementsList.SelectedItem != null) ElementsList.SelectedItem = null;
+
                 _sprite.SaveSkins();
                 RefreshElementList();
                 LoadPropertiesFromElement();
@@ -516,7 +522,8 @@ public partial class SkinEditorView : SpriteEditor
     // ---------------------------------------------------------
     private void RefreshElementList()
     {
-        ElementsList.ItemsSource = null;
+        ElementsList.SelectedIndex = -1;
+        if (ElementsList.ItemsSource != null) ElementsList.ItemsSource = null;
         ElementsList.ItemsSource = _skin.Elements;
     }
 

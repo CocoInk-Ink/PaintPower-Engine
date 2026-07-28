@@ -149,7 +149,7 @@ public partial class SpriteManagerView : UserControl
         do
         {
 
-            var dialog = new InputDialog("Rename sprite", $"Enter new name for \"{sprite.Name}\":");
+            var dialog = new InputDialog("Rename sprite", $"Enter new name for \"{sprite.Name}\":", sprite.Name);
             var window = MainWindow.window;
             var name = await dialog.ShowAsync(window);
 

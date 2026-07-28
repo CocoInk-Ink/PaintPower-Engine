@@ -6,7 +6,7 @@
 
     <StackPanel Margin="10" Spacing="10">
         <TextBlock x:Name="PromptText"/>
-        <TextBox x:Name="InputBox"/>
+        <TextBox x:Name="InputBox" />
 		<Button Classes="white" Content="OK" Click="OnOk"/>
     </StackPanel>
 </Window>

@@ -483,7 +483,7 @@ public partial class ExplorerView : UserControl
 
         while (Directory.Exists(path) || File.Exists(path))
         {
-            string newName = isFolder
+            string newName = isFolder && Path.HasExtension(name)
                 ? $"{baseName} ({i})"
                 : $"{baseName} ({i}){ext}";
 
