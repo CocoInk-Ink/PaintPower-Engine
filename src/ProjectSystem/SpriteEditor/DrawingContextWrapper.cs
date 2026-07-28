@@ -84,6 +84,40 @@ namespace PaintPower.ProjectSystem.SpriteEditor
             _canvas.Children.Add(rect);
         }
 
+        public void DrawOverlayRect(double x, double y, double w, double h, Color color, double thickness)
+        {
+            var rect = new Border
+            {
+                Background = new SolidColorBrush(color),
+                BorderBrush = new SolidColorBrush(color),
+                BorderThickness = new Thickness(thickness),
+                Width = w,
+                Height = h
+            };
+
+            Canvas.SetLeft(rect, x);
+            Canvas.SetTop(rect, y);
+
+            _canvas.Children.Add(rect);
+        }
+
+        public void DrawControl(Control control, double x, double y, double w, double h, double rotation = 0)
+        {
+            control.Width = w;
+            control.Height = h;
+
+            if (rotation != 0)
+            {
+                control.RenderTransform = new RotateTransform(rotation);
+                control.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+            }
+
+            Canvas.SetLeft(control, x);
+            Canvas.SetTop(control, y);
+
+            _canvas.Children.Add(control);
+        }
+
         public void FillRect(double x, double y, double w, double h, Color color, double thickness)
         {
             Rectangle rect = new();

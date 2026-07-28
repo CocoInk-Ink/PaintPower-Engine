@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:PaintPower.ProjectSystem.SpriteEditor" x:Class="PaintPower.ProjectSystem.SpriteEditor.SkinEditorView">
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:PaintPower.ProjectSystem.SpriteEditor" x:Class="PaintPower.ProjectSystem.SpriteEditor.SkinEditorView" x:DataType="local:SkinEditorView">
     <!-- Root grid so we can have an overlay canvas on top -->
     <Grid x:Name="Root" RowDefinitions="Auto,*" Background="#2b2b2b" PointerMoved="OnRootPointerMove" PointerReleased="OnRootPointerUp">
         <!-- TOP BAR -->
@@ -33,16 +33,35 @@
             <!-- SPLITTER -->
             <GridSplitter Grid.Column="1" Width="5" Background="#505050" />
             <!-- VIEWPORT -->
-            <Border Grid.Column="2" Background="#1e1e1e" ClipToBounds="True">
-                <Canvas x:Name="Viewport" Background="#1e1e1e" PointerWheelChanged="OnZoom" PointerPressed="OnPointerDown" PointerMoved="OnPointerMove" PointerReleased="OnPointerUp" />
-            </Border>
+            <Grid Grid.Column="2" ClipToBounds="True" Background="{DynamicResource MainBackgroundDark}">
+                <!-- Stage -->
+                <Grid Grid.Column="2" ClipToBounds="True" Background="{DynamicResource MainBackgroundDark}">
+                    <Border x:Name="ViewportBorder"
+                            BorderBrush="Gray"
+                            BorderThickness="2"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Background="{DynamicResource CheckerboardBackground}"
+                            ClipToBounds="True">
+
+                        <Canvas x:Name="Viewport"
+                                Width="{Binding Path=StageWidth, Mode=OneWay}"
+                                Height="{Binding Path=StageHeight, Mode=OneWay}"
+                                PointerPressed="OnPointerDown"
+                                PointerMoved="OnPointerMove"
+                                PointerReleased="OnPointerUp"
+                                PointerWheelChanged="OnZoom" />
+                    </Border>
+                </Grid>
+
+            </Grid>
             <!-- SPLITTER -->
             <GridSplitter Grid.Column="3" Width="5" Background="#505050" />
             <!-- RIGHT SIDEBAR -->
             <StackPanel Grid.Column="4" Background="#252525" Margin="8" Spacing="8">
                 <TextBlock Text="Assets" Foreground="White" FontSize="14" />
                 <ScrollViewer Height="600">
-                    <WrapPanel x:Name="AssetGrid" Orientation="Horizontal" ItemWidth="96" ItemHeight="120" Margin="4"/>
+                    <WrapPanel x:Name="AssetGrid" Orientation="Horizontal" ItemWidth="96" ItemHeight="120" Margin="4" />
                 </ScrollViewer>
             </StackPanel>
         </Grid>

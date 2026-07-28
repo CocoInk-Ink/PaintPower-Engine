@@ -77,4 +77,20 @@
                 AlignmentY="Top"
                 DestinationRect="0,0,10,10" />
 
+    <ImageBrush x:Key="MainBackgroundDark"
+                Source="avares://PaintPower/src/Assets/Background Dark.png"
+                Stretch="None"
+                TileMode="Tile"
+                AlignmentX="Left"
+                AlignmentY="Top"
+                DestinationRect="0,0,10,10" />
+
+    <ImageBrush x:Key="CheckerboardBackground"
+                Source="avares://PaintPower/src/Assets/Checkerboard.png"
+                Stretch="None"
+                TileMode="Tile"
+                AlignmentX="Left"
+                AlignmentY="Top"
+                DestinationRect="0,0,16,16" />
+
 </ResourceDictionary>

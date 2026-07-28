@@ -1,12 +1,15 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using PaintPower.Display.DisplayIntegration;
+using PaintPower.Logging;
 using PaintPower.ProjectSystem;
 using PaintPower.Tools.Graphics;
+using SixLabors.ImageSharp.ColorSpaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,13 +23,14 @@ public partial class SkinEditorView : SpriteEditor
     private double _stageWidth = 640;
     private double _stageHeight = 450;
 
+    public double StageWidth => _stageWidth;
+    public double StageHeight => _stageHeight;
+
     private readonly PaintSprite _sprite;
     private readonly SkinDefinition _skin;
 
     // Viewport state
     private double _zoom = 1.0;
-    private Point _pan = new Point(0, 0);
-    private bool _panning = false;
     private Point _lastMouse;
 
     private SkinElement? _selectedElement;
@@ -40,10 +44,24 @@ public partial class SkinEditorView : SpriteEditor
     private const double RotationHandleDistance = 40;
 
     private bool _draggingGizmo = false;
+    private bool _movingElement = false;
     private Point _gizmoStartMouse;
     private double _gizmoStartRotation;
     private double _gizmoStartScaleX;
     private double _gizmoStartScaleY;
+    private double _moveStartX;
+    private double _moveStartY;
+
+    private double GetCenterX()
+    {
+        return (Viewport.Bounds.Width / 2.0);
+    }
+
+    private double GetCenterY()
+    {
+        return (Viewport.Bounds.Height / 2.0);
+    }
+
 
     // Manual drag from asset list
     private bool _draggingAsset = false;
@@ -58,8 +76,14 @@ public partial class SkinEditorView : SpriteEditor
         _stageWidth = stageWidth;
         _stageHeight = stageHeight;
 
+        Viewport.Width = stageWidth;
+        Viewport.Height = stageHeight;
+
         _sprite = sprite;
         _skin = skin;
+
+        ViewportBorder.Width = _stageWidth * _zoom;
+        ViewportBorder.Height = _stageHeight * _zoom;
 
         NameBox.LostFocus += OnPropertyChanged;
         XBox.LostFocus += OnPropertyChanged;
@@ -69,10 +93,14 @@ public partial class SkinEditorView : SpriteEditor
         ScaleYBox.LostFocus += OnPropertyChanged;
         ZBox.LostFocus += OnPropertyChanged;
 
+        Root.Focusable = true;
+        Root.AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
         Viewport.AttachedToVisualTree += (_, __) => Redraw();
 
         RefreshElementList();
         RefreshAssetList();
+
+        InvalidateVisual();
     }
 
     // ---------------------------------------------------------
@@ -80,60 +108,85 @@ public partial class SkinEditorView : SpriteEditor
     // ---------------------------------------------------------
     private void Redraw()
     {
-        if (Viewport == null)
-            return;
-
-        Viewport.Children.Clear();
-
+        // Create context
         var ctx = new DrawingContextWrapper(Viewport);
-        ctx.Clear(Colors.White);
 
-        DrawOverlays(ctx);
+        Viewport.RenderTransform = new ScaleTransform(_zoom, _zoom);
+        Viewport.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
 
-        foreach (var elem in _skin.Elements)
+        // This function creates the skin, this gets passed to render overlays
+        // to be drawn after the under overlays.
+
+        object? renderSkin(DrawingContextWrapper ctx)
         {
-            if (elem == null)
-                continue;
+            if (Viewport == null)
+                return null;
 
-            var (w, h) = GetElementDisplaySize(elem);
-            var sx = (elem.Transform.X * _zoom) + _pan.X;
-            var sy = (elem.Transform.Y * _zoom) + _pan.Y;
-            var screenW = w * _zoom;
-            var screenH = h * _zoom;
-            var assetImage = LoadElementAssetImage(elem);
+            Viewport.Children.Clear();
 
-            if (assetImage != null)
+            ctx.Clear(Colors.Transparent);
+
+            foreach (var elem in _skin.Elements)
             {
-                ctx.DrawImage(assetImage, sx - screenW / 2, sy - screenH / 2, screenW, screenH, elem.Transform.Rotation);
+                if (elem == null)
+                    continue;
+
+                var (w, h) = GetElementDisplaySize(elem);
+
+                double sx = (Viewport.Bounds.Width / 2.0) + elem.Transform.X;
+                double sy = (Viewport.Bounds.Height / 2.0) + elem.Transform.Y;
+
+                var screenW = w;
+                var screenH = h;
+                var assetImage = LoadElementAssetImage(elem);
+
+                var previewControl = CreateElementPreview(elem);
+                if (previewControl is Image imageControl)
+                {
+                    ctx.DrawImage(imageControl.Source as IImage, sx - screenW / 2, sy - screenH / 2, screenW, screenH, elem.Transform.Rotation);
+                }
+                else if (previewControl != null)
+                {
+                    ctx.DrawControl(previewControl, sx - screenW / 2, sy - screenH / 2, screenW, screenH, elem.Transform.Rotation);
+                }
+                else
+                {
+                    ctx.DrawRect(sx - screenW / 2, sy - screenH / 2, screenW, screenH, Colors.Gray, 1);
+                }
             }
-            else
+
+            if (_selectedElement != null)
             {
-                ctx.DrawRect(sx - screenW / 2, sy - screenH / 2, screenW, screenH, Colors.Gray, 1);
+                var (w, h) = GetElementDisplaySize(_selectedElement);
+                var sx = (_selectedElement.Transform.X);
+                var sy = (_selectedElement.Transform.Y);
+                var screenW = w;
+                var screenH = h;
+
+                ctx.DrawRect(sx - screenW / 2, sy - screenH / 2, screenW, screenH, Colors.Cyan, 2, _selectedElement.Transform.Rotation);
+                DrawGizmos(ctx, _selectedElement);
             }
+
+            return null;
         }
 
-        if (_selectedElement != null)
-        {
-            var (w, h) = GetElementDisplaySize(_selectedElement);
-            var sx = (_selectedElement.Transform.X * _zoom) + _pan.X;
-            var sy = (_selectedElement.Transform.Y * _zoom) + _pan.Y;
-            var screenW = w * _zoom;
-            var screenH = h * _zoom;
+        //DrawOverlays(ctx, renderSkin);
+        renderSkin(ctx);
 
-            ctx.DrawRect(sx - screenW / 2, sy - screenH / 2, screenW, screenH, Colors.Cyan, 2, _selectedElement.Transform.Rotation);
-            DrawGizmos(ctx, _selectedElement);
-        }
+        DrawCenterCross(ctx);
+
+        InvalidateVisual();
     }
 
     private void DrawGizmos(DrawingContextWrapper ctx, SkinElement elem)
     {
-        double cx = (elem.Transform.X * _zoom) + _pan.X;
-        double cy = (elem.Transform.Y * _zoom) + _pan.Y;
+        double cx = GetCenterX() + (elem.Transform.X);
+        double cy = GetCenterY() + (elem.Transform.Y);
 
         var (w, h) = GetElementDisplaySize(elem);
-        double screenW = w * _zoom;
-        double screenH = h * _zoom;
-        double rotationHandleDistance = RotationHandleDistance * _zoom;
+        double screenW = w;
+        double screenH = h;
+        double rotationHandleDistance = RotationHandleDistance;
 
         var handles = GetElementHandlePoints(elem, cx, cy, screenW, screenH, rotationHandleDistance);
 
@@ -150,13 +203,13 @@ public partial class SkinEditorView : SpriteEditor
 
     private GizmoMode HitTestGizmo(Point mouse, SkinElement elem)
     {
-        double cx = (elem.Transform.X * _zoom) + _pan.X;
-        double cy = (elem.Transform.Y * _zoom) + _pan.Y;
+        double cx = GetCenterX() + (elem.Transform.X);
+        double cy = GetCenterY() + (elem.Transform.Y);
 
         var (w, h) = GetElementDisplaySize(elem);
-        double screenW = w * _zoom;
-        double screenH = h * _zoom;
-        double rotationHandleDistance = RotationHandleDistance * _zoom;
+        double screenW = w;
+        double screenH = h;
+        double rotationHandleDistance = RotationHandleDistance;
 
         var handles = GetElementHandlePoints(elem, cx, cy, screenW, screenH, rotationHandleDistance);
 
@@ -177,36 +230,78 @@ public partial class SkinEditorView : SpriteEditor
                Math.Abs(mouse.Y - hy) < HandleSize;
     }
 
-    private void DrawOverlays(DrawingContextWrapper ctx)
+    private void DrawOverlays(DrawingContextWrapper ctx, Func<DrawingContextWrapper, object?> func)
     {
-        /*
-            For those curious, the is how the overlay system works.
+        double stageW = _stageWidth;
+        double stageH = _stageHeight;
 
-            Everything within the Yellow is the main editor part.
-            This is where normal editor stuff happen. It is the size of the stage.
-            
-            Then we have the inner overlay, this is anything outside of the yellow main editor part.
-            This part has a gray border and has a clear light gray fill that tints
-            any item under it because it draws on top. This section acts like padding between the
-            outer and the main overlays.
+        double viewportW = Viewport.Bounds.Width;
+        double viewportH = Viewport.Bounds.Height;
 
-            Finally is the Outer overlay, which is anything beyond the inner overlay.
-            This part covers anything that goes under it, it is not meant for dropping items there.
-            It's the final border, and is a solid color, dark gray. 
-            The background for anything within the section has a checkerboard pattern under,
-            anything beyond has the solid color covering it which might be covered by a repeating background image. (Assets/Background Dark.png)
-        */
+        double x = GetCenterX() - stageW / 2.0;
+        double y = GetCenterY() - stageH / 2.0;
 
-        double w = _stageWidth * _zoom;
-        double h = _stageHeight * _zoom;
+        double padding = Math.Max(24, stageW * 0.1);
 
-        double x = _pan.X;
-        double y = _pan.Y;
+        double innerX = x - padding * 0.5;
+        double innerY = y - padding * 0.5;
+        double innerW = stageW + padding;
+        double innerH = stageH + padding;
 
-        ctx.DrawRect(x, y, w, h, Colors.Gray, 2);
-        ctx.DrawRect(x + w * 0.1, y + h * 0.1, w * 0.8, h * 0.8, Colors.Yellow, 1);
-        ctx.DrawRect(x + w * 0.1, y + h * 0.1, w * 0.8, h * 0.8, Colors.Yellow, 1);
-        ctx.DrawRect(x - w * 0.1, y - h * 0.1, w * 1.2, h * 1.2, Colors.Red, 1);
+        // Draw main editor content
+        func(ctx);
+
+        // Draw inner overlay border (surrounding the stage)
+        ctx.DrawRect(innerX, innerY, innerW, innerH, Colors.Gray, 2);
+
+        // Tint overflow area (but NOT the stage)
+        // Top
+        ctx.DrawOverlayRect(innerX, innerY, innerW, padding * 0.5, Color.FromArgb(40, 200, 200, 200), 0);
+
+        // Bottom
+        ctx.DrawOverlayRect(innerX, innerY + stageH + padding * 0.5, innerW, padding * 0.5, Color.FromArgb(40, 200, 200, 200), 0);
+
+        // Left
+        ctx.DrawOverlayRect(innerX, innerY + padding * 0.5, padding * 0.5, stageH, Color.FromArgb(40, 200, 200, 200), 0);
+
+        // Right
+        ctx.DrawOverlayRect(innerX + stageW + padding * 0.5, innerY + padding * 0.5, padding * 0.5, stageH, Color.FromArgb(40, 200, 200, 200), 0);
+    }
+
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Delete)
+        {
+            if (e.Source is TextBox)
+                return;
+
+            if (_selectedElement != null)
+            {
+                _skin.Elements.Remove(_selectedElement);
+                _selectedElement = null;
+                ElementsList.SelectedItem = null;
+                _sprite.SaveSkins();
+                RefreshElementList();
+                LoadPropertiesFromElement();
+                Redraw();
+            }
+
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key == Key.Escape)
+        {
+            if (_selectedElement != null)
+            {
+                _selectedElement = null;
+                ElementsList.SelectedItem = null;
+                LoadPropertiesFromElement();
+                Redraw();
+            }
+
+            e.Handled = true;
+        }
     }
 
     // ---------------------------------------------------------
@@ -218,6 +313,7 @@ public partial class SkinEditorView : SpriteEditor
             return;
 
         var pos = e.GetPosition(Viewport);
+        Root.Focus();
 
         if (_selectedElement != null)
         {
@@ -240,13 +336,18 @@ public partial class SkinEditorView : SpriteEditor
         if (hit != null)
         {
             _selectedElement = hit;
+            _movingElement = true;
+            _moveStartX = _selectedElement.Transform.X;
+            _moveStartY = _selectedElement.Transform.Y;
+            _gizmoStartMouse = pos;
             LoadPropertiesFromElement();
             Redraw();
-            _panning = false;
             return;
         }
 
-        _panning = true;
+        _selectedElement = null;
+        LoadPropertiesFromElement();
+        Redraw();
         _lastMouse = pos;
     }
 
@@ -261,8 +362,8 @@ public partial class SkinEditorView : SpriteEditor
         {
             if (_gizmoMode == GizmoMode.Rotate)
             {
-                double cx = (_selectedElement.Transform.X * _zoom) + _pan.X;
-                double cy = (_selectedElement.Transform.Y * _zoom) + _pan.Y;
+                double cx = (_selectedElement.Transform.X);
+                double cy = (_selectedElement.Transform.Y);
 
                 double angle1 = Math.Atan2(_gizmoStartMouse.Y - cy, _gizmoStartMouse.X - cx);
                 double angle2 = Math.Atan2(pos.Y - cy, pos.X - cx);
@@ -273,8 +374,8 @@ public partial class SkinEditorView : SpriteEditor
             }
             else if (_gizmoMode == GizmoMode.Scale)
             {
-                double dx = (pos.X - _gizmoStartMouse.X) / _zoom;
-                double dy = (pos.Y - _gizmoStartMouse.Y) / _zoom;
+                double dx = (pos.X - _gizmoStartMouse.X);
+                double dy = (pos.Y - _gizmoStartMouse.Y);
 
                 _selectedElement.Transform.ScaleX = Math.Max(0.1, _gizmoStartScaleX + dx * 0.01);
                 _selectedElement.Transform.ScaleY = Math.Max(0.1, _gizmoStartScaleY + dy * 0.01);
@@ -286,22 +387,28 @@ public partial class SkinEditorView : SpriteEditor
             return;
         }
 
-        if (_panning)
+        if (_movingElement && _selectedElement != null)
         {
-            var dx = pos.X - _lastMouse.X;
-            var dy = pos.Y - _lastMouse.Y;
+            double dx = (pos.X - _gizmoStartMouse.X);
+            double dy = (pos.Y - _gizmoStartMouse.Y);
 
-            _pan = new Point(_pan.X + dx, _pan.Y + dy);
-            _lastMouse = pos;
+            double limitX = (_stageWidth / 2) + 500;
+            double limitY = (_stageHeight / 2) + 500;
 
+            _selectedElement.Transform.X = Math.Clamp(_moveStartX + dx, -limitX, limitX);
+            _selectedElement.Transform.Y = Math.Clamp(_moveStartY + dy, -limitY, limitY);
+
+            SaveBackToSkinDefinition();
+            LoadPropertiesFromElement();
             Redraw();
+            return;
         }
     }
 
     private void OnPointerUp(object? sender, PointerReleasedEventArgs e)
     {
-        _panning = false;
         _draggingGizmo = false;
+        _movingElement = false;
         _gizmoMode = GizmoMode.None;
     }
 
@@ -355,6 +462,8 @@ public partial class SkinEditorView : SpriteEditor
     {
         double delta = e.Delta.Y > 0 ? 1.1 : 0.9;
         _zoom *= delta;
+        if (_zoom > 3.0) _zoom = 3.0;
+        if (_zoom < 0.5) _zoom = 0.5;
         Redraw();
     }
 
@@ -369,11 +478,11 @@ public partial class SkinEditorView : SpriteEditor
                 continue;
 
             var (w, h) = GetElementDisplaySize(elem);
-            var screenW = w * _zoom;
-            var screenH = h * _zoom;
-            var cx = (elem.Transform.X * _zoom) + _pan.X;
-            var cy = (elem.Transform.Y * _zoom) + _pan.Y;
-            var points = GetElementHandlePoints(elem, cx, cy, screenW, screenH, RotationHandleDistance * _zoom);
+            var screenW = w;
+            var screenH = h;
+            var cx = GetCenterX() + (elem.Transform.X);
+            var cy = GetCenterY() + (elem.Transform.Y);
+            var points = GetElementHandlePoints(elem, cx, cy, screenW, screenH, RotationHandleDistance);
 
             var left = points.Min(p => p.X);
             var right = points.Max(p => p.X);
@@ -416,10 +525,20 @@ public partial class SkinEditorView : SpriteEditor
 
     private void LoadPropertiesFromElement()
     {
-        if (_selectedElement == null)
-            return;
-
         _suppressPropertyEvents = true;
+
+        if (_selectedElement == null)
+        {
+            NameBox.Text = string.Empty;
+            XBox.Text = string.Empty;
+            YBox.Text = string.Empty;
+            RotationBox.Text = string.Empty;
+            ScaleXBox.Text = string.Empty;
+            ScaleYBox.Text = string.Empty;
+            ZBox.Text = string.Empty;
+            _suppressPropertyEvents = false;
+            return;
+        }
 
         NameBox.Text = _selectedElement.InstanceName;
         XBox.Text = _selectedElement.Transform.X.ToString();
@@ -576,17 +695,17 @@ public partial class SkinEditorView : SpriteEditor
             {
                 Spacing = 4,
                 Children =
-    {
-        thumb != null
-            ? new Image { Source = thumb, Width = 96, Height = 96 }
-            : new Image { Source = LoadFallbackImage().Source, Width = 96, Height = 96 },
+                {
+                    thumb != null
+                        ? new Image { Source = thumb, Width = 96, Height = 96 }
+                        : new Image { Source = LoadFallbackImage().Source, Width = 96, Height = 96 },
 
-        new TextBlock
-        {
-            Text = entry.Name,
-            Foreground = Brushes.White
-        }
-    }
+                    new TextBlock
+                    {
+                        Text = entry.Name,
+                        Foreground = Brushes.White
+                    }
+                }
             },
             Opacity = 0.85
         };
@@ -605,8 +724,8 @@ public partial class SkinEditorView : SpriteEditor
 
         bool isVideo = file.EndsWith(".mp4") || file.EndsWith(".webm");
 
-        double worldX = (dropPos.X - _pan.X) / _zoom;
-        double worldY = (dropPos.Y - _pan.Y) / _zoom;
+        double worldX = (dropPos.X);
+        double worldY = (dropPos.Y);
 
         SkinElement newElem = isVideo
             ? new SkinVideoElement { AssetPath = relative, Loop = true, AutoPlay = true }
@@ -623,16 +742,32 @@ public partial class SkinEditorView : SpriteEditor
         Redraw();
     }
 
+    private void DrawCenterCross(DrawingContextWrapper ctx)
+    {
+
+        double size = 16;
+
+        double cx = Viewport.Width / 2.0;
+        double cy = Viewport.Height / 2.0;
+
+        ctx.DrawRect(cx - size, cy - 1, size * 2, 2, Colors.Blue, 2);
+        ctx.DrawRect(cx - 1, cy - size, 2, size * 2, Colors.Blue, 2);
+    }
+
     private (double width, double height) GetElementDisplaySize(SkinElement element)
     {
+        double width = element is SkinVideoElement ? 96 : 64;
+        double height = element is SkinVideoElement ? 96 : 64;
+
         if (TryLoadElementAssetImage(element, out var assetImage) && assetImage is Bitmap bitmap)
         {
-            var width = Math.Max(16, bitmap.PixelSize.Width * Math.Max(0.1, element.Transform.ScaleX));
-            var height = Math.Max(16, bitmap.PixelSize.Height * Math.Max(0.1, element.Transform.ScaleY));
-            return (width, height);
+            width = Math.Max(16, bitmap.PixelSize.Width * 0.5);
+            height = Math.Max(16, bitmap.PixelSize.Height * 0.5);
         }
 
-        return (64 * Math.Max(0.1, element.Transform.ScaleX), 64 * Math.Max(0.1, element.Transform.ScaleY));
+        width = Math.Max(16, width * Math.Max(0.1, element.Transform.ScaleX));
+        height = Math.Max(16, height * Math.Max(0.1, element.Transform.ScaleY));
+        return (width, height);
     }
 
     private bool TryLoadElementAssetImage(SkinElement element, out IImage? image)
@@ -666,6 +801,36 @@ public partial class SkinEditorView : SpriteEditor
     private IImage? LoadElementAssetImage(SkinElement element)
     {
         return TryLoadElementAssetImage(element, out var image) ? image : null;
+    }
+
+    private Control? CreateElementPreview(SkinElement element)
+    {
+        if (element is SkinVideoElement)
+        {
+            return new Border
+            {
+                Background = new SolidColorBrush(Color.FromArgb(220, 25, 25, 35)),
+                BorderBrush = Brushes.Orange,
+                BorderThickness = new Thickness(2),
+                Padding = new Thickness(8),
+                Child = new StackPanel
+                {
+                    Spacing = 4,
+                    Children =
+                    {
+                        new TextBlock { Text = "▶", Foreground = Brushes.White, FontSize = 28, HorizontalAlignment = HorizontalAlignment.Center },
+                        new TextBlock { Text = "Video Preview", Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center }
+                    }
+                }
+            };
+        }
+
+        if (TryLoadElementAssetImage(element, out var image) && image != null)
+        {
+            return new Image { Source = image, Stretch = Stretch.UniformToFill };
+        }
+
+        return null;
     }
 
     private List<Point> GetElementHandlePoints(SkinElement elem, double cx, double cy, double screenW, double screenH, double rotationHandleDistance)
