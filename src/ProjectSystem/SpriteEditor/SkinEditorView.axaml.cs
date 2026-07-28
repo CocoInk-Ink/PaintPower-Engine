@@ -289,7 +289,7 @@ public partial class SkinEditorView : SpriteEditor
             {
                 _skin.Elements.Remove(_selectedElement);
                 _selectedElement = null;
-                ElementsList.SelectedItem = null;
+                if (ElementsList.SelectedItem != null) ElementsList.SelectedItem = null;
                 _sprite.SaveSkins();
                 RefreshElementList();
                 LoadPropertiesFromElement();
