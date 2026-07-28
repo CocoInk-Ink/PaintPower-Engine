@@ -14,7 +14,7 @@ public partial class SpriteManagerView : UserControl
 {
     public ObservableCollection<PaintSprite> Sprites { get; } = new();
 
-    private PaintProject _project;
+    private PaintProject? _project;
 
     public event Action<PaintSprite>? SpriteSelected;
 
@@ -110,6 +110,7 @@ public partial class SpriteManagerView : UserControl
 
     private void OnDuplicateSprite(object? sender, RoutedEventArgs e)
     {
+        if (_project == null) return;
         if (SpriteList.SelectedItem is not PaintSprite sprite)
             return;
 
@@ -123,10 +124,11 @@ public partial class SpriteManagerView : UserControl
 
     private async void OnDeleteSprite(object? sender, RoutedEventArgs e)
     {
+        if (_project == null) return;
         if (SpriteList.SelectedItem is PaintSprite sprite)
         {
             var dialog = new DeletionConfirmationDialog();
-            var window = this.VisualRoot as Window;
+            var window = MainWindow.window;
             var doDelete = await dialog.ShowAsync(window);
             if (doDelete == "delete")
             {
@@ -148,7 +150,7 @@ public partial class SpriteManagerView : UserControl
         {
 
             var dialog = new InputDialog("Rename sprite", $"Enter new name for \"{sprite.Name}\":");
-            var window = this.VisualRoot as Window;
+            var window = MainWindow.window;
             var name = await dialog.ShowAsync(window);
 
             if (string.IsNullOrWhiteSpace(name)) {
