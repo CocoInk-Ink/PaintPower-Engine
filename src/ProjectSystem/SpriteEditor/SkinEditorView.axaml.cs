@@ -111,8 +111,8 @@ public partial class SkinEditorView : SpriteEditor
         // Create context
         var ctx = new DrawingContextWrapper(Viewport);
 
-        Viewport.RenderTransform = new ScaleTransform(_zoom, _zoom);
-        Viewport.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+        ViewportBorder.RenderTransform = new ScaleTransform(_zoom, _zoom);
+        ViewportBorder.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
 
         // This function creates the skin, this gets passed to render overlays
         // to be drawn after the under overlays.
@@ -158,8 +158,8 @@ public partial class SkinEditorView : SpriteEditor
             if (_selectedElement != null)
             {
                 var (w, h) = GetElementDisplaySize(_selectedElement);
-                var sx = (_selectedElement.Transform.X);
-                var sy = (_selectedElement.Transform.Y);
+                var sx = GetCenterX() + _selectedElement.Transform.X;
+                var sy = GetCenterY() + _selectedElement.Transform.Y;
                 var screenW = w;
                 var screenH = h;
 
@@ -170,9 +170,7 @@ public partial class SkinEditorView : SpriteEditor
             return null;
         }
 
-        //DrawOverlays(ctx, renderSkin);
         renderSkin(ctx);
-
         DrawCenterCross(ctx);
 
         InvalidateVisual();
@@ -230,7 +228,7 @@ public partial class SkinEditorView : SpriteEditor
                Math.Abs(mouse.Y - hy) < HandleSize;
     }
 
-    private void DrawOverlays(DrawingContextWrapper ctx, Func<DrawingContextWrapper, object?> func)
+    private void DrawOverlays(DrawingContextWrapper ctx)
     {
         double stageW = _stageWidth;
         double stageH = _stageHeight;
@@ -247,9 +245,6 @@ public partial class SkinEditorView : SpriteEditor
         double innerY = y - padding * 0.5;
         double innerW = stageW + padding;
         double innerH = stageH + padding;
-
-        // Draw main editor content
-        func(ctx);
 
         // Draw inner overlay border (surrounding the stage)
         ctx.DrawRect(innerX, innerY, innerW, innerH, Colors.Gray, 2);
@@ -268,12 +263,27 @@ public partial class SkinEditorView : SpriteEditor
         ctx.DrawOverlayRect(innerX + stageW + padding * 0.5, innerY + padding * 0.5, padding * 0.5, stageH, Color.FromArgb(40, 200, 200, 200), 0);
     }
 
+    private void DrawCenterCross(DrawingContextWrapper ctx)
+    {
+
+        double size = 16;
+
+        double cx = ViewportBorder.Bounds.Width / 2.0;
+        double cy = ViewportBorder.Bounds.Height / 2.0;
+
+        ctx.DrawRect(cx - size, cy - 1, size * 2, 2, Colors.Blue, 2);
+        ctx.DrawRect(cx - 1, cy - size, 2, size * 2, Colors.Blue, 2);
+    }
+
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.Delete)
         {
             if (e.Source is TextBox)
-                return;
+            {
+                _sprite.SaveSkins();
+                LoadPropertiesFromElement();
+            }
 
             if (_selectedElement != null)
             {
@@ -740,18 +750,6 @@ public partial class SkinEditorView : SpriteEditor
 
         RefreshElementList();
         Redraw();
-    }
-
-    private void DrawCenterCross(DrawingContextWrapper ctx)
-    {
-
-        double size = 16;
-
-        double cx = Viewport.Width / 2.0;
-        double cy = Viewport.Height / 2.0;
-
-        ctx.DrawRect(cx - size, cy - 1, size * 2, 2, Colors.Blue, 2);
-        ctx.DrawRect(cx - 1, cy - size, 2, size * 2, Colors.Blue, 2);
     }
 
     private (double width, double height) GetElementDisplaySize(SkinElement element)

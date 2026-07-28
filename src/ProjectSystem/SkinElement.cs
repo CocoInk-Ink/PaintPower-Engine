@@ -9,5 +9,7 @@ namespace PaintPower.ProjectSystem
         public SkinTransform Transform { get; set; } = new();
         public int ZIndex { get; set; } = 0;
         public virtual string AssetPath { get; set; } = ""; // relative to items/
+
+		public override string ToString() => InstanceName;
     }
 }
