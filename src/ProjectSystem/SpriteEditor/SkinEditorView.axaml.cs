@@ -482,8 +482,10 @@ public partial class SkinEditorView : SpriteEditor
     // ---------------------------------------------------------
     private SkinElement? HitTestElement(Point mouse)
     {
-        foreach (var elem in _skin.Elements)
+        for (int i = _skin.Elements.Count - 1; i >= 0; i--)
         {
+            var elem = _skin.Elements[i];
+
             if (elem == null)
                 continue;
 
