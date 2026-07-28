@@ -10,6 +10,7 @@ using PaintPower.ProjectSystem;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using TextMateSharp.Grammars;
 
 namespace PaintPower.FileEditors;
@@ -23,6 +24,9 @@ public partial class ScriptEditor : FileEditor
     private RainbowBracketColorizer _bracketColorizer;
     private FoldingManager _foldingManager;
     private CodeFoldingStrategy _foldingStrategy;
+
+    // For custom languages that need to be added directly.
+    private string[] types = { ".as" };
 
     public ScriptEditor(string relativePath, TempWorkspace workspace)
     {
@@ -41,6 +45,7 @@ public partial class ScriptEditor : FileEditor
 
         // 1. Create registry options with a theme
         _registryOptions = new RegistryOptions(ThemeName.LightPlus);
+        var manager = new GrammarManager();
 
         // 2. Install TextMate
         _textMateInstallation = editor.InstallTextMate(_registryOptions);
@@ -70,7 +75,10 @@ public partial class ScriptEditor : FileEditor
             scope = _registryOptions.GetScopeByExtension(".css");
         else if (ext == ".pxs")
             scope = _registryOptions.GetScopeByExtension(".cs");
-
+        else if(ext == ".jsfl")
+            scope = _registryOptions.GetScopeByExtension(".js");
+        else if (ext == ".asc")
+            scope = _registryOptions.GetScopeByExtension(".js");
 
         // NOW add bracket colorizer
         _bracketColorizer = new RainbowBracketColorizer(editor.Document);
@@ -84,6 +92,10 @@ public partial class ScriptEditor : FileEditor
         if (scope != null)
         {
             _textMateInstallation.SetGrammar(scope);
+        }
+        else if (types.Contains(ext))
+        {
+            _textMateInstallation.SetGrammarFile($"Assets/Grammars/{getGrammarFile(ext)}");
         }
         else
         {
@@ -105,6 +117,18 @@ public partial class ScriptEditor : FileEditor
 
             Save();
         };
+    }
+
+    private string getGrammarFile(string ext)
+    {
+        return ext switch
+        {
+                ".as" => "AS3",
+                ".as2" => "AS3",
+                ".as3" => "AS3",
+                ".mxml" => "MXML",
+                _ => throw new Exception("Should not happen! Error loading grammar in script editor!")
+        } + ".tmLanguage.json";
     }
 
     override public void Save()
