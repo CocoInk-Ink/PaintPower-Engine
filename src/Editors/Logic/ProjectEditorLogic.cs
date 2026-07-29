@@ -187,7 +187,16 @@ public class ProjectEditorLogic
                 return;
             }
 
-            await ProjectSaver.Save(Project, CurrentEditor);
+            await _view.SetProjectLoading(true);
+
+            await ProjectSaver.Save(Project, CurrentEditor, (processed, total) =>
+            {
+                Dispatcher.UIThread.Post(async () =>
+                {
+                    await _view.UpdateSavingProgress(processed, total);
+                });
+            });
+
             SaveNeeded = false;
             SetStatus("Project Saved!");
         }
@@ -195,6 +204,11 @@ public class ProjectEditorLogic
         {
             Log.QuickLog($"Error while saving project: {ex}");
             await ErrorDialog.ShowAsync(_window, "Failed to save project.");
+        }
+        finally
+        {
+            RefreshUI();
+            await _view.SetProjectLoading(false);
         }
     }
 
@@ -212,7 +226,8 @@ public class ProjectEditorLogic
                 DefaultExtension = "xPaint",
                 SuggestedFileName = $"{Project.Metadata.name}.xPaint",
                 ShowOverwritePrompt = true
-            });
+            }
+        );
 
         if (savePicker == null)
             return;

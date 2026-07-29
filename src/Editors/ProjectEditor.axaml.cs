@@ -69,7 +69,26 @@ public partial class ProjectEditor : Editor
             int percent = (int)((processed / (double)total) * 100);
 
             loader.SetPercent(percent);
-            loader.SetSubheaderText($"{processed} of {total} assets loaded");
+            loader.SetText($"{Translator.Map("Loading Project")}...", $"{processed} of {total} assets loaded");
+        }
+
+        // Force Avalonia to refresh layout
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            VmOnlyArea.InvalidateMeasure();
+            VmOnlyArea.InvalidateArrange();
+            VmOnlyArea.InvalidateVisual();
+        });
+    }
+
+    public async Task UpdateSavingProgress(int processed, int total)
+    {
+        if (VmPanelControl?.StageArea?.LoadingPart is ProcessingPanel loader)
+        {
+            int percent = (int)((processed / (double)total) * 100);
+
+            loader.SetPercent(percent);
+            loader.SetText($"{Translator.Map("Saving Project")}...", $"{processed} of {total} assets saved");
         }
 
         // Force Avalonia to refresh layout

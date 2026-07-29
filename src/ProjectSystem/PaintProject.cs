@@ -46,7 +46,7 @@ public class PaintProject
     public void CreateNew(ProjectEditorLogic logic)
     {
         var loader = new ProjectLoader();
-		_ = loader.LoadDefaultProject(this, logic);
+        _ = loader.LoadDefaultProject(this, logic);
 
         ProjectPath = "";
         Metadata = new ProjectMetadata { name = "Untitled", OpenFile = null };
@@ -113,13 +113,13 @@ public class PaintProject
     // ------------------------------------------------------------
     // SAVE PROJECT
     // ------------------------------------------------------------
-    public async Task SaveToDisk(string? outputPath = null)
+    public async Task SaveToDisk(string? outputPath = null, Action<int, int>? onProgress = null)
     {
         SaveMetadata();
 
         string target = outputPath ?? ProjectPath;
 
-        if (string.IsNullOrWhiteSpace(target) || string.IsNullOrEmpty(target))
+        if (string.IsNullOrWhiteSpace(target))
             throw new InvalidOperationException("ProjectPath is empty. UI must provide a save path.");
 
         await Task.Run(() =>
@@ -127,7 +127,22 @@ public class PaintProject
             if (File.Exists(target))
                 File.Delete(target);
 
-            ZipFile.CreateFromDirectory(Workspace.Root, target);
+            // Count files
+            var files = Directory.GetFiles(Workspace.Root, "*", SearchOption.AllDirectories);
+            int total = files.Length;
+            int processed = 0;
+
+            using (var zip = ZipFile.Open(target, ZipArchiveMode.Create))
+            {
+                foreach (var file in files)
+                {
+                    string entryName = Path.GetRelativePath(Workspace.Root, file);
+                    zip.CreateEntryFromFile(file, entryName);
+
+                    processed++;
+                    onProgress?.Invoke(processed, total);
+                }
+            }
         });
 
         ProjectPath = target;
