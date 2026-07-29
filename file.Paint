@@ -1,9 +1,0 @@
-This is the project metadata format. Also this is a comment,
-Unless the brackets are used in a statment, it's a comment.
-{Project: "My project"}
-
-[options] -> [
-    {ServerId}:1 The project id on the server
-    {StageSize}:default The default size
-    {UsePreBuiltVersion}:true For projects that
-]
