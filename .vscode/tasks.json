@@ -1,0 +1,45 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "PaintPower Editor: build (Debug)",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "--configuration",
+                "Debug",
+                "${workspaceFolder}/PaintPower/PaintPower.csproj"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "PaintPower Editor: build (Release)",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "--configuration",
+                "Release",
+                "${workspaceFolder}/PaintPower/PaintPower.csproj"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build PaintPower Editor",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "${workspaceFolder}/PaintPower/PaintPower.csproj"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}
