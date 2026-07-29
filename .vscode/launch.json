@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug PaintPower Editor",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "PaintPower Editor: build (Debug)",
+            "program": "${workspaceFolder}/PaintPower/bin/Debug/net6.0/PaintPower.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/PaintPower",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        }
+    ]
+}
