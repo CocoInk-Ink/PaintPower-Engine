@@ -1,0 +1,51 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PaintPower.Dialogs.SignInDialog"
+        Width="350"
+        Height="220"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+
+    <Border Background="#222" Padding="20" CornerRadius="8">
+        <StackPanel Spacing="12">
+
+            <TextBlock Text="Sign In"
+                       FontSize="20"
+                       HorizontalAlignment="Center"
+                       Foreground="White"/>
+
+            <StackPanel Spacing="6">
+                <TextBlock Text="Username" Foreground="White"/>
+                <TextBox x:Name="UsernameBox"/>
+            </StackPanel>
+
+            <StackPanel Spacing="6">
+                <TextBlock Text="Password" Foreground="White"/>
+                <TextBox x:Name="PasswordBox"
+                         PasswordChar="•"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="10">
+
+                <Button x:Name="CancelButton"
+                        Content="Cancel"
+                        Width="80"/>
+
+                <Button x:Name="LoginButton"
+                        Content="Login"
+                        Width="80"
+                        Classes="accent"/>
+            </StackPanel>
+
+            <TextBlock x:Name="StatusText"
+                       Foreground="Orange"
+                       FontSize="12"
+                       Text=""
+                       HorizontalAlignment="Center"/>
+
+        </StackPanel>
+    </Border>
+
+</Window>

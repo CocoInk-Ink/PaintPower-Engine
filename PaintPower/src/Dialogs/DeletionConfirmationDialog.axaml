@@ -1,0 +1,20 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PaintPower.Dialogs.DeletionConfirmationDialog"
+        Width="430" Height="150"
+        WindowStartupLocation="CenterOwner">
+
+    <StackPanel Margin="10" Spacing="10">
+		<TextBlock x:Name="PromptText"/>
+		<TextBlock x:Name="PromptText2"/>
+		<StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Spacing="16"
+                            Grid.Column="1"
+                            Margin="12,0">
+			<Button x:Name="DeleteButton" Classes="white" Content="Delete" Click="OnDelete"/>
+			<Button x:Name="CancelButton" Classes="white" Content="Cancel" Click="OnCancel"/>
+		</StackPanel>
+    </StackPanel>
+</Window>

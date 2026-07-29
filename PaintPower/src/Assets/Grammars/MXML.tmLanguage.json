@@ -1,0 +1,124 @@
+{
+  "fileTypes": [
+    "mxml"
+  ],
+  "name": "MXML",
+  "patterns": [
+    {
+      "begin": "(?=<(?:fx|mx):Script(?:\\s+(?:\\w+:)?\\w+=([\"']).+\\1)*\\s*>)",
+      "end": "(?<=<\\/(?:fx|mx):Script>)",
+      "name": "meta.script.mxml",
+      "patterns": [
+        {
+          "match": "<(?:fx|mx):Script[^>]*>",
+          "name": "entity.name.tag.xml"
+        },
+        {
+          "match": "<\\/(?:fx|mx):Script>",
+          "name": "entity.name.tag.xml"
+        },
+        {
+          "begin": "(?=<!\\[CDATA\\[)",
+          "end": "(?<=\\]\\]>)",
+          "name": "meta.cdata.mxml.script",
+          "patterns": [
+            {
+              "include": "source.actionscript.3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "begin": "<(?:fx|mx):Style>",
+      "end": "<\\/(?:fx|mx):Style>",
+      "name": "entity.name.tag.xml.mxml.style",
+      "patterns": [
+        {
+          "include": "source.css"
+        }
+      ]
+    },
+    {
+      "begin": "(?=<(?:fx|mx):Metadata(?:\\s+(?:\\w+:)?\\w+=([\"']).+\\1)*\\s*>)",
+      "end": "(?<=<\\/(?:fx|mx):Metadata>)",
+      "name": "meta.metadata.mxml",
+      "patterns": [
+        {
+          "match": "<(?:fx|mx):Metadata[^>]*>",
+          "name": "entity.name.tag.xml"
+        },
+        {
+          "match": "<\\/(?:fx|mx):Metadata>",
+          "name": "entity.name.tag.xml"
+        },
+        {
+          "include": "#metadata"
+        },
+        {
+          "begin": "/\\*\\*(?!/)",
+          "end": "\\*/",
+          "name": "comment.block.documentation.actionscript.3",
+          "patterns": [
+            {
+              "match": "@(copy|default|eventType|example|exampleText|includeExample|inheritDoc|internal|param|private|return|see|since|throws)\\b",
+              "name": "keyword.other.documentation.actionscript.3.asdoc"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "include": "text.xml"
+    }
+  ],
+  "repository": {
+    "metadata": {
+      "begin": "\\[\\s*\\b(\\w+)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.other.actionscript.3"
+        }
+      },
+      "end": "\\]",
+      "name": "meta.metadata_info.actionscript.3",
+      "patterns": [
+        {
+          "include": "#metadata_info"
+        }
+      ]
+    },
+    "metadata_info": {
+      "begin": "\\(",
+      "end": "\\)",
+      "patterns": [
+        {
+          "include": "#strings"
+        },
+        {
+          "captures": {
+            "1": {
+              "name": "variable.parameter.actionscript.3"
+            }
+          },
+          "match": "(\\w+)\\s*="
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "begin": "\"",
+          "end": "\"",
+          "name": "string.quoted.double.actionscript.3"
+        },
+        {
+          "begin": "'",
+          "end": "'",
+          "name": "string.quoted.single.actionscript.3"
+        }
+      ]
+    }
+  },
+  "scopeName": "text.mxml"
+}

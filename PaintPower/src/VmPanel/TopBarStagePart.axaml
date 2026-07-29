@@ -1,0 +1,71 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PaintPower.VMPanel.TopBarStagePart">
+
+    <Border Background="#f0f0f0"
+            CornerRadius="8,8,0,0"
+            BorderBrush="#c0c0c0"
+            BorderThickness="1"
+            Padding="6">
+
+        <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto"
+              VerticalAlignment="Center">
+
+            <!-- Left side: Stage title or empty space -->
+            <TextBlock Text="Stage"
+                       FontSize="14"
+                       Foreground="#444"
+                       VerticalAlignment="Center"
+                       Margin="4 0"/>
+
+            <!-- Spacer -->
+            <Grid Grid.Column="1"/>
+
+            <!-- Fullscreen button -->
+            <Button Grid.Column="2"
+                    Width="28" Height="28"
+                    Background="#4da3ff"
+                    BorderBrush="#3a8bd6"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Margin="4 0"
+                    x:Name="FullscreenButton">
+                <TextBlock Text="[+]"
+                           FontSize="16"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Button>
+
+            <!-- Green flag -->
+            <Button Grid.Column="3"
+                    Width="28" Height="28"
+                    Background="#4caf50"
+                    BorderBrush="#3e8c41"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Margin="4 0"
+                    x:Name="GreenFlagButton">
+                <TextBlock Text=">"
+                           FontSize="16"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Button>
+
+            <!-- Red stop -->
+            <Button Grid.Column="4"
+                    Width="28" Height="28"
+                    Background="#e53935"
+                    BorderBrush="#b52c2a"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Margin="4 0"
+                    x:Name="StopButton">
+                <TextBlock Text="||"
+                           FontSize="16"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Button>
+
+        </Grid>
+    </Border>
+</UserControl>

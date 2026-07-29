@@ -1,0 +1,34 @@
+The Universal Plugin Format:
+
+Plug-Ins and Extenions. A plug in is an external application
+(like how vscode runs extensions in a different process.
+Or like how things like NPAPI/PPAPI worked, external dlls running in their own container
+that could modify contents in the browser) that talks to the host Application.
+
+The application can be it's own app installed on the users computer, and stored in the
+"C:\Users\<username>\<Application>\Plugins" folder as a ".plugin" file. The ".plugin" type won't
+just be for the host app, but a universal standard for application plugins.
+A plugin is run using an app called a PlugIn Runner.
+
+This "Plugin Runner" understands the format
+and knows which application can access this plugin. When loading plugins, the host App looks
+for plugins in the folder and activates the applications using either a
+build in plugin runner, or one installed on the user's system, and starts talking to them.
+
+The Plugin Runner has
+different states for each thread running including: HALTED, WAITING, READY, RUNNING, STOPPED, and UNSUPPORTED.
+
+Because it's running on your computer, inside of "Plugin Runner", it has Application level access
+that could be completely unrelated to the host app like a normal application.
+
+It talks through a special message stream. Can also be done via WebSockets or IOStreaming.
+
+Their are two modes, they can be switched anytime by the host.
+They are: Sandboxed, Free.
+
+The Plugin Runner can run multiple plugins in one process.
+
+When the host requests a plugin to be run, it gives an id to the thread and gives it and a special password
+to the host for proper and secure communication.
+
+A plugin can contain code, images, whatever really, inside of a special custom format (not a zip or an archive).

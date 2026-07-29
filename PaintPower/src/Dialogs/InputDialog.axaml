@@ -1,0 +1,12 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PaintPower.Dialogs.InputDialog"
+        Width="300" Height="150"
+        WindowStartupLocation="CenterOwner">
+
+    <StackPanel Margin="10" Spacing="10">
+        <TextBlock x:Name="PromptText"/>
+        <TextBox x:Name="InputBox" />
+		<Button Classes="white" Content="OK" Click="OnOk"/>
+    </StackPanel>
+</Window>

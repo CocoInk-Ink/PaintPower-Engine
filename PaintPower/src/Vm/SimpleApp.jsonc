@@ -1,0 +1,61 @@
+// For those people who don't know what I'm doing, this is not coding.
+// This is JSON, it is a human readable format for storing data
+
+// Example:
+
+/*
+{
+	"Name": "MyName",
+	"age": 47,
+	"score": 56
+}
+*/
+[
+	{
+		"isSprite": false, 				// A sprite or a display item
+		"isDIItem": true,
+		"Scripts": [{
+				"code-kind": ["JavaScript"],
+				"scope-hoisting": "js", 		// Uses hoisting.
+				"Code": [
+					{ "op": "diplay:goto", "params": [{ "op": "mem:getVar:Dynamic", "params": ["0x4384"] }, 5] },
+					{ "op": "js:block", "params": ["0x6643",
+						{ "op": "sys:pushjsvar", "params": ["0x4384", "'var1'", 30] },
+						{ "op": "if", "params": ["0x3759", {"cond": [{ "op": "mem:getVar:Dynamic", "params": ["0x4384"] }, ">", "2"]}] },
+						{ "op": "js:block", "params": ["0x3759",
+							{ "op": "js.log", "params": ["Hello, World!"] }
+						] }
+					] },
+					{ "op": "js:function", "name": "jsadd", "params": [{"type": "js:param", "name": "num1", "memslot": "findopenslot"}, {"type": "js:param", "name": "num2", "memslot": "findopenslot"}], "body": [
+						{"op": "return", "value": { "op": "math:add", "params": [{ "op": "js:getLocalParam", "params": "num1" }, { "op": "js:getLocalParam", "params": "num2"}]}}
+					] }
+				]
+			},
+			{
+				"code-kind": ["C"],
+				"scope-hoisting": "none",
+				"Code": [
+					{ "op": "c:include", "params": "sys:stdio.h" },
+					{ "op": "c:def", "name": "main", "type": "void", "params": ["void"], "body": [
+						{ "op": "c:call", "params": ["printf", "Hello, World!\\n"] },
+						{ "op": "c:def", "name": "x", "type": "int", "value": 3 },
+						{ "op": "c:def", "name": "y", "type": "int", "value": 7 },
+						{ "op": "c:def", "name": "z", "type": "int" },
+						{ "op": "c:assign", "type": "int", "var": { "op": "mem:getVarSlot", "params": ["z"] }, "value": { "op": "c:call:extern", "params": ["jsadd", "x", "y"] } },
+						{ "op": "return", "value": 0 }
+					]},
+					{ "op": "c:def", "type": "void", "params": [] }
+				]
+			}
+		],
+
+		// The following is for builtin configuration
+		"builtins.js": [
+			{ "op": "builtin:function", "return": { "type": "js:string" }, "params": [{ "type": "...args:any", "memslot": "0x76546" }], "name": "js.log", "body": [
+				{ "op": "js:foreach", "params": ["0x76546", "0x4874",
+					{ "op": "sys:call", "params": ["0x000", "0x4874"] }
+				]}
+			] }
+		]
+	}
+]

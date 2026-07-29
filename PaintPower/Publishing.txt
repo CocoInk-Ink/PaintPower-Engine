@@ -1,0 +1,9 @@
+Publishing.txt
+
+To build PaintPower for deployment (publishing), use the following command:
+
+.\publish-all.ps1
+
+Or 
+
+./publish-all.sh

@@ -1,0 +1,88 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PaintPower.ProjectLoaderDialog"
+        Width="750"
+        Height="500"
+        Title="Open Project"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True"
+        xmlns:local="clr-namespace:PaintPower">
+
+        <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="12">
+
+                <!-- Header -->
+                <TextBlock Text="Open Project"
+                           FontSize="22"
+                           Margin="0,0,0,10" />
+
+                <!-- Navigation Bar -->
+                <StackPanel Grid.Row="1"
+                            Orientation="Horizontal"
+                            Spacing="6">
+
+                        <Button Content="←" Width="32" Click="OnBack" />
+                        <Button Content="→" Width="32" Click="OnForward" />
+                        <Button Content="↑" Width="32" Click="OnUp" />
+
+                        <TextBox x:Name="PathBox"
+                                 Width="500"
+                                 Margin="10,0"
+                                 KeyDown="OnPathBoxKeyDown" />
+
+                        <Button Content="Go" Width="50" Click="OnGo" />
+                </StackPanel>
+
+                <!-- Main Content -->
+                <Grid Grid.Row="2" ColumnDefinitions="3*,2*" ColumnSpacing="10">
+
+                        <!-- File Explorer List -->
+                        <ListBox x:Name="FileList"
+                                 DoubleTapped="OnItemDoubleTapped"
+                                 SelectionChanged="OnSelectionChanged">
+                                <ListBox.ItemTemplate>
+                                        <DataTemplate x:DataType="local:FileItem">
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="{Binding Icon}" />
+                                                        <TextBlock Text="{Binding Name}" />
+                                                </StackPanel>
+                                        </DataTemplate>
+                                </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <!-- Preview Panel -->
+                        <Border Grid.Column="1"
+                                Background="#1A000000"
+                                Padding="10"
+                                CornerRadius="6">
+                                <StackPanel>
+                                        <TextBlock Text="Project Info"
+                                                   FontSize="16"
+                                                   Margin="0,0,0,8" />
+
+                                        <TextBlock x:Name="PreviewName" Text="Name: -" />
+                                        <TextBlock x:Name="PreviewPath" Text="Path: -" />
+                                        <TextBlock x:Name="PreviewModified" Text="Modified: -" />
+                                </StackPanel>
+                        </Border>
+
+                </Grid>
+
+                <!-- Buttons -->
+                <StackPanel Grid.Row="3"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Spacing="10"
+                            Margin="0,10,0,0">
+
+                        <Button Content="Cancel"
+                                Width="100"
+                                Click="OnCancel" />
+
+                        <Button Content="Open"
+                                Width="100"
+                                IsEnabled="{Binding SelectedItem, ElementName=FileList}"
+                                Click="OnOpen" />
+                </StackPanel>
+
+        </Grid>
+</Window>

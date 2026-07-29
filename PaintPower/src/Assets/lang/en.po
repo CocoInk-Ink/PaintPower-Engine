@@ -1,0 +1,242 @@
+# English translations for PaintPower
+msgid ""
+msgstr ""
+"Language: en\n"
+
+msgid "PaintPower"
+msgstr "PaintPower"
+
+msgid "File"
+msgstr "File"
+
+msgid "New"
+msgstr "New"
+
+msgid "Open..."
+msgstr "Open..."
+
+msgid "Save"
+msgstr "Save"
+
+msgid "Save As..."
+msgstr "Save As..."
+
+msgid "Exit"
+msgstr "Exit"
+
+msgid "Edit"
+msgstr "Edit"
+
+msgid "Undo"
+msgstr "Undo"
+
+msgid "Redo"
+msgstr "Redo"
+
+msgid "Cut"
+msgstr "Cut"
+
+msgid "Copy"
+msgstr "Copy"
+
+msgid "Paste"
+msgstr "Paste"
+
+msgid "Clear"
+msgstr "Clear"
+
+msgid "Server"
+msgstr "Server"
+
+msgid "Make Connection"
+msgstr "Make Connection"
+
+msgid "Upload Project to server!"
+msgstr "Upload Project to server!"
+
+msgid "Open collaborators"
+msgstr "Open collaborators"
+
+msgid "Language"
+msgstr "Language"
+
+msgid "Help"
+msgstr "Help"
+
+msgid "Documentation"
+msgstr "Documentation"
+
+msgid "Report a Bug"
+msgstr "Report a Bug"
+
+msgid "About"
+msgstr "About"
+
+msgid "Not edited yet."
+msgstr "Not edited yet."
+
+msgid "Editing Sprite:"
+msgstr "Editing Sprite:"
+
+msgid "VM Panel"
+msgstr "VM Panel"
+
+msgid "Sprite"
+msgstr "Sprite"
+
+msgid "Sprites"
+msgstr "Sprites"
+
+msgid "New Sprite"
+msgstr "New Sprite"
+
+msgid "Rename"
+msgstr "Rename"
+
+msgid "Duplicate"
+msgstr "Duplicate"
+
+msgid "Delete"
+msgstr "Delete"
+
+msgid "Import"
+msgstr "Import"
+
+msgid "Export"
+msgstr "Export"
+
+msgid "Version"
+msgstr "Version"
+
+msgid "Build"
+msgstr "Build"
+
+msgid "build"
+msgstr "build"
+
+## Version types: ##
+
+msgid "Pre-Alpha"
+msgstr "Pre-Alpha"
+
+msgid "Alpha"
+msgstr "Alpha"
+
+msgid "Pre-Beta"
+msgstr "Pre-Beta"
+
+msgid "Beta"
+msgstr "Beta"
+
+msgid "Pre-Release"
+msgstr "Pre-Release"
+
+# Leave blank
+msgid "Release"
+msgstr " "
+
+## Saving Status ##
+
+msgid "Saving Project"
+msgstr "Saving Project"
+
+msgid "Saving Project."
+msgstr "Saving Project."
+
+msgid "Saving Project.."
+msgstr "Saving Project.."
+
+msgid "Saving Project..."
+msgstr "Saving Project..."
+
+msgid "Project Saved!"
+msgstr "Project Saved!"
+
+msgid "NewName"
+msgstr "NewName"
+
+msgid "Open PaintPower Project"
+msgstr "Open PaintPower Project"
+
+msgid "PaintPower Project"
+msgstr "PaintPower Project"
+
+msgid "Save Before Continuing?"
+msgstr "Save Before Continuing?"
+
+msgid "Your changes will be lost if you don't save."
+msgstr "Your changes will be lost if you don't save."
+
+msgid "Ok"
+msgstr "Ok"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Cancel"
+
+msgid "Overwrite your old data?!"
+msgstr "Overwrite your old data?!"
+
+msgid "Create New Project"
+msgstr "Create New Project"
+
+msgid "Open Existing Project"
+msgstr "Open Existing Project"
+
+msgid "NewProject"
+msgstr "NewProject"
+
+msgid "Open Project"
+msgstr "Open Project"
+
+msgid "Welcome to the PaintPower engine!"
+msgstr "Welcome to the PaintPower engine!"
+
+
+# Editor Tools
+msgid "Brush"
+msgstr "Brush"
+
+msgid "Eraser"
+msgstr "Eraser"
+
+msgid "Hand Tool"
+msgstr "Hand Tool"
+
+msgid "Bucket Fill"
+msgstr "Bucket Fill"
+
+msgid "Go to Root"
+msgstr "Go to Root"
+
+msgid "Go Up"
+msgstr "Go Up"
+
+msgid "New Folder"
+msgstr "New Folder"
+
+msgid "Copy"
+msgstr "Copy"
+
+msgid "Cut"
+msgstr "Cut"
+
+msgid "Paste"
+msgstr "Paste"
+
+msgid "Delete"
+msgstr "Delete"
+
+msgid "Rename"
+msgstr "Rename"
+
+msgid "Duplicate"
+msgstr "Duplicate"
+
+msgid "Import"
+msgstr "Import"
+
+msgid "Export"
+msgstr "Export"

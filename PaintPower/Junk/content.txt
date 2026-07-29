@@ -1,0 +1,58 @@
+Note: The tool simplified the command to `dotnet build PaintPower.csproj` (terminal ID=a4e0b5d9-da99-41a7-bae7-c2b787e1676c). This is the output of running that command instead:
+Restore complete (0.5s)
+  PaintPower failed with 5 error(s) and 44 warning(s) (1.1s)
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Editors\Layer.cs(45,46): warning CS8612: Nullability of reference types in type of 'event PropertyChangedEventHandler Layer.PropertyChanged' doesn't match implicitly implemented member 'event PropertyChangedEventHandler? INotifyPropertyChanged.PropertyChanged'.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Editors\Layer.cs(47,69): warning CS8625: Cannot convert null literal to non-nullable reference type.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Networking\Net.cs(29,40): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Compiler\PreBytecode\KiteScriptTest.cs(13,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Dialogs\ProjectLoaderDialog.axaml.cs(15,12): warning CS8618: Non-nullable field '_tcs' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer\ExplorerView.axaml.cs(25,12): warning CS8618: Non-nullable field '_workspace' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer\ExplorerItem.cs(5,19): warning CS8618: Non-nullable property 'Name' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer\ExplorerItem.cs(6,19): warning CS8618: Non-nullable property 'FullPath' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer\ExplorerView.axaml.cs(143,43): warning CS8604: Possible null reference argument for parameter 'parent' in 'Task<string?> NewFileDialog.ShowAsync(Window parent)'.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer\ExplorerView.axaml.cs(178,43): warning CS8604: Possible null reference argument for parameter 'parent' in 'Task<string?> InputDialog.ShowAsync(Window parent)'.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer\ExplorerView.axaml.cs(213,24): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Editors\ScriptEditor.axaml.cs(74,57): warning CS8602: Dereference of a possibly null reference.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer\ExplorerView.axaml.cs(256,41): warning CS8604: Possible null reference argument for parameter 'parent' in 'Task<string?> PopupWindowDialog.ShowAsync(Window parent)'.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Editors\ScriptEditor.axaml.cs(112,43): warning CS8602: Dereference of a possibly null reference.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer\ExplorerView.axaml.cs(267,47): warning CS8604: Possible null reference argument for parameter 'parent' in 'Task<string?> DeletionConfirmationDialog.ShowAsync(Window parent)'.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer\ExplorerView.axaml.cs(298,43): warning CS8604: Possible null reference argument for parameter 'parent' in 'Task<string?> InputDialog.ShowAsync(Window parent)'.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer\ExplorerView.axaml.cs(380,41): warning CS8604: Possible null reference argument for parameter 'parent' in 'Task<string?> PopupWindowDialog.ShowAsync(Window parent)'.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer\ExplorerView.axaml.cs(386,26): warning CS0618: 'OpenFileDialog' is obsolete: 'Use Window.StorageProvider API or TopLevel.StorageProvider API'
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer\ExplorerView.axaml.cs(390,45): warning CS8604: Possible null reference argument for parameter 'parent' in 'Task<string[]?> OpenFileDialog.ShowAsync(Window parent)'.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Time\CachedTimer.cs(7,38): warning CS8625: Cannot convert null literal to non-nullable reference type.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Editors\PaintEditor.axaml.cs(86,9): warning CS8602: Dereference of a possibly null reference.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Editors\PaintEditor.axaml.cs(37,12): warning CS8618: Non-nullable field '_bitmap' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer\ExplorerView.axaml.cs(428,26): warning CS0618: 'SaveFileDialog' is obsolete: 'Use Window.StorageProvider API or TopLevel.StorageProvider API'
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer\ExplorerView.axaml.cs(432,45): warning CS8604: Possible null reference argument for parameter 'parent' in 'Task<string?> SaveFileDialog.ShowAsync(Window parent)'.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer\ExplorerView.axaml.cs(460,38): warning CS8604: Possible null reference argument for parameter 'parent' in 'Task<string?> PopupWindowDialog.ShowAsync(Window parent)'.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Editors\PaintEditor.axaml.cs(291,25): warning CS8604: Possible null reference argument for parameter 'from' in 'Matrix? VisualExtensions.TransformToVisual(Visual from, Visual to)'.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\SpriteEditor\SpriteManagerView.axaml.cs(21,12): warning CS8618: Non-nullable field '_project' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\SpriteEditor\SpriteManagerView.axaml.cs(127,51): warning CS8604: Possible null reference argument for parameter 'parent' in 'Task<string?> DeletionConfirmationDialog.ShowAsync(Window parent)'.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Editors\PaintEditor.axaml.cs(431,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Editors\PaintEditor.axaml.cs(442,9): warning CS8602: Dereference of a possibly null reference.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\SpriteEditor\SpriteManagerView.axaml.cs(149,47): warning CS8604: Possible null reference argument for parameter 'parent' in 'Task<string?> InputDialog.ShowAsync(Window parent)'.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Editors\PaintEditor.axaml.cs(452,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Editors\PaintEditor.axaml.cs(457,28): warning CS8602: Dereference of a possibly null reference.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Editors\PaintEditor.axaml.cs(471,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Editors\PaintEditor.axaml.cs(472,9): warning CS8602: Dereference of a possibly null reference.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Editors\PaintEditor.axaml.cs(478,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Editors\PaintEditor.axaml.cs(485,13): warning CS8602: Dereference of a possibly null reference.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Editors\Layer.cs(9,20): warning CS8618: Non-nullable field '_name' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Editors\Layer.cs(12,29): warning CS8618: Non-nullable field '_bitmap' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Editors\Layer.cs(13,29): warning CS8618: Non-nullable field '_thumbnail' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Editors\Layer.cs(45,46): warning CS8618: Non-nullable event 'PropertyChanged' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the event as nullable.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\ProjectSystem\PaintSprite.cs(100,26): warning CS8600: Converting null literal or possible null value to non-nullable type.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\ProjectSystem\PaintSprite.cs(102,49): warning CS8604: Possible null reference argument for parameter 'path2' in 'string Path.Combine(string path1, string path2)'.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\Dialogs\ProjectLoaderDialog.axaml.cs(13,56): warning CS0649: Field 'ProjectLoaderDialog._tcs' is never assigned to, and will always have its default value null
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer/ExplorerView.axaml(5,5,5,5): Avalonia error AVLN2000: Unable to resolve type MenuBar from namespace https://github.com/avaloniaui Line 5, position 5.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer/ExplorerView.axaml(6,6,6,6): Avalonia error AVLN2000: Unable to resolve suitable regular or attached property Header on type Avalonia.Controls:Avalonia.Controls.Menu Line 6, position 6.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer/ExplorerView.axaml(13,6,13,6): Avalonia error AVLN2000: Unable to resolve suitable regular or attached property Header on type Avalonia.Controls:Avalonia.Controls.Menu Line 13, position 6.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer/ExplorerView.axaml(17,6,17,6): Avalonia error AVLN2000: Unable to resolve suitable regular or attached property Header on type Avalonia.Controls:Avalonia.Controls.Menu Line 17, position 6.
+    C:\Users\ninoe\Documents\PaintPower\PaintPower\FileExplorer/ExplorerView.axaml(5,5,5,5): Avalonia error AVLN2000: Internal compiler error: Index was out of range. Must be non-negative and less than the size of the collection. (Parameter 'index') (ResolveContentPropertyTransformer) Line 5, position 5.
+
+Build failed with 5 error(s) and 44 warning(s) in 2.1s
+
+Workload updates are available. Run `dotnet workload list` for more information.
+
+Command exited with code 1

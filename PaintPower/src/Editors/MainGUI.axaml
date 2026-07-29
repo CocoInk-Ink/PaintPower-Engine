@@ -1,0 +1,16 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PaintPower.Editors.MainGUI">
+
+    <Grid RowDefinitions="50,*">
+
+        <!-- HEADER -->
+        <ContentControl x:Name="HeaderPart"
+                        Grid.Row="0" />
+
+        <!-- MAIN CONTENT SWITCHER -->
+        <ContentControl x:Name="MainPart"
+                Grid.Row="1" />
+
+    </Grid>
+</UserControl>

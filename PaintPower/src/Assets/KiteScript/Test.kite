@@ -1,0 +1,114 @@
+[#script] @!! KiteScript Test Script
+
+@!! Generic easy features:
+
+[#define var "x" "x"]
+[#define var "y" "y"]
+[#define var "status" "status"]
+
+[#set "x"](15);
+[#set "y"]("Outer");
+[#set "status"]("unknown");
+
+[#call PopularIds.functions.print]("Starting system check...");
+
+[#if x < 10]
+[#block]
+    [#call PopularIds.functions.print]("x is less than 10");
+    [#set "status"]("low");
+[/#block]
+
+[#else if x == 10]
+[#block]
+    [#call PopularIds.functions.print]("x is exactly 10");
+    [#set "status"]("equal");
+[/#block]
+
+[#else if x > 10]
+[#block]
+    [#call PopularIds.functions.print]("x is greater than 10");
+    [#set "status"]("high");
+[/#block]
+
+[#else]
+[#block]
+    [#call PopularIds.functions.print]("Unexpected value for x");
+[/#block]
+
+[#call PopularIds.functions.print]("Status after x-check:");
+[#call PopularIds.functions.print]([#get "status"]);
+
+[#if y == "Outer"]
+    [#call PopularIds.functions.print]("y is Outer");
+
+[#block]
+    [#define var "y" "y"]
+    [#set "y"]("Inner");
+
+    [#call PopularIds.functions.print]("Inside nested block:");
+    [#call PopularIds.functions.print]([#get "y"]);
+[/#block]
+
+[#call PopularIds.functions.print]("Outside nested block:");
+[#call PopularIds.functions.print]([#get "y"]);
+
+[#if status != "unknown"]
+    [#call PopularIds.functions.print]("Status is valid");
+
+[#call PopularIds.functions.print]("System check complete.");
+
+@#! New print
+[#define var 0x9837]("Hello, World!");
+
+[#foreach char in [#get 0x9837]] [#call 0x000](char);
+@#! Or:
+[#foreach char in Message] [#block]
+    [#call 0x000](char);
+[/#block]
+
+[#gui] @!! A GUI for KiteScript.
+
+@!! An html GUI for KiteScript.
+[#diplay : #html]
+    [#head]
+        [#title]KiteScript GUI[/#title]
+        [#description]This is a GUI for KiteScript, a programming language for creating games and applications.[/#description]
+    [/#head]
+    [#body]
+        [#h1]KiteScript GUI[/#h1]
+        [#p]This is a GUI for KiteScript, a programming language for creating games and applications.[/#p]
+        [#button id "runButton"]Run[/#button]
+        [#button id "stopButton"]Stop[/#button]
+        [#textarea id "codeArea" rows="20" cols="80"][/#textarea]
+    [/#body]
+[/#diplay]
+
+@!! Does not yet support it's own gui type, but it will in the future. For now, it is html written with KiteScript syntax.
+
+@!! eXtendable KiteScript Markup Language (XKML) is a General Markup Language for general
+@!! purpose programming and scripting written with KiteScript Syntax.
+
+[#kxml] @!! A markup language for KiteScript.
+
+@!! Body
+
+[#data]
+    [#table id "Users"]
+        @!! Define the pattern for the table header.
+        [#pattern id "Header"]
+            [#cell]Name:String[/#cell]
+            [#cell]Age:Integer[/#cell]
+            [#cell]Email:String[/#cell]
+        [/#pattern]
+        [#row id "User1"]
+            [#cell]"John Doe"[/#cell]
+            [#cell]30[/#cell]
+            [#cell]"john.doe@example.com"[/#cell]
+        [/#row]
+        [#row id "User2"]
+            [#cell]"Jane Smith"[/#cell]
+            [#cell]25[/#cell]
+            [#cell]"jane.smith@example.com"[/#cell]
+        [/#row]
+    [/#table]
+[/#data]

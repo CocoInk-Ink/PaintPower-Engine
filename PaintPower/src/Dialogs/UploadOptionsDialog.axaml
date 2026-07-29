@@ -1,0 +1,36 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PaintPower.Dialogs.UploadOptionsDialog"
+        Width="360"
+        Height="200"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+
+    <Border Background="#222" Padding="20" CornerRadius="8">
+        <StackPanel Spacing="12">
+
+            <TextBlock x:Name="InfoText"
+                       Foreground="White"
+                       FontSize="16"
+                       HorizontalAlignment="Center"/>
+
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Spacing="10">
+
+                <Button x:Name="OverwriteButton"
+                        Content="Overwrite"
+                        Width="100"/>
+
+                <Button x:Name="UnlinkButton"
+                        Content="Unlink"
+                        Width="100"/>
+
+                <Button x:Name="CancelButton"
+                        Content="Cancel"
+                        Width="80"/>
+            </StackPanel>
+
+        </StackPanel>
+    </Border>
+</Window>
