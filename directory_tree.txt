@@ -1,0 +1,830 @@
+Folder PATH listing for volume Windows
+Volume serial number is 00000028 2495:9312
+C:\USERS\NINOE\DOCUMENTS\GITHUB\THE-XPAINT-PROJECT\PAINTPOWER-ENGINE\PAINTPOWER
+|   .editorconfig
+|   .gitattributes
+|   .gitignore
+|   AllSources.txt
+|   AllSourcesOld.txt
+|   combine_sources.bat
+|   Contributing.md
+|   file.Paint
+|   Full VM System.txt
+|   Goals.md
+|   InstallerScript.iss
+|   License.txt
+|   package.ps1
+|   package.sh
+|   PaintPower.csproj
+|   Plugin.txt
+|   Plugins and Extensions.txt
+|   publish-all.ps1
+|   publish-all.sh
+|   Publishing.txt
+|   README.md
+|   sdcfvbghjhygtfr.txt
+|   Split.txt
+|   test.as
+|   test.asm
+|   
++---AvaloniaEdit
+|   \---net6.0
+|       |   AvaloniaEdit.deps.json
+|       |   AvaloniaEdit.dll
+|       |   
+|       \---zh-Hans
+|               AvaloniaEdit.resources.dll
+|               
++---bin
+|   \---Debug
+|       \---net6.0
+|           |   Avalonia.Base.dll
+|           |   Avalonia.Controls.ColorPicker.dll
+|           |   Avalonia.Controls.dll
+|           |   Avalonia.DesignerSupport.dll
+|           |   Avalonia.Desktop.dll
+|           |   Avalonia.Diagnostics.dll
+|           |   Avalonia.Dialogs.dll
+|           |   Avalonia.dll
+|           |   Avalonia.Fonts.Inter.dll
+|           |   Avalonia.FreeDesktop.dll
+|           |   Avalonia.Markup.dll
+|           |   Avalonia.Markup.Xaml.dll
+|           |   Avalonia.Metal.dll
+|           |   Avalonia.MicroCom.dll
+|           |   Avalonia.Native.dll
+|           |   Avalonia.OpenGL.dll
+|           |   Avalonia.Remote.Protocol.dll
+|           |   Avalonia.Skia.dll
+|           |   Avalonia.Themes.Fluent.dll
+|           |   Avalonia.Themes.Simple.dll
+|           |   Avalonia.Vulkan.dll
+|           |   Avalonia.Win32.Automation.dll
+|           |   Avalonia.Win32.dll
+|           |   Avalonia.X11.dll
+|           |   AvaloniaEdit.dll
+|           |   AvaloniaEdit.TextMate.dll
+|           |   Classic.Avalonia.Theme.ColorPicker.dll
+|           |   Classic.Avalonia.Theme.dll
+|           |   Classic.CommonControls.Avalonia.dll
+|           |   ExCSS.dll
+|           |   Fizzler.dll
+|           |   HarfBuzzSharp.dll
+|           |   MicroCom.Runtime.dll
+|           |   NAudio.Asio.dll
+|           |   NAudio.Core.dll
+|           |   NAudio.dll
+|           |   NAudio.Midi.dll
+|           |   NAudio.Wasapi.dll
+|           |   NAudio.WinMM.dll
+|           |   Onigwrap.dll
+|           |   PaintPower.deps.json
+|           |   PaintPower.dll
+|           |   PaintPower.exe
+|           |   PaintPower.pdb
+|           |   PaintPower.runtimeconfig.json
+|           |   ShimSkiaSharp.dll
+|           |   SixLabors.ImageSharp.dll
+|           |   SkiaSharp.dll
+|           |   SkiaSharp.HarfBuzz.dll
+|           |   Svg.Custom.dll
+|           |   Svg.Model.dll
+|           |   Svg.Skia.dll
+|           |   System.Diagnostics.DiagnosticSource.dll
+|           |   System.IO.Pipelines.dll
+|           |   TextMateSharp.dll
+|           |   TextMateSharp.Grammars.dll
+|           |   Tmds.DBus.Protocol.dll
+|           |   
+|           +---Assets
+|           |   |   Background Dark.png
+|           |   |   Background.png
+|           |   |   Background2.png
+|           |   |   Background3.png
+|           |   |   Background4.png
+|           |   |   Banner.png
+|           |   |   Checkerboard.png
+|           |   |   costume1.png
+|           |   |   costume2.png
+|           |   |   PaintPower Logo.ico
+|           |   |   PaintPower Logo.png
+|           |   |   Pencil.png
+|           |   |   Untitled.xPaint
+|           |   |   UntitledOld.xPaint
+|           |   |   xPaint Logo.png
+|           |   |   
+|           |   +---Grammars
+|           |   |       AS3.tmLanguage
+|           |   |       AS3.tmLanguage.json
+|           |   |       MXML.tmLanguage
+|           |   |       MXML.tmLanguage.json
+|           |   |       
+|           |   +---KiteScript
+|           |   |       gui.kite
+|           |   |       Test.kite
+|           |   |       Test.pxs
+|           |   |       
+|           |   +---lang
+|           |   |       en.po
+|           |   |       es.po
+|           |   |       lang-list.txt
+|           |   |       
+|           |   +---PaintPower Filetypes
+|           |   |       Asm.png
+|           |   |       Asm.svg
+|           |   |       AsmArm.png
+|           |   |       AsmArm.svg
+|           |   |       Blank File.png
+|           |   |       Blank File.svg
+|           |   |       C.png
+|           |   |       C.svg
+|           |   |       Class.png
+|           |   |       Class.svg
+|           |   |       Coco.png
+|           |   |       Coco.svg
+|           |   |       Coco2.png
+|           |   |       Coco2.svg
+|           |   |       CocoScript.png
+|           |   |       CocoScript.svg
+|           |   |       Cpp.png
+|           |   |       Cpp.svg
+|           |   |       CS.png
+|           |   |       CS.svg
+|           |   |       CSS.png
+|           |   |       CSS.svg
+|           |   |       EJS.png
+|           |   |       EJS.svg
+|           |   |       Fallback.png
+|           |   |       Fallback.svg
+|           |   |       File.png
+|           |   |       File.svg
+|           |   |       HTML.png
+|           |   |       HTML.svg
+|           |   |       Image file.png
+|           |   |       Image file.svg
+|           |   |       Java.png
+|           |   |       Java.svg
+|           |   |       JavaClass.png
+|           |   |       JavaClass.svg
+|           |   |       JS.png
+|           |   |       JS.svg
+|           |   |       KS.png
+|           |   |       KS.svg
+|           |   |       New File.png
+|           |   |       New File.svg
+|           |   |       PaintPowerImages.sb3
+|           |   |       PCS.png
+|           |   |       PCS.svg
+|           |   |       PSF.png
+|           |   |       PSF.svg
+|           |   |       PSS.png
+|           |   |       PSS.svg
+|           |   |       PXML.png
+|           |   |       PXML.svg
+|           |   |       Python.png
+|           |   |       Python.svg
+|           |   |       Sparkle.png
+|           |   |       Sparkle.svg
+|           |   |       Swift.png
+|           |   |       Swift.svg
+|           |   |       SXML.png
+|           |   |       SXML.svg
+|           |   |       TS.png
+|           |   |       TS.svg
+|           |   |       XML.png
+|           |   |       XML.svg
+|           |   |       XS.png
+|           |   |       XS.svg
+|           |   |       XSS.png
+|           |   |       XSS.svg
+|           |   |       
+|           |   \---Sounds
+|           |           Click.wav
+|           |           Click2.wav
+|           |           Close.wav
+|           |           Hard Slam.wav
+|           |           Open Close.wav
+|           |           Open.wav
+|           |           Slam.wav
+|           |           
+|           +---runtimes
+|           |   +---linux-arm
+|           |   |   \---native
+|           |   |           libHarfBuzzSharp.so
+|           |   |           libSkiaSharp.so
+|           |   |           
+|           |   +---linux-arm64
+|           |   |   \---native
+|           |   |           libHarfBuzzSharp.so
+|           |   |           libonigwrap.so
+|           |   |           libSkiaSharp.so
+|           |   |           
+|           |   +---linux-bionic-arm64
+|           |   |   \---native
+|           |   |           libonigwrap.so
+|           |   |           
+|           |   +---linux-bionic-x64
+|           |   |   \---native
+|           |   |           libonigwrap.so
+|           |   |           
+|           |   +---linux-loongarch64
+|           |   |   \---native
+|           |   |           libHarfBuzzSharp.so
+|           |   |           
+|           |   +---linux-musl-arm
+|           |   |   \---native
+|           |   |           libHarfBuzzSharp.so
+|           |   |           
+|           |   +---linux-musl-arm64
+|           |   |   \---native
+|           |   |           libHarfBuzzSharp.so
+|           |   |           libonigwrap.so
+|           |   |           
+|           |   +---linux-musl-loongarch64
+|           |   |   \---native
+|           |   |           libHarfBuzzSharp.so
+|           |   |           
+|           |   +---linux-musl-riscv64
+|           |   |   \---native
+|           |   |           libHarfBuzzSharp.so
+|           |   |           
+|           |   +---linux-musl-x64
+|           |   |   \---native
+|           |   |           libHarfBuzzSharp.so
+|           |   |           libonigwrap.so
+|           |   |           libSkiaSharp.so
+|           |   |           
+|           |   +---linux-riscv64
+|           |   |   \---native
+|           |   |           libHarfBuzzSharp.so
+|           |   |           
+|           |   +---linux-x64
+|           |   |   \---native
+|           |   |           libHarfBuzzSharp.so
+|           |   |           libonigwrap.so
+|           |   |           libSkiaSharp.so
+|           |   |           
+|           |   +---linux-x86
+|           |   |   \---native
+|           |   |           libHarfBuzzSharp.so
+|           |   |           
+|           |   +---maccatalyst-arm64
+|           |   |   \---native
+|           |   |           libonigwrap.dylib
+|           |   |           
+|           |   +---maccatalyst-x64
+|           |   |   \---native
+|           |   |           libonigwrap.dylib
+|           |   |           
+|           |   +---osx
+|           |   |   \---native
+|           |   |           libAvaloniaNative.dylib
+|           |   |           libHarfBuzzSharp.dylib
+|           |   |           libSkiaSharp.dylib
+|           |   |           
+|           |   +---osx-arm64
+|           |   |   \---native
+|           |   |           libonigwrap.dylib
+|           |   |           
+|           |   +---osx-x64
+|           |   |   \---native
+|           |   |           libonigwrap.dylib
+|           |   |           
+|           |   +---win-arm64
+|           |   |   \---native
+|           |   |           av_libglesv2.dll
+|           |   |           libHarfBuzzSharp.dll
+|           |   |           libonigwrap.dll
+|           |   |           libSkiaSharp.dll
+|           |   |           
+|           |   +---win-x64
+|           |   |   \---native
+|           |   |           av_libglesv2.dll
+|           |   |           libHarfBuzzSharp.dll
+|           |   |           libonigwrap.dll
+|           |   |           libSkiaSharp.dll
+|           |   |           
+|           |   \---win-x86
+|           |       \---native
+|           |               av_libglesv2.dll
+|           |               libHarfBuzzSharp.dll
+|           |               libonigwrap.dll
+|           |               libSkiaSharp.dll
+|           |               
+|           \---zh-Hans
+|                   AvaloniaEdit.resources.dll
+|                   
++---docs
+|       KiteScript definition.md
+|       KiteScript Grammar.ebnf2
+|       Publishing.md
+|       Roadmap.md
+|       Skin Editor.png
+|       To do.txt
+|       Upload Plan.txt
+|       Upload-Plan.md
+|       WXA format.txt
+|       WXA-Format.md
+|       
++---Junk
+|       Blah.txt
+|       ChangeLog.txt
+|       content.txt
+|       Files.txt
+|       JunkTextFile.txt
+|       Split-Plan.txt
+|       Sprite plan.txt
+|       
++---obj
+|   |   PaintPower.csproj.nuget.dgspec.json
+|   |   PaintPower.csproj.nuget.g.props
+|   |   PaintPower.csproj.nuget.g.targets
+|   |   project.assets.json
+|   |   project.nuget.cache
+|   |   
+|   \---Debug
+|       \---net6.0
+|           |   .NETCoreApp,Version=v6.0.AssemblyAttributes.cs
+|           |   apphost.exe
+|           |   PaintPower.assets.cache
+|           |   PaintPower.csproj.AssemblyReference.cache
+|           |   PaintPower.csproj.BuildWithSkipAnalyzers
+|           |   PaintPower.csproj.CoreCompileInputs.cache
+|           |   PaintPower.csproj.FileListAbsolute.txt
+|           |   PaintPower.csproj.Up2Date
+|           |   PaintPower.dll
+|           |   PaintPower.GeneratedMSBuildEditorConfig.editorconfig
+|           |   PaintPower.genruntimeconfig.cache
+|           |   PaintPower.pdb
+|           |   PaintPower.sourcelink.json
+|           |   
+|           +---Avalonia
+|           |       references
+|           |       resources
+|           |       Resources.Inputs.cache
+|           |       
+|           +---ref
+|           |       PaintPower.dll
+|           |       
+|           \---refint
+|                   PaintPower.dll
+|                   
+\---src
+    |   App.axaml.cs
+    |   app.manifest
+    |   ApplicationModes.cs
+    |   AppState.cs
+    |   MainWindow.axaml
+    |   MainWindow.axaml.cs
+    |   PaintPowerApp.axaml
+    |   PaintPowerApp.axaml.cs
+    |   PaintPower_Engine.cs
+    |   PlayerOnly.cs
+    |   Program.cs
+    |   ProjectInfo.cs
+    |   
+    +---Accessibility
+    |   \---Translation
+    |           Translator.cs
+    |           
+    +---Assets
+    |   |   Background Dark.png
+    |   |   Background.png
+    |   |   Background2.png
+    |   |   Background3.png
+    |   |   Background4.png
+    |   |   Banner.png
+    |   |   Checkerboard.png
+    |   |   costume1.png
+    |   |   costume2.png
+    |   |   PaintPower Logo.ico
+    |   |   PaintPower Logo.png
+    |   |   Pencil.png
+    |   |   Untitled.xPaint
+    |   |   UntitledOld.xPaint
+    |   |   xPaint Logo.png
+    |   |   
+    |   +---Grammars
+    |   |       AS3.tmLanguage
+    |   |       AS3.tmLanguage.json
+    |   |       MXML.tmLanguage
+    |   |       MXML.tmLanguage.json
+    |   |       
+    |   +---KiteScript
+    |   |       gui.kite
+    |   |       Test.kite
+    |   |       Test.pxs
+    |   |       
+    |   +---lang
+    |   |       en.po
+    |   |       es.po
+    |   |       lang-list.txt
+    |   |       
+    |   +---PaintPower Filetypes
+    |   |       Asm.png
+    |   |       Asm.svg
+    |   |       AsmArm.png
+    |   |       AsmArm.svg
+    |   |       Blank File.png
+    |   |       Blank File.svg
+    |   |       C.png
+    |   |       C.svg
+    |   |       Class.png
+    |   |       Class.svg
+    |   |       Coco.png
+    |   |       Coco.svg
+    |   |       Coco2.png
+    |   |       Coco2.svg
+    |   |       CocoScript.png
+    |   |       CocoScript.svg
+    |   |       Cpp.png
+    |   |       Cpp.svg
+    |   |       CS.png
+    |   |       CS.svg
+    |   |       CSS.png
+    |   |       CSS.svg
+    |   |       EJS.png
+    |   |       EJS.svg
+    |   |       Fallback.png
+    |   |       Fallback.svg
+    |   |       File.png
+    |   |       File.svg
+    |   |       HTML.png
+    |   |       HTML.svg
+    |   |       Image file.png
+    |   |       Image file.svg
+    |   |       Java.png
+    |   |       Java.svg
+    |   |       JavaClass.png
+    |   |       JavaClass.svg
+    |   |       JS.png
+    |   |       JS.svg
+    |   |       KS.png
+    |   |       KS.svg
+    |   |       New File.png
+    |   |       New File.svg
+    |   |       PaintPowerImages.sb3
+    |   |       PCS.png
+    |   |       PCS.svg
+    |   |       PSF.png
+    |   |       PSF.svg
+    |   |       PSS.png
+    |   |       PSS.svg
+    |   |       PXML.png
+    |   |       PXML.svg
+    |   |       Python.png
+    |   |       Python.svg
+    |   |       Sparkle.png
+    |   |       Sparkle.svg
+    |   |       Swift.png
+    |   |       Swift.svg
+    |   |       SXML.png
+    |   |       SXML.svg
+    |   |       TS.png
+    |   |       TS.svg
+    |   |       XML.png
+    |   |       XML.svg
+    |   |       XS.png
+    |   |       XS.svg
+    |   |       XSS.png
+    |   |       XSS.svg
+    |   |       
+    |   \---Sounds
+    |           Click.wav
+    |           Click2.wav
+    |           Close.wav
+    |           Hard Slam.wav
+    |           Open Close.wav
+    |           Open.wav
+    |           Slam.wav
+    |           
+    +---Compiler
+    |   |   CompileFromSource.cs
+    |   |   example.txt
+    |   |   kjgg
+    |   |   PreBytecode.txt
+    |   |   
+    |   \---PreBytecode
+    |           ahh.cs
+    |           ARM.s
+    |           TestRunner.cs
+    |           x86.s
+    |           
+    +---Dialogs
+    |       DeletionConfirmation.axaml.cs
+    |       DeletionConfirmationDialog.axaml
+    |       DoSaveWindowDialog.axaml
+    |       DoSaveWindowDialog.axaml.cs
+    |       ErrorDialog.axaml
+    |       ErrorDialog.axaml.cs
+    |       InputDialog.axaml
+    |       InputDialog.axaml.cs
+    |       LinkBeforeUploadDialog.axaml
+    |       LinkBeforeUploadDialog.axaml.cs
+    |       NewFileDialog.axaml
+    |       NewFileDialog.axaml.cs
+    |       PopupDialog.axaml
+    |       PopupWindowDialog.axaml
+    |       PopupWindowDialog.axaml.cs
+    |       ProjectLoaderDialog.axaml
+    |       ProjectLoaderDialog.axaml.cs
+    |       SaveBeforeContinueDialog.axaml
+    |       SaveBeforeContinueDialog.axaml.cs
+    |       SelectServerProjectDialog.axaml
+    |       SelectServerProjectDialog.axaml.cs
+    |       SignInDialog.axaml
+    |       SignInDialog.axaml.cs
+    |       UploadOptionsDialog.axaml
+    |       UploadOptionsDialog.axaml.cs
+    |       
+    +---Display
+    |   +---DisplayIntergration
+    |   |       DIItem.cs
+    |   |       DIPlay.cs
+    |   |       
+    |   \---Stage
+    |           StageItem.cs
+    |           
+    +---Editors
+    |   |   Editor.cs
+    |   |   FolderEditor.cs
+    |   |   Header.axaml
+    |   |   Header.axaml.cs
+    |   |   HomeView.axaml
+    |   |   HomeView.axaml.cs
+    |   |   MainGUI.axaml
+    |   |   MainGUI.axaml.cs
+    |   |   ProjectEditor.axaml
+    |   |   ProjectEditor.axaml.cs
+    |   |   SingleFileEditor.cs
+    |   |   WorkspaceEditor.cs
+    |   |   
+    |   \---Logic
+    |           ProjectEditorLogic.cs
+    |           
+    +---FileEditors
+    |   |   AnimationEditor.cs
+    |   |   EditorBase.cs
+    |   |   EditorTypes.cs
+    |   |   FileEditorManager.cs
+    |   |   PaintEditor.axaml
+    |   |   PaintEditor.axaml.cs
+    |   |   ScriptEditor.axaml
+    |   |   ScriptEditor.axaml.cs
+    |   |   SoundPlayer.axaml
+    |   |   SoundPlayer.axaml.cs
+    |   |   VideoEditor.cs
+    |   |   
+    |   \---Tools
+    |       |   PixelGrid.cs
+    |       |   
+    |       +---PaintEditorTools
+    |       |       Checkerboard.cs
+    |       |       Layer.cs
+    |       |       SVPicker.cs
+    |       |       
+    |       \---ScriptEditorTools
+    |               BracketPair.cs
+    |               CodeFoldingStrategy.cs
+    |               GrammarManager.cs
+    |               RainbowBracketColorizer.cs
+    |               RainbowRockRenderer.cs
+    |               
+    +---FileExplorer
+    |       ExplorerDragProperties.cs
+    |       ExplorerItem.cs
+    |       ExplorerRow.cs
+    |       ExplorerView.axaml
+    |       ExplorerView.axaml.cs
+    |       
+    +---Logging
+    |       Log.cs
+    |       LogLevel.cs
+    |       
+    +---Networking
+    |   |   Domain.cs
+    |   |   Net.cs
+    |   |   Routes.cs
+    |   |   Server.cs
+    |   |   URLifyer.cs
+    |   |   
+    |   \---WebSocket
+    |           WebSocket.cs
+    |           
+    +---ProjectSystem
+    |   |   PaintProject.cs
+    |   |   PaintSprite.cs
+    |   |   ProjectLoader.cs
+    |   |   ProjectSaver.cs
+    |   |   SkinDefinition.cs
+    |   |   SkinElement.cs
+    |   |   SkinImageElement.cs
+    |   |   SkinTransform.cs
+    |   |   SkinVideoElement.cs
+    |   |   TempWorkspace.cs
+    |   |   
+    |   \---SpriteEditor
+    |           AssetNode.cs
+    |           ChooseSpriteFileDialog.axaml
+    |           ChooseSpriteFileDialog.axaml.cs
+    |           DrawingContextWrapper.cs
+    |           SkinEditorView.axaml
+    |           SkinEditorView.axaml.cs
+    |           SpriteEditor.cs
+    |           SpriteEditorView.axaml
+    |           SpriteEditorView.axaml.cs
+    |           SpriteManagerView.axaml
+    |           SpriteManagerView.axaml.cs
+    |           SpritePropertiesView.axaml
+    |           SpritePropertiesView.axaml.cs
+    |           
+    +---Templates
+    |   |   FileList.cs
+    |   |   FileTemplete.cs
+    |   |   Templete.cs
+    |   |   
+    |   \---FileTemplates
+    |           as.cs
+    |           asm.cs
+    |           axaml.cs
+    |           bmp.cs
+    |           C.cs
+    |           Coco.cs
+    |           CocoScript.cs
+    |           CoffeeScript.cs
+    |           Cpp.cs
+    |           CSharp.cs
+    |           css.cs
+    |           custom.cs
+    |           flv.cs
+    |           gif.cs
+    |           H.cs
+    |           hpp.cs
+    |           htm.cs
+    |           html.cs
+    |           Java.cs
+    |           jpeg.cs
+    |           jpg.cs
+    |           js.cs
+    |           json.cs
+    |           jsonc.cs
+    |           jsx.cs
+    |           lua.cs
+    |           m.cs
+    |           md.cs
+    |           mov.cs
+    |           mp4.cs
+    |           png.cs
+    |           psf.cs
+    |           pss.cs
+    |           pxml.cs
+    |           pxs.cs
+    |           py.cs
+    |           s.cs
+    |           sasm.cs
+    |           script.cs
+    |           spk.cs
+    |           sxml.cs
+    |           ts.cs
+    |           txt.cs
+    |           webp.cs
+    |           wxa.cs
+    |           wxc.cs
+    |           wxv.cs
+    |           xaml.cs
+    |           xml.cs
+    |           xPaint.cs
+    |           xs.cs
+    |           xss.cs
+    |           yaml.cs
+    |           yml.cs
+    |           
+    +---Themes
+    |       PaintPowerTheme.axaml
+    |       
+    +---Theming
+    |       ThemeManager.cs
+    |       
+    +---Time
+    |       CachedTimer.cs
+    |       Date.cs
+    |       Time.cs
+    |       
+    +---Tools
+    |   |   Point.cs
+    |   |   
+    |   +---Converters
+    |   |       BooleanNegationConverter.cs
+    |   |       DepthToGuidesConverter.cs
+    |   |       ExplorerConverters.cs
+    |   |       NullToBoolConverter.cs
+    |   |       
+    |   +---Dragging
+    |   |       AppDragDrop.cs
+    |   |       IDropTarget.cs
+    |   |       
+    |   +---Graphics
+    |   |       BitmapExtentions.cs
+    |   |       DrawCommand.cs
+    |   |       GfxPane.axaml
+    |   |       GfxPane.axaml.cs
+    |   |       Graphic.cs
+    |   |       GraphicLoader.cs
+    |   |       ImageFormats.cs
+    |   |       Instruction.cs
+    |   |       Renderer2D.cs
+    |   |       RenderTarget2D.cs
+    |   |       TestGfx.cs
+    |   |       
+    |   +---Keyboard
+    |   |       KeyPress.cs
+    |   |       SKeyPress.cs
+    |   |       
+    |   +---Math
+    |   |   |   Random.cs
+    |   |   |   
+    |   |   \---Formulas
+    |   |           Percent.cs
+    |   |           
+    |   +---Media
+    |   |   |   Media.cs
+    |   |   |   
+    |   |   +---Player
+    |   |   |       MediaPlayer.cs
+    |   |   |       
+    |   |   \---Sound
+    |   |       |   Sound.cs
+    |   |       |   
+    |   |       \---Player
+    |   |               SoundPlayer.cs
+    |   |               
+    |   \---SoundEffects
+    |       |   SoundEffect.cs
+    |       |   SoundEffects.cs
+    |       |   
+    |       \---Effects
+    |               Clank.cs
+    |               Click.cs
+    |               
+    +---Vm
+    |   |   combine_vm_sources.bat
+    |   |   OldVM.txt
+    |   |   SimpleApp.jsonc
+    |   |   Vm.cs
+    |   |   VmThread.cs
+    |   |   
+    |   +---Processing
+    |   |   |   Block.cs
+    |   |   |   Class.cs
+    |   |   |   
+    |   |   \---memory
+    |   |       |   Memory.cs
+    |   |       |   MemoryItem.cs
+    |   |       |   MemorySlot.cs
+    |   |       |   
+    |   |       \---Variables
+    |   |               dfghgf.txt
+    |   |               Variable.cs
+    |   |               VarType.cs
+    |   |               
+    |   \---Runtime
+    |       |   OpCode.cs
+    |       |   
+    |       +---Interpreter
+    |       |       Interpreter.cs
+    |       |       oldinterp.txt
+    |       |       
+    |       +---primitives
+    |       |   |   AsyncPrimitives.cs
+    |       |   |   Primitives.cs
+    |       |   |   
+    |       |   +---JavaScriptPrims
+    |       |   |       JSPrimitives.cs
+    |       |   |       
+    |       |   \---MemoryPrims
+    |       |           MemoryPrimitives.cs
+    |       |           
+    |       \---Sprites
+    |               RuntimeImageElement.cs
+    |               RuntimeSkin.cs
+    |               RuntimeSkinElement.cs
+    |               RuntimeVideoElement.cs
+    |               Skin.cs
+    |               Sprite.cs
+    |               VideoPlayer.cs
+    |               
+    \---VmPanel
+            combine_vmpanel_sources.bat
+            LoadingBar.axaml
+            LoadingBar.axaml.cs
+            ProcessingPanel.axaml
+            ProcessingPanel.axaml.cs
+            Stage.axaml
+            Stage.axaml.cs
+            StageAreaPart.axaml
+            StageAreaPart.axaml.cs
+            TopBarStagePart.axaml
+            TopBarStagePart.axaml.cs
+            VmPanel.axaml
+            VmPanel.axaml.cs
+            

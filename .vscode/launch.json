@@ -8,7 +8,7 @@
             "preLaunchTask": "PaintPower Editor: build (Debug)",
             "program": "${workspaceFolder}/PaintPower/bin/Debug/net6.0/PaintPower.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/PaintPower",
+            "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "stopAtEntry": false
         }

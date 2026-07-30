@@ -5,6 +5,9 @@
 
 .vscode/settings.json
 
+PaintPower-VM/out/
+PaintPower-VM/.vs/
+
 # User-specific files
 *.rsuser
 *.suo

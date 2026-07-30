@@ -75,7 +75,7 @@ public partial class ScriptEditor : FileEditor
             scope = _registryOptions.GetScopeByExtension(".css");
         else if (ext == ".pxs")
             scope = _registryOptions.GetScopeByExtension(".cs");
-        else if(ext == ".jsfl")
+        else if (ext == ".jsfl")
             scope = _registryOptions.GetScopeByExtension(".js");
         else if (ext == ".asc")
             scope = _registryOptions.GetScopeByExtension(".js");
@@ -95,7 +95,14 @@ public partial class ScriptEditor : FileEditor
         }
         else if (types.Contains(ext))
         {
-            _textMateInstallation.SetGrammarFile($"Assets/Grammars/{getGrammarFile(ext)}");
+            var grammarPath = Path.Combine(
+                AppContext.BaseDirectory,
+                "Assets",
+                "Grammars",
+                getGrammarFile(ext)
+            );
+
+            _textMateInstallation.SetGrammarFile(grammarPath);
         }
         else
         {
@@ -123,11 +130,11 @@ public partial class ScriptEditor : FileEditor
     {
         return ext switch
         {
-                ".as" => "AS3",
-                ".as2" => "AS3",
-                ".as3" => "AS3",
-                ".mxml" => "MXML",
-                _ => throw new Exception("Should not happen! Error loading grammar in script editor!")
+            ".as" => "AS3",
+            ".as2" => "AS3",
+            ".as3" => "AS3",
+            ".mxml" => "MXML",
+            _ => throw new Exception("Should not happen! Error loading grammar in script editor!")
         } + ".tmLanguage.json";
     }
 

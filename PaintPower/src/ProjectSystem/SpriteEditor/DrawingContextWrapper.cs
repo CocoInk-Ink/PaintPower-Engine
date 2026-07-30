@@ -59,7 +59,7 @@ namespace PaintPower.ProjectSystem.SpriteEditor
             Canvas.SetLeft(img, x);
             Canvas.SetTop(img, y);
 
-            _canvas.Children.Add(img);
+            _canvas.Children.Add(img); 
         }
 
         public void DrawRect(double x, double y, double w, double h, Color color, double thickness, double rotation = 0)

@@ -1,3 +1,0 @@
-C:/Users/ninoe/Documents/GitHub/The-xPaint-Project/PaintPower-Engine/PaintPower-VM/out/build/x64-debug/CMakeFiles/PaintPower-VM.dir
-C:/Users/ninoe/Documents/GitHub/The-xPaint-Project/PaintPower-Engine/PaintPower-VM/out/build/x64-debug/CMakeFiles/edit_cache.dir
-C:/Users/ninoe/Documents/GitHub/The-xPaint-Project/PaintPower-Engine/PaintPower-VM/out/build/x64-debug/CMakeFiles/rebuild_cache.dir
