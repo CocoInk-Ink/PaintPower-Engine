@@ -26,7 +26,7 @@ public class ProjectLoader
         AssetPipe pipe = PaintPower_Engine.App.plumber.GetAssetPipe();
 
         // Try to open the embedded ZIP
-        if (pipe.AssetExists(filename))
+        if (!pipe.AssetExists(filename))
         {
             Log.QuickLog("Default Project does not exist!");
             project.Metadata = new ProjectMetadata { name = "Untitled Project" };
