@@ -3,6 +3,7 @@ using Avalonia.Input;
 using PaintPower.Accessibility.Translation;
 using PaintPower.Editors;
 using PaintPower.FileEditors;
+using PaintPower.Plumbing;
 using PaintPower.Tools.Keyboard;
 using System;
 using System.Threading.Tasks;
@@ -30,12 +31,16 @@ public partial class PaintPower_Engine : FileEditor
     // Reference to the active GUI (set by MainWindow)
     public MainGUI MainGui { get; private set; }
 
+    public Plumber plumber;
+
     // --------------------------------------------------------------------
     // Constructor
     // --------------------------------------------------------------------
     public PaintPower_Engine()
     {
         Translator.load("en");
+
+        plumber = new();
 
         App = this;
     }

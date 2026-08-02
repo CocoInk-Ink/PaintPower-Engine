@@ -10,6 +10,8 @@ using PaintPower.Editors;
 using PaintPower.Editors.Logic;
 using PaintPower.Logging;
 using Avalonia.Platform;
+using PaintPower.Plumbing;
+using PaintPower.Plumbing.Pipes;
 
 namespace PaintPower.ProjectSystem;
 
@@ -19,10 +21,12 @@ public class ProjectLoader
     public async Task LoadDefaultProject(PaintProject project, ProjectEditorLogic logic)
     {
         // Embedded ZIP inside the application
-        var uri = new Uri("avares://PaintPower/src/Assets/Untitled.xPaint");
+        string filename = "Untitled.xPaint";
+
+        AssetPipe pipe = PaintPower_Engine.App.plumber.GetAssetPipe();
 
         // Try to open the embedded ZIP
-        if (!AssetLoader.Exists(uri))
+        if (pipe.AssetExists(filename))
         {
             Log.QuickLog("Default Project does not exist!");
             project.Metadata = new ProjectMetadata { name = "Untitled Project" };
@@ -31,19 +35,7 @@ public class ProjectLoader
 
         logic.RefreshUI();
 
-        // Load the project from the embedded ZIP stream
-        using var stream = AssetLoader.Open(uri);
-
-        // IMPORTANT: LoadProject expects a file path, but we have a stream.
-        // So we temporarily write the ZIP to the workspace.
-        string tempZipPath = Path.Combine(project.Workspace.Root, "_default.xPaint");
-
-        Log.QuickLog("Wrote to root.");
-
-        using (var fs = File.Create(tempZipPath))
-            stream.CopyTo(fs);
-
-        await logic.LoadProject(tempZipPath, true);
+        await logic.LoadProject(pipe.LoadAsset(filename), true);
 
         // IMPORTANT: Reset path so Save asks for a location
         project.ProjectPath = "";
