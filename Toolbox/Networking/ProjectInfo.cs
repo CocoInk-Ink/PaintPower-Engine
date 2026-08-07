@@ -1,6 +1,6 @@
 #pragma warning disable
 
-namespace PaintPower;
+namespace Toolbox.Networking;
 public class ProjectInfo
 {
     public string id { get; set; }

@@ -4,7 +4,6 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Toolbox.Logging;
-using PaintPower.ProjectSystem;
 
 namespace Toolbox.Networking;
 
@@ -144,7 +143,7 @@ public class Server
     // ------------------------------------------------------------
     // Project Upload
     // ------------------------------------------------------------
-    public async Task UploadProject(PaintProject project)
+    /*public async Task UploadProject(PaintProject project)
     {
         if (!isConnected) return;
         if (string.IsNullOrWhiteSpace(project.ProjectPath)) return;
@@ -156,7 +155,7 @@ public class Server
             project.ProjectPath,
             project.Metadata.name
         );
-    }
+    }*/
 
     // ------------------------------------------------------------
     // User Projects
