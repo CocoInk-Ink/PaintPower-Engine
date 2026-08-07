@@ -26,7 +26,7 @@ public partial class PaintPower_Engine : FileEditor
     public static PaintPower_Engine App;
     public static MainWindow? window => MainWindow.window;
 
-    public static string version => "PaintPower Engine vPre-Alpha 1.1.0.0";
+    public static string version => "PaintPower Engine vPre-Alpha 2.0.0.0";
 
     // Reference to the active GUI (set by MainWindow)
     public MainGUI MainGui { get; private set; }
