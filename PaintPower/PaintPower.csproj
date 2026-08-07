@@ -75,15 +75,6 @@
     </Reference>
   </ItemGroup>
 
-  <!-- Avalonia resources (all under src/Assets) -->
-  <ItemGroup>
-    <AvaloniaResource Include="src\Assets\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <AvaloniaResource Include="src\Themes\**" />
-  </ItemGroup>
-
   <!-- Copy assets to output WITHOUT the src folder -->
   <ItemGroup>
     <None Include="src\Assets\**" CopyToOutputDirectory="Always">

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using PaintPower.Networking;
+using Toolbox.Networking;
 
-namespace PaintPower.Networking.WebSocket;
+namespace Toolbox.Networking.WebSocket;
 public class WebSocket : Server
 {
 }

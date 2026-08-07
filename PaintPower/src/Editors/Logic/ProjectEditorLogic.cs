@@ -8,7 +8,7 @@ using Toolbox.Accessibility.Translation;
 using PaintPower.Dialogs;
 using PaintPower.FileEditors;
 using Toolbox.Logging;
-using PaintPower.Networking;
+using Toolbox.Networking;
 using PaintPower.ProjectSystem;
 using PaintPower.ProjectSystem.SpriteEditor;
 using Toolbox.SoundEffects;

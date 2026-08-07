@@ -3,7 +3,7 @@
     then use these routes or modify them for your server.
 */
 
-namespace PaintPower.Networking;
+namespace Toolbox.Networking;
 
 public class Routes
 {

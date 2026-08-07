@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Toolbox.Logging;
 using PaintPower.ProjectSystem;
 
-namespace PaintPower.Networking;
+namespace Toolbox.Networking;
 
 /// <summary>
 /// Pure networking class for PaintPower.

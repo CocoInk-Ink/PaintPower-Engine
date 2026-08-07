@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using System.Collections.Generic;
-using PaintPower.Networking;
+using Toolbox.Networking;
 
 namespace PaintPower.Dialogs;
 

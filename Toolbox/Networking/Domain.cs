@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PaintPower.Networking;
+namespace Toolbox.Networking;
 
 // A class for a domain.
 public class Domain
