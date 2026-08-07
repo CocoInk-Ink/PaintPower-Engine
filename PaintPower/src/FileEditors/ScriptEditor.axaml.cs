@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using TextMateSharp.Grammars;
+using Toolbox.Plumbing;
 
 namespace PaintPower.FileEditors;
 
@@ -95,12 +96,8 @@ public partial class ScriptEditor : FileEditor
         }
         else if (types.Contains(ext))
         {
-            var grammarPath = Path.Combine(
-                AppContext.BaseDirectory,
-                "Assets",
-                "Grammars",
-                getGrammarFile(ext)
-            );
+            var assetPipe = new Plumber().GetAssetPipe();
+            var grammarPath = assetPipe.LoadAsset($"Grammars/{getGrammarFile(ext)}");
 
             _textMateInstallation.SetGrammarFile(grammarPath);
         }
