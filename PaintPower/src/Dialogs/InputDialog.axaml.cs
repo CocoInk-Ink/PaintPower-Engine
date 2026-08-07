@@ -2,7 +2,7 @@
 using Avalonia.Interactivity;
 using System.Threading.Tasks;
 
-using PaintPower.Accessibility.Translation;
+using Toolbox.Accessibility.Translation;
 
 namespace PaintPower.Dialogs;
 

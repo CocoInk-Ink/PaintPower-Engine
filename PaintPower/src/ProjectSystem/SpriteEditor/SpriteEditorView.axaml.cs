@@ -1,9 +1,9 @@
 ﻿using Avalonia.Controls;
-using PaintPower.Accessibility.Translation;
+using Toolbox.Accessibility.Translation;
 using PaintPower.FileEditors;
-using PaintPower.Logging;
+using Toolbox.Logging;
 using PaintPower.ProjectSystem;
-using PaintPower.Tools.SoundEffects;
+using Toolbox.SoundEffects;
 using System.IO;
 
 namespace PaintPower.ProjectSystem.SpriteEditor;

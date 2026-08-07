@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using PaintPower.Logging;
+using Toolbox.Logging;
 
 public static class Net
 {

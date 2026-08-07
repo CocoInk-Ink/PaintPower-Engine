@@ -1,10 +1,10 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Input;
-using PaintPower.Accessibility.Translation;
+using Toolbox.Accessibility.Translation;
 using PaintPower.Editors;
 using PaintPower.FileEditors;
-using PaintPower.Plumbing;
-using PaintPower.Tools.Keyboard;
+using Toolbox.Plumbing;
+using Toolbox.Keyboard;
 using System;
 using System.Threading.Tasks;
 

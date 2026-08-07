@@ -8,10 +8,10 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using PaintPower.Editors;
 using PaintPower.Editors.Logic;
-using PaintPower.Logging;
+using Toolbox.Logging;
 using Avalonia.Platform;
-using PaintPower.Plumbing;
-using PaintPower.Plumbing.Pipes;
+using Toolbox.Plumbing;
+using Toolbox.Plumbing.Pipes;
 
 namespace PaintPower.ProjectSystem;
 

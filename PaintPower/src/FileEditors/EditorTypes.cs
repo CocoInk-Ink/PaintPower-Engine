@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using PaintPower.Logging;
-using PaintPower.Tools.Media.Sound;
+using Toolbox.Logging;
+using Toolbox.Media.Sound;
 
 namespace PaintPower.FileEditors;
 

@@ -17,7 +17,7 @@ public class  : FileTemplate
 
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using PaintPower.Logging;
+using Toolbox.Logging;
 using PaintPower.Templates;
 using System.Collections.Generic;
 using System.IO;

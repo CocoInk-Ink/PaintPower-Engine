@@ -1,14 +1,14 @@
-using PaintPower.Tools.Media;
+using Toolbox.Media;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using PaintPower.ProjectSystem;
-using PaintPower.Logging;
+using Toolbox.Logging;
 
 namespace PaintPower.FileEditors;
 
 public partial class SoundPlayer : FileEditor
 {
-    private PaintPower.Tools.Media.Sound.Player.SoundPlayer? player;
+    private Toolbox.Media.Sound.Player.SoundPlayer? player;
     private readonly TempWorkspace _workspace;
 
     public SoundPlayer(string relativePath, TempWorkspace workspace)
@@ -28,7 +28,7 @@ public partial class SoundPlayer : FileEditor
             media.Load();
 
             player?.Dispose();
-            player = new PaintPower.Tools.Media.Sound.Player.SoundPlayer(media);
+            player = new Toolbox.Media.Sound.Player.SoundPlayer(media);
         }
     }
 

@@ -1,8 +1,8 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using PaintPower.Compiler.PreBytecode;
-using PaintPower.Tools.Keyboard;
+using PaintPower_VM.VM;
+using Toolbox.Keyboard;
 using System;
 
 namespace PaintPower;
@@ -24,14 +24,6 @@ public partial class MainWindow : Window
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
         window = this;
-
-        TestRunner.RunTest().ContinueWith(t =>
-        {
-            if (t.Exception != null)
-            {
-                Console.WriteLine($"Error running print test: {t.Exception}");
-            }
-        });
     }
 
     protected override async void OnOpened(EventArgs e)

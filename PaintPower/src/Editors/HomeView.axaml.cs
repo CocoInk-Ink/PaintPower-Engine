@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using PaintPower.Dialogs;
-using PaintPower.Tools.SoundEffects;
+using Toolbox.SoundEffects;
 
 namespace PaintPower.Editors;
 

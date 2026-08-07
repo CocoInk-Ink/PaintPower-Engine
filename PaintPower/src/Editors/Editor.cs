@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using PaintPower.Accessibility.Translation;
+using Toolbox;
+using Toolbox.Accessibility.Translation;
 
 namespace PaintPower.Editors;
 
-public partial class Editor : UserControl
+public partial class Editor : TranslatableControl
 {
     public virtual Task Save() => Task.CompletedTask;
     public virtual Task SaveAs() => Task.CompletedTask;

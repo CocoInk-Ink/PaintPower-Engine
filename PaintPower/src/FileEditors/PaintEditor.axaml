@@ -67,7 +67,7 @@
 					</ScrollViewer>
 
 					<Image x:Name="BrushCursor"
-					   Source="avares://PaintPower/src/Assets/Pencil.png"
+					   Source="avares://Assets/Assets/Pencil.png"
 					   Width="54"
 					   Height="54"
 					   IsHitTestVisible="False"

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-using PaintPower.Logging;
+using Toolbox.Logging;
 using PaintPower.ProjectSystem;
 
 namespace PaintPower.Networking;

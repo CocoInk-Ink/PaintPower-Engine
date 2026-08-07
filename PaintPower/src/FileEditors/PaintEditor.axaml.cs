@@ -10,7 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using PaintPower.Accessibility.Translation;
+using Toolbox.Accessibility.Translation;
 using PaintPower.FileEditors.Tools.PaintEditorTools;
 using PaintPower.FileEditors.Tools;
 using System.Runtime.CompilerServices;

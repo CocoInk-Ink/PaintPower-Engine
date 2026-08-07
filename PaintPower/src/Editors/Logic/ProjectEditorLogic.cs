@@ -4,14 +4,14 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
-using PaintPower.Accessibility.Translation;
+using Toolbox.Accessibility.Translation;
 using PaintPower.Dialogs;
 using PaintPower.FileEditors;
-using PaintPower.Logging;
+using Toolbox.Logging;
 using PaintPower.Networking;
 using PaintPower.ProjectSystem;
 using PaintPower.ProjectSystem.SpriteEditor;
-using PaintPower.Tools.SoundEffects;
+using Toolbox.SoundEffects;
 
 namespace PaintPower.Editors.Logic;
 

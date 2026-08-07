@@ -11,6 +11,17 @@
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "stopAtEntry": false
+        },
+        {
+            "name": "Debug PaintPower VM",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "PaintPower VM: build (Debug)",
+            "program": "${workspaceFolder}/PaintPower-VM/bin/Debug/net6.0/PaintPower_VM.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
         }
     ]
 }

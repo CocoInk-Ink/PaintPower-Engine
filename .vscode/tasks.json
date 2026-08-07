@@ -40,6 +40,22 @@
             ],
             "group": "build",
             "problemMatcher": []
-        }
+        },
+                {
+            "label": "PaintPower VM: build (Debug)",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "--configuration",
+                "Debug",
+                "${workspaceFolder}/PaintPower-VM/PaintPower-VM.csproj"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
     ]
 }

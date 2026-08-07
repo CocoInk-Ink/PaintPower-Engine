@@ -4,7 +4,7 @@ using AvaloniaEdit;
 using AvaloniaEdit.Folding;
 using AvaloniaEdit.Highlighting;
 using AvaloniaEdit.TextMate;
-using PaintPower.Accessibility.Translation;
+using Toolbox.Accessibility.Translation;
 using PaintPower.FileEditors.Tools.ScriptEditorTools;
 using PaintPower.ProjectSystem;
 using System;

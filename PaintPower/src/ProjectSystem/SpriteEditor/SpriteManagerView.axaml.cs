@@ -1,6 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
-using PaintPower.Accessibility.Translation;
+using Toolbox.Accessibility.Translation;
 using PaintPower.ProjectSystem;
 using System;
 using System.Collections.ObjectModel;

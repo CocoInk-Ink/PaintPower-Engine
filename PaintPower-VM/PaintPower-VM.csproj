@@ -1,19 +1,56 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<!-- PaintPower-VM -->
+
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>10.0</LangVersion>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <RuntimeIdentifiers>
+      win-x64;win-arm64;
+      linux-x64;linux-arm64;
+      osx-x64;osx-arm64
+    </RuntimeIdentifiers>
+
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- FIX: prevent duplicate assembly attributes ->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>-->
   </PropertyGroup>
 
+  <PropertyGroup>
+    <AssemblyName>PaintPower_VM</AssemblyName>
+  </PropertyGroup>
+
+  <!-- Include the tools. -->
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="12.1.1" />
-    <PackageReference Include="Avalonia.Desktop" Version="12.1.1" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.1" />
-    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
+    <ProjectReference Include="..\Toolbox\Toolbox.csproj" />
+    <ProjectReference Include="..\Assets\Assets.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.12" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.12" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.12" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.3.12">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Wasmtime" Version="44.0.0" />
   </ItemGroup>
+
 </Project>
+
+<!-- End PaintPower-VM -->

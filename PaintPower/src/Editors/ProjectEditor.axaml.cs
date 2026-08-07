@@ -2,11 +2,11 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
-using PaintPower.Accessibility.Translation;
+using Toolbox.Accessibility.Translation;
 using PaintPower.Editors.Logic;
 using PaintPower.ProjectSystem.SpriteEditor;
-using PaintPower.Tools.SoundEffects;
-using PaintPower.VMPanel;
+using Toolbox.SoundEffects;
+using PaintPower_VM.VMPanel;
 
 namespace PaintPower.Editors;
 
@@ -49,7 +49,7 @@ public partial class ProjectEditor : Editor
 
         if (isLoading)
         {
-            if (VmPanelControl?.StageArea?.LoadingPart is ProcessingPanel loader)
+            if (VmPanelControl?.FindControl<ProcessingPanel>("LoadingPart") is ProcessingPanel loader)
                 loader.Reset();
         }
 
@@ -64,7 +64,7 @@ public partial class ProjectEditor : Editor
 
     public async Task UpdateLoadingProgress(int processed, int total)
     {
-        if (VmPanelControl?.StageArea?.LoadingPart is ProcessingPanel loader)
+        if (VmPanelControl?.FindControl<ProcessingPanel>("LoadingPart") is ProcessingPanel loader)
         {
             int percent = (int)((processed / (double)total) * 100);
 
@@ -83,7 +83,7 @@ public partial class ProjectEditor : Editor
 
     public async Task UpdateSavingProgress(int processed, int total)
     {
-        if (VmPanelControl?.StageArea?.LoadingPart is ProcessingPanel loader)
+        if (VmPanelControl?.FindControl<ProcessingPanel>("LoadingPart") is ProcessingPanel loader)
         {
             int percent = (int)((processed / (double)total) * 100);
 

@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Media;
-using PaintPower.Tools.Graphics;
+using Toolbox.Graphics;
 
 namespace PaintPower.ProjectSystem.SpriteEditor
 {
