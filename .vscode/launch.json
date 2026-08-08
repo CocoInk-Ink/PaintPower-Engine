@@ -6,7 +6,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "PaintPower Editor: build (Debug)",
-            "program": "${workspaceFolder}/PaintPower/bin/Debug/net6.0/PaintPower.dll",
+            "program": "${workspaceFolder}/PaintPower/bin/Debug/net6.0/PaintPower-Engine.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Toolbox.Media.Sound.Player;
+using Toolbox.Plumbing;
 
 namespace Toolbox.SoundEffects;
 
@@ -14,7 +15,7 @@ public class SoundEffect
         {
             try
             {
-                var media = new Media.Media("Assets/Sounds/" + name + ".wav");
+                var media = new Media.Media(new Plumber().GetAssetPipe().LoadAsset("Sounds/" + name + ".wav"));
                 media.Load();
                 MediaList.Add(media);
             }

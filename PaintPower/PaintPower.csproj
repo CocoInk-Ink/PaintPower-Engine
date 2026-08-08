@@ -18,6 +18,8 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
+    <AssemblyName>PaintPower-Engine</AssemblyName>
+
     <!-- FIX: prevent duplicate assembly attributes -->
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 

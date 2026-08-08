@@ -3,20 +3,36 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Toolbox.Logging;
+using Toolbox.Plumbing;
+using Toolbox.Plumbing.Pipes;
 
 namespace Toolbox.Accessibility.Translation;
+
+#pragma warning disable CA2211
 
 public static class Translator
 {
     // <Language, short_name> Example: <"English", "en">
     private static Dictionary<string, string> langList = new();
+
     // <Word_to_translate, translated_word> Example: <"Hello!", "Hola!">
     private static Dictionary<string, string> langDict = new();
     public static string lang = "en";
 
+    private readonly static AssetPipe AssetPipe = new Plumber().GetAssetPipe();
+
     public static bool refreshNeeded = false;
 
+    private static readonly string LangList = "lang/lang-list.txt";
+
+    private static string LangPath => $"lang/{lang}.po";
+
     public static event Action? LanguageChanged;
+
+    public static void AddRefreshHandler(Action action)
+    {
+        LanguageChanged += action;
+    }
 
     public static void load(string preferredLanguage)
     {
@@ -26,13 +42,26 @@ public static class Translator
         langList.Clear();
         langDict.Clear();
 
-        try
+        if (AssetPipe.AssetExists(LangList))
         {
-            Log.QuickLog("Getting Lang-list");
-            LoadLangList("Assets/lang/lang-list.txt");
-            Log.QuickLog("Got lang-list");
+
+            try
+            {
+                Log.QuickLog("Getting Lang-list");
+                LoadLangList(LangList);
+                Log.QuickLog("Got lang-list");
+            }
+            catch
+            {
+                Log.QuickLog("Failed to get lang-list.");
+
+                // Clear list and add english as fallback.
+                langList.Clear();
+                langDict.Clear();
+                langList.Add("English", "en");
+            }
         }
-        catch
+        else
         {
             Log.QuickLog("Failed to get lang-list.");
 
@@ -42,13 +71,23 @@ public static class Translator
             langList.Add("English", "en");
         }
 
-        try
+        if (AssetPipe.AssetExists(LangPath))
         {
-            Log.QuickLog("Getting lang file.");
-            LoadGettextFile($"Assets/lang/{lang}.po");
-            Log.QuickLog("Got lang file.");
+
+            try
+            {
+                Log.QuickLog("Getting lang file.");
+                LoadGettextFile($"lang/{lang}.po");
+                Log.QuickLog("Got lang file.");
+            }
+            catch
+            {
+                // fallback: no translations
+                langDict.Clear();
+                Log.QuickLog("No translation.");
+            }
         }
-        catch
+        else
         {
             // fallback: no translations
             langDict.Clear();
@@ -112,8 +151,10 @@ public static class Translator
     // ---------------------------------------------------------
     public static void LoadGettextFile(string path)
     {
-        if (!File.Exists(path))
+        if (!AssetPipe.AssetExists(path))
             throw new FileNotFoundException("Language file not found", path);
+
+        path = AssetPipe.LoadAsset(path);
 
         var lines = File.ReadAllLines(path);
         ParseGettext(lines);
@@ -207,8 +248,10 @@ public static class Translator
     // Load list of languages
     public static void LoadLangList(string path)
     {
-        if (!File.Exists(path))
+        if (!AssetPipe.AssetExists(path))
             throw new FileNotFoundException("Language file not found", path);
+
+        path = AssetPipe.LoadAsset(path);
 
         langList.Clear();
         langDict.Clear();
@@ -239,3 +282,5 @@ public static class Translator
         }
     }
 }
+
+#pragma warning restore CA2211

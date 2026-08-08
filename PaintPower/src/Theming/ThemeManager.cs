@@ -16,9 +16,9 @@ public static class ThemeManager
         _themes[name] = new Uri(uri);
     }
 
-    public static void RegisterBuiltInTheme(String name, string FileName = null)
+    public static void RegisterBuiltInTheme(string name, string? FileName = null)
     {
-        RegisterTheme(name, $"avares://PaintPower/src/Themes/{FileName ?? name}.axaml");
+        RegisterTheme(name, $"avares://Assets/Assets/Themes/{FileName ?? name}.axaml");
     }
 
     public static void ApplyTheme(string name)
