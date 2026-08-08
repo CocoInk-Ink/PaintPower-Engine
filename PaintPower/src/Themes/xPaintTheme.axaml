@@ -1,0 +1,96 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+                    xmlns:converters="clr-namespace:PaintPower.Tools.Converters">
+
+	<!-- ========================================================= -->
+	<!-- BRANDING -->
+	<!-- ========================================================= -->
+
+	<!-- Brand name fallback -->
+	<x:String x:Key="BrandName">xPaint</x:String>
+
+	<!-- Brand version (optional) -->
+	<x:String x:Key="BrandVersion">Pre-Alpha 2.0.0.0</x:String>
+
+	<!-- Brand logo (optional) -->
+	<!-- If xPaint overrides this with its own logo, the UI switches automatically -->
+	<Bitmap x:Key="BrandLogo">avares://Assets/Assets/PaintPower Logo.png</Bitmap>
+
+	<!-- ========================================================= -->
+	<!-- CONVERTERS -->
+	<!-- ========================================================= -->
+
+	<!-- Used to show/hide logo or text -->
+	<converters:NullToBoolConverter x:Key="NullToBoolConverter" />
+	<converters:NullToInvertedBoolConverter x:Key="NullToInvertedBoolConverter" />
+
+	<!-- ========================================================= -->
+	<!-- COLORS -->
+	<!-- ========================================================= -->
+
+	<!-- Header -->
+	<Color x:Key="HeaderBackgroundColor">#a3a3a3</Color>
+	<Color x:Key="HeaderForegroundColor">#333333</Color>
+
+	<!-- Status bar -->
+	<Color x:Key="StatusBarBackgroundColor">#c4c4c4</Color>
+	<Color x:Key="StatusBarForegroundColor">#000000</Color>
+
+	<!-- Left panel -->
+	<Color x:Key="LeftPanelBackgroundColor">#252525</Color>
+
+	<!-- Splitter -->
+	<Color x:Key="SplitterColorValue">#505050</Color>
+
+	<!-- ========================================================= -->
+	<!-- BRUSHES -->
+	<!-- ========================================================= -->
+
+	<SolidColorBrush x:Key="HeaderBackground"
+                     Color="{StaticResource HeaderBackgroundColor}" />
+
+	<SolidColorBrush x:Key="HeaderForeground"
+                     Color="{StaticResource HeaderForegroundColor}" />
+
+	<SolidColorBrush x:Key="StatusBarBackground"
+                     Color="{StaticResource StatusBarBackgroundColor}" />
+
+	<SolidColorBrush x:Key="StatusBarForeground"
+                     Color="{StaticResource StatusBarForegroundColor}" />
+
+	<SolidColorBrush x:Key="LeftPanelBackground"
+                     Color="{StaticResource LeftPanelBackgroundColor}" />
+
+	<SolidColorBrush x:Key="SplitterColor"
+                     Color="{StaticResource SplitterColorValue}" />
+
+	<!-- ========================================================= -->
+	<!-- MAIN BACKGROUND -->
+	<!-- ========================================================= -->
+
+	<ImageBrush x:Key="MainBackground"
+                Source="avares://Assets/Assets/Background.png"
+                Stretch="None"
+                TileMode="Tile"
+                AlignmentX="Left"
+                AlignmentY="Top"
+                DestinationRect="0,0,10,10" />
+
+	<ImageBrush x:Key="MainBackgroundDark"
+                Source="avares://Assets/Assets/Background Dark.png"
+                Stretch="None"
+                TileMode="Tile"
+                AlignmentX="Left"
+                AlignmentY="Top"
+                DestinationRect="0,0,10,10" />
+
+	<ImageBrush x:Key="CheckerboardBackground"
+                Source="avares://Assets/Assets/Checkerboard.png"
+                Stretch="None"
+                TileMode="Tile"
+                AlignmentX="Left"
+                AlignmentY="Top"
+                DestinationRect="0,0,16,16" />
+
+</ResourceDictionary>
