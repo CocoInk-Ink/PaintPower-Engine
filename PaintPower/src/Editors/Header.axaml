@@ -1,3 +1,5 @@
+<!-- Header.axaml -->
+
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="PaintPower.Editors.Header">
@@ -17,9 +19,12 @@
                        Margin="0,0,8,0"
                        IsVisible="{Binding Source={DynamicResource BrandLogo}, Converter={StaticResource NullToBoolConverter}}" />
 
-                <TextBlock Text="{DynamicResource BrandName}"
+                       <!--rgb(195, 195, 195) rgb(232, 232, 232)-->
+
+                <TextBlock Text="{DynamicResource EngineName}"
                            VerticalAlignment="Center"
                            FontSize="20"
+                           IsVisible="{Binding Source={DynamicResource BrandName}, Converter={StaticResource NullToBoolConverter}}"
                            Foreground="{DynamicResource HeaderForeground}" />
             </StackPanel>
 
@@ -42,9 +47,16 @@
                            Foreground="{DynamicResource HeaderForeground}" />
 
                 <TextBlock x:Name="VersionInfoTextBlock"
-                           VerticalAlignment="Center"
-                           FontSize="10"
-                           Foreground="{DynamicResource HeaderForeground}" />
+                    VerticalAlignment="Center"
+                    FontSize="10"
+                    Foreground="{DynamicResource HeaderForeground}">
+                    <Run Text="{DynamicResource PoweredByText}" />
+                    <Run Text="{DynamicResource EngineName}" />
+                    <Run Text=" " />
+                    <Run Text="{DynamicResource EngineVersion}" />
+                </TextBlock>
+
+
             </StackPanel>
 
         </Grid>

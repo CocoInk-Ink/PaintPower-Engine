@@ -38,6 +38,11 @@ public static class ThemeManager
         var dict = (ResourceDictionary)AvaloniaXamlLoader.Load(uri);
         app.Resources.MergedDictionaries.Add(dict);
 
+        Console.WriteLine($"=== Loaded theme: {name} ===");
+        foreach (var key in dict.Keys)
+            Console.WriteLine($"Key: {key}");
+
+
         _currentTheme = dict;
     }
 

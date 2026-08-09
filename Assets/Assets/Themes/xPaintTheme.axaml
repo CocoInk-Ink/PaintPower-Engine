@@ -1,3 +1,5 @@
+<!-- xPaintTheme.axaml -->
+
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib"
@@ -9,13 +11,17 @@
 
 	<!-- Brand name fallback -->
 	<x:String x:Key="BrandName">xPaint</x:String>
+	<x:String x:Key="BrandVersion">Pre-Alpha 1.0.0.0</x:String>
+	<x:String x:Key="PoweredByText">powered by: </x:String>
+
+	<x:String x:Key="EngineName">PaintPower Engine</x:String>
 
 	<!-- Brand version (optional) -->
-	<x:String x:Key="BrandVersion">Pre-Alpha 2.0.0.0</x:String>
+	<x:String x:Key="EngineVersion">Pre-Alpha 2.0.0.0</x:String>
 
 	<!-- Brand logo (optional) -->
 	<!-- If xPaint overrides this with its own logo, the UI switches automatically -->
-	<Bitmap x:Key="BrandLogo">avares://Assets/Assets/PaintPower Logo.png</Bitmap>
+	<Bitmap x:Key="BrandLogo">avares://Assets/Assets/xPaint Logo.png</Bitmap>
 
 	<!-- ========================================================= -->
 	<!-- CONVERTERS -->
@@ -30,7 +36,12 @@
 	<!-- ========================================================= -->
 
 	<!-- Header -->
-	<Color x:Key="HeaderBackgroundColor">#a3a3a3</Color>
+	<!--
+	<Color x:Key="HeaderBackgroundColor">#4A4A4A</Color>
+	<Color x:Key="HeaderForegroundColor">#D4D4D4</Color>
+	-->
+
+	<Color x:Key="HeaderBackgroundColor">#C3C3C3</Color>
 	<Color x:Key="HeaderForegroundColor">#333333</Color>
 
 	<!-- Status bar -->
@@ -70,7 +81,7 @@
 	<!-- ========================================================= -->
 
 	<ImageBrush x:Key="MainBackground"
-                Source="avares://Assets/Assets/Background.png"
+                Source="avares://Assets/Assets/Background New.png"
                 Stretch="None"
                 TileMode="Tile"
                 AlignmentX="Left"

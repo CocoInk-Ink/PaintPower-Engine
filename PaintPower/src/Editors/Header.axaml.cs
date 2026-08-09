@@ -19,7 +19,7 @@ public partial class Header : UserControl
     // ------------------------------------------------------------
     public void SetVersion(string version)
     {
-        VersionInfoTextBlock.Text = version;
+        //VersionInfoTextBlock.Text = version;
     }
 
     public void SetStatus(string status)
