@@ -17,14 +17,14 @@
                        Height="32"
                        Stretch="Uniform"
                        Margin="0,0,8,0"
-                       IsVisible="{Binding Source={DynamicResource BrandLogo}, Converter={StaticResource NullToBoolConverter}}" />
+                       IsVisible="{DynamicResource ShowLogo}" />
 
                        <!--rgb(195, 195, 195) rgb(232, 232, 232)-->
 
-                <TextBlock Text="{DynamicResource EngineName}"
+                <TextBlock Text="{DynamicResource BrandName}"
                            VerticalAlignment="Center"
                            FontSize="20"
-                           IsVisible="{Binding Source={DynamicResource BrandName}, Converter={StaticResource NullToBoolConverter}}"
+                           IsVisible="{DynamicResource ShowBrandName}"
                            Foreground="{DynamicResource HeaderForeground}" />
             </StackPanel>
 

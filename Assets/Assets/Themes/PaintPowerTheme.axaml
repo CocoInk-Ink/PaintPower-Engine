@@ -9,7 +9,10 @@
     <!-- BRANDING -->
     <!-- ========================================================= -->
 
-    <x:String x:Key="BrandName"> </x:String>
+    <x:Boolean x:Key="ShowBrandName">True</x:Boolean>
+    <x:Boolean x:Key="ShowLogo">True</x:Boolean>
+
+    <x:String x:Key="BrandName">PaintPower Engine</x:String>
 
     <!-- Brand name fallback -->
     <x:String x:Key="EngineName">PaintPower Engine</x:String>

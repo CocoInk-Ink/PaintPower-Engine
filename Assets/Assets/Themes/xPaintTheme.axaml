@@ -10,7 +10,12 @@
 	<!-- ========================================================= -->
 
 	<!-- Brand name fallback -->
+
+	<x:Boolean x:Key="ShowBrandName">False</x:Boolean>
+	<x:Boolean x:Key="ShowLogo">True</x:Boolean>
+
 	<x:String x:Key="BrandName">xPaint</x:String>
+
 	<x:String x:Key="BrandVersion">Pre-Alpha 1.0.0.0</x:String>
 	<x:String x:Key="PoweredByText">powered by: </x:String>
 
