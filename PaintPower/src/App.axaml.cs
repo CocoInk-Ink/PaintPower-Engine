@@ -14,25 +14,25 @@ public partial class App : Application
     }
 
     public override void OnFrameworkInitializationCompleted()
-{
-    if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
     {
-        desktop.MainWindow = new MainWindow();
-
-        // NEW: handle startup file
-        if (desktop.Args is { Length: > 0 })
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            string file = desktop.Args[0];
+            desktop.MainWindow = new MainWindow();
 
-            if (File.Exists(file) && file.EndsWith(".xPaint", StringComparison.OrdinalIgnoreCase))
+            // NEW: handle startup file
+            if (desktop.Args is { Length: > 0 })
             {
-                // Pass file to MainWindow
-                ((MainWindow)desktop.MainWindow).StartupProjectPath = file;
+                string file = desktop.Args[0];
+
+                if (File.Exists(file) && file.EndsWith(".xPaint", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Pass file to MainWindow
+                    ((MainWindow)desktop.MainWindow).StartupProjectPath = file;
+                }
             }
         }
-    }
 
-    base.OnFrameworkInitializationCompleted();
-}
+        base.OnFrameworkInitializationCompleted();
+    }
 
 }

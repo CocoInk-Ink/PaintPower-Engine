@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Toolbox.Plumbing;
 
 namespace PaintPower.ProjectSystem.SpriteEditor;
 
@@ -864,7 +865,7 @@ public partial class SkinEditorView : SpriteEditor
 
     private Image LoadFallbackImage()
     {
-        return new Image { Source = new Bitmap("Assets/PaintPower Filetypes/Fallback.png") };
+        return new Image { Source = new Bitmap(new Plumber().GetAssetPipe().LoadAsset("PaintPower Filetypes/Fallback.png")) };
     }
 
     private void OnAssetPointerPressed(object? sender, PointerPressedEventArgs e)

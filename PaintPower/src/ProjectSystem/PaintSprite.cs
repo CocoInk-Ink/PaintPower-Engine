@@ -32,7 +32,7 @@ public class PaintSprite
     public string AnimationPath => Path.Combine(SpriteFolder, "Sprite.wxa");
 
     public string ThumbnailPath => Path.Combine(SpriteFolder, "Sprite.png");
-    public string ScriptPath => Path.Combine(SpriteFolder, "Sprite.pss");
+    public string ScriptPath => Path.Combine(SpriteFolder, "Sprite.pxs");
 
     public string SkinsPath => Path.Combine(SpriteFolder, "Skins.xml");
     public string ItemsFolder => Path.Combine(SpriteFolder, "items");
