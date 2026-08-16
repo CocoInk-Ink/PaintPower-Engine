@@ -20,9 +20,9 @@
                             Orientation="Horizontal"
                             Spacing="6">
 
-                        <Button Content="←" Width="32" Click="OnBack" />
-                        <Button Content="→" Width="32" Click="OnForward" />
-                        <Button Content="↑" Width="32" Click="OnUp" />
+                        <Button Content="Back" Width="32" Click="OnBack" />
+                        <Button Content="->" Width="32" Click="OnForward" />
+                        <Button Content="^" Width="32" Click="OnUp" />
 
                         <TextBox x:Name="PathBox"
                                  Width="500"
@@ -42,7 +42,6 @@
                                 <ListBox.ItemTemplate>
                                         <DataTemplate x:DataType="local:FileItem">
                                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                                        <TextBlock Text="{Binding Icon}" />
                                                         <TextBlock Text="{Binding Name}" />
                                                 </StackPanel>
                                         </DataTemplate>

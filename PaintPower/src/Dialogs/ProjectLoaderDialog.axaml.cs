@@ -19,7 +19,7 @@ public partial class ProjectLoaderDialog : Window
 
     private static readonly string[] Extensions =
     {
-        ".xPaint", ".xpaint", ".paint", ".Paint", ".zip"
+        ".xPaint", ".xpaint", ".xpa"
     };
 
     public ProjectLoaderDialog()
@@ -48,10 +48,9 @@ public partial class ProjectLoaderDialog : Window
         {
             items.Add(new FileItem
             {
-                Name = Path.GetFileName(dir),
+                Name = Path.GetFileName(dir) + "/",
                 FullPath = dir,
                 IsDirectory = true,
-                Icon = "📁"
             });
         }
 
@@ -59,14 +58,13 @@ public partial class ProjectLoaderDialog : Window
         foreach (var file in Directory.GetFiles(path))
         {
             var ext = Path.GetExtension(file);
-            bool isProject = Extensions.Contains(ext);
+            if(!Extensions.Contains(ext)) continue;
 
             items.Add(new FileItem
             {
                 Name = Path.GetFileName(file),
                 FullPath = file,
                 IsDirectory = false,
-                Icon = isProject ? "📄" : "🗎"
             });
         }
 
