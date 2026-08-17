@@ -26,7 +26,7 @@
 
 	<!-- Brand logo (optional) -->
 	<!-- If xPaint overrides this with its own logo, the UI switches automatically -->
-	<Bitmap x:Key="BrandLogo">avares://Assets/Assets/xPaint Logo.png</Bitmap>
+	<Bitmap x:Key="BrandLogo">avares://Assets/Resources/xPaint Logo.png</Bitmap>
 
 	<!-- ========================================================= -->
 	<!-- CONVERTERS -->
@@ -86,7 +86,7 @@
 	<!-- ========================================================= -->
 
 	<ImageBrush x:Key="MainBackground"
-                Source="avares://Assets/Assets/Background New.png"
+                Source="avares://Assets/Resources/Background New.png"
                 Stretch="None"
                 TileMode="Tile"
                 AlignmentX="Left"
@@ -94,7 +94,7 @@
                 DestinationRect="0,0,10,10" />
 
 	<ImageBrush x:Key="MainBackgroundDark"
-                Source="avares://Assets/Assets/Background Dark.png"
+                Source="avares://Assets/Resources/Background Dark.png"
                 Stretch="None"
                 TileMode="Tile"
                 AlignmentX="Left"
@@ -102,7 +102,7 @@
                 DestinationRect="0,0,10,10" />
 
 	<ImageBrush x:Key="CheckerboardBackground"
-                Source="avares://Assets/Assets/Checkerboard.png"
+                Source="avares://Assets/Resources/Checkerboard.png"
                 Stretch="None"
                 TileMode="Tile"
                 AlignmentX="Left"

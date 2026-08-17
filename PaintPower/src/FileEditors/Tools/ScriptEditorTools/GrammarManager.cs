@@ -9,7 +9,7 @@ public class GrammarManager
     {
 
         // Path to JSON grammar file
-        var fileInfo = new FileInfo($"avares://Assets/Assets/Grammars/{fileName}");
+        var fileInfo = new FileInfo($"avares://Assets/Resources/Grammars/{fileName}");
 
         // Load grammar into TextMateSharp registry
         options.LoadFromLocalFile(grammarName, fileInfo, overwrite: true);
