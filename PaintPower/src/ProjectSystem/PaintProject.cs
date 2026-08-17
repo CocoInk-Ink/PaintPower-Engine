@@ -11,21 +11,6 @@ using System.Threading.Tasks;
 
 namespace PaintPower.ProjectSystem;
 
-/// <summary>
-/// Pure project data model.
-/// Handles:
-///   - Workspace extraction
-///   - Metadata load/save
-///   - Sprite load/save
-///   - ZIP creation
-///
-/// Does NOT:
-///   - Show dialogs
-///   - Update UI
-///   - Talk to server
-///   - Modify window title
-///   - Ask user where to save
-/// </summary>
 public class PaintProject
 {
     public string ProjectPath { get; set; } = ""; // Path to .xPaint file

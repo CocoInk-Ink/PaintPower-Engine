@@ -5,14 +5,6 @@ using PaintPower.Theming;
 
 namespace PaintPower;
 
-/// <summary>
-/// The main Avalonia application for PaintPower.
-/// Handles:
-///   - Theme registration
-///   - Theme application
-///   - Creating MainWindow
-///   - Passing startup file arguments
-/// </summary>
 public class PaintPowerApp : Application
 {
     public override void Initialize()

@@ -7,21 +7,6 @@ using Toolbox.Logging;
 
 namespace Toolbox.Networking;
 
-/// <summary>
-/// Pure networking class for PaintPower.
-/// Handles:
-///   - Domain security
-///   - Server connection checks
-///   - Login/logout
-///   - Upload/download
-///   - Listing user projects
-///
-/// Does NOT:
-///   - Touch UI
-///   - Touch PaintPower_Engine
-///   - Touch ProjectEditorLogic
-///   - Touch window title or status bar
-/// </summary>
 public class Server
 {
     private static readonly List<Domain> AllowedDomainsList = new();

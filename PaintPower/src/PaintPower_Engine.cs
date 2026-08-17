@@ -10,14 +10,6 @@ using System.Threading.Tasks;
 
 namespace PaintPower;
 
-/// <summary>
-/// Legacy compatibility wrapper for the old PaintPower_Engine class.
-/// Now acts only as a thin bridge for old code and keyboard shortcuts.
-/// All real logic lives in:
-///   - MainGUI
-///   - ProjectEditorLogic
-///   - FileEditors
-/// </summary>
 public partial class PaintPower_Engine : FileEditor
 {
     // --------------------------------------------------------------------

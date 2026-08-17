@@ -15,11 +15,6 @@ using Avalonia.Platform.Storage;
 
 namespace Toolbox.Networking.WebAssembly;
 
-// <summary>
-// A service that downloads a ZIP file from a URL, extracts it, and caches the files in the browser's storage.
-// Used for caching assets in the WebAssembly version of the VM.
-// </summary>
-
 public class ZipCacheService
 {
     private readonly IStorageProvider _storage;

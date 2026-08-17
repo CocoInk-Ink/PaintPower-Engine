@@ -6,15 +6,6 @@ using System.Threading.Tasks;
 
 namespace PaintPower.Editors;
 
-/// <summary>
-/// Global UI controller for PaintPower.
-/// Handles switching between:
-///   - HomeView
-///   - ProjectEditor
-///   - FolderEditor
-///   - SingleFileEditor
-///   - WorkspaceEditor
-/// </summary>
 public partial class MainGUI : UserControl
 {
     public Header Header { get; private set; }

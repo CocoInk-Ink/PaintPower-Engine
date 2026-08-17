@@ -10,19 +10,6 @@ using System.Xml.Linq;
 
 namespace PaintPower.ProjectSystem;
 
-/// <summary>
-/// Pure sprite data model.
-/// Handles:
-///   - Loading skins
-///   - Saving skins
-///   - Converting to runtime sprite
-///   - Duplicate / rename / delete
-///
-/// Does NOT:
-///   - Reference PaintPower_Engine
-///   - Reference the project
-///   - Reference UI
-/// </summary>
 public class PaintSprite
 {
     public string Name { get; set; } = "";
