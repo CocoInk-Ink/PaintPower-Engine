@@ -23,7 +23,7 @@ public class ProjectLoader
         // Embedded ZIP inside the application
         string filename = "Untitled.xPaint";
 
-        AssetPipe pipe = PaintPower_Engine.App.plumber.GetAssetPipe();
+        AssetPipe pipe = PaintPower_Engine.App.plumber.AssetPipe;
 
         // Try to open the embedded ZIP
         if (!pipe.AssetExists(filename))

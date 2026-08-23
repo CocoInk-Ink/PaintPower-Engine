@@ -14,6 +14,7 @@ using Toolbox.Accessibility.Translation;
 using PaintPower.FileEditors.Tools.PaintEditorTools;
 using PaintPower.FileEditors.Tools;
 using System.Runtime.CompilerServices;
+using Toolbox.Plumbing;
 
 namespace PaintPower.FileEditors;
 
@@ -77,6 +78,7 @@ public partial class PaintEditor : FileEditor
                 CheckerZoom.LayoutTransform = new ScaleTransform(scale, scale);
                 CheckerZoom.InvalidateVisual();
 
+                BrushCursor.Source = Plumber.MainPlumber.AssetPipe.GetIcon("Cursors/Pencil.png");
                 BrushCursor.RenderTransform = new ScaleTransform(scale, scale);
                 BrushCursor.InvalidateVisual();
 

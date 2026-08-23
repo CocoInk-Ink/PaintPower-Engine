@@ -19,8 +19,6 @@ public static class Translator
     private static Dictionary<string, string> langDict = new();
     public static string lang = "en";
 
-    private readonly static AssetPipe AssetPipe = new Plumber().GetAssetPipe();
-
     public static bool refreshNeeded = false;
 
     private static readonly string LangList = "lang/lang-list.txt";
@@ -42,7 +40,7 @@ public static class Translator
         langList.Clear();
         langDict.Clear();
 
-        if (AssetPipe.AssetExists(LangList))
+        if (Plumber.MainPlumber.AssetPipe.AssetExists(LangList))
         {
 
             try
@@ -71,7 +69,7 @@ public static class Translator
             langList.Add("English", "en");
         }
 
-        if (AssetPipe.AssetExists(LangPath))
+        if (Plumber.MainPlumber.AssetPipe.AssetExists(LangPath))
         {
 
             try
@@ -151,10 +149,10 @@ public static class Translator
     // ---------------------------------------------------------
     public static void LoadGettextFile(string path)
     {
-        if (!AssetPipe.AssetExists(path))
+        if (!Plumber.MainPlumber.AssetPipe.AssetExists(path))
             throw new FileNotFoundException("Language file not found", path);
 
-        path = AssetPipe.LoadAsset(path);
+        path = Plumber.MainPlumber.AssetPipe.LoadAsset(path);
 
         var lines = File.ReadAllLines(path);
         ParseGettext(lines);
@@ -248,10 +246,10 @@ public static class Translator
     // Load list of languages
     public static void LoadLangList(string path)
     {
-        if (!AssetPipe.AssetExists(path))
+        if (!Plumber.MainPlumber.AssetPipe.AssetExists(path))
             throw new FileNotFoundException("Language file not found", path);
 
-        path = AssetPipe.LoadAsset(path);
+        path = Plumber.MainPlumber.AssetPipe.LoadAsset(path);
 
         langList.Clear();
         langDict.Clear();

@@ -25,7 +25,7 @@ public class PaintPowerApp : Application
         // ------------------------------------------------------------
         // 2. Apply default theme
         // ------------------------------------------------------------
-        ThemeManager.ApplyTheme("PaintPower");
+        //ThemeManager.ApplyTheme("PaintPower");
 
         // ------------------------------------------------------------
         // 3. Standard Avalonia initialization

@@ -33,28 +33,28 @@ public partial class MainWindow : Window
         KeyPress.init();
 
         // Attach MainGUI to the engine wrapper
-        App?.attachMainGUI(mainGui);
+        //App?.attachMainGUI(mainGui);
 
         // Key handlers
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
         AddHandler(KeyUpEvent, OnKeyUp, RoutingStrategies.Tunnel);
 
         // Load project if opened via double-click / OS association
-        if (!string.IsNullOrWhiteSpace(StartupProjectPath))
+        /*if (!string.IsNullOrWhiteSpace(StartupProjectPath))
         {
             await App.OpenProjectFile(StartupProjectPath);
-        }
+        }*/
     }
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         KeyPress.RegisterKeyDown(e.Key);
-        App.HandleKeyDown(e);
+        //App.HandleKeyDown(e);
     }
 
     private void OnKeyUp(object? sender, KeyEventArgs e)
     {
         KeyPress.RegisterKeyUp(e.Key);
-        App.HandleKeyUp(e);
+        //App.HandleKeyUp(e);
     }
 }

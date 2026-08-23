@@ -3,6 +3,9 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Controls;
 using System;
 using System.Collections.Generic;
+using Toolbox.Plumbing;
+using Toolbox.Logging;
+using System.IO;
 
 namespace PaintPower.Theming;
 
@@ -18,11 +21,12 @@ public static class ThemeManager
 
     public static void RegisterBuiltInTheme(string name, string? FileName = null)
     {
-        RegisterTheme(name, $"avares://Assets/Resources/Themes/{FileName ?? name}.axaml");
+        RegisterTheme(name, $"avares://Assets/Resources/Themes/{FileName ?? name}.axamlt");
     }
 
     public static void ApplyTheme(string name)
     {
+        try {
         if (!_themes.TryGetValue(name, out var uri))
             throw new ArgumentException($"Theme '{name}' is not registered.");
 
@@ -34,16 +38,16 @@ public static class ThemeManager
         if (_currentTheme != null)
             app.Resources.MergedDictionaries.Remove(_currentTheme);
 
+        var p = new Plumber();
+
+        if (!p.AssetPipe.AssetExists(uri)) throw new Exception($"Asset does not exist!: {uri}");
+
         // Load new theme
-        var dict = (ResourceDictionary)AvaloniaXamlLoader.Load(uri);
-        app.Resources.MergedDictionaries.Add(dict);
+        AvaloniaXamlLoader.Load(File.ReadAllText(p.AssetPipe.PipeOut(uri)));
+        //app.Resources.MergedDictionaries.Add(dict);
 
-        Console.WriteLine($"=== Loaded theme: {name} ===");
-        foreach (var key in dict.Keys)
-            Console.WriteLine($"Key: {key}");
-
-
-        _currentTheme = dict;
+       // _currentTheme = dict;
+        } catch {}
     }
 
     public static IEnumerable<string> GetThemes() => _themes.Keys;

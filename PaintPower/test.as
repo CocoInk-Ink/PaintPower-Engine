@@ -1,5 +1,5 @@
 package {
-    import flash.extenal.ExternalInterface;
+    import flash.external.ExternalInterface;
 
     public class main {
         public function main() {

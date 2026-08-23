@@ -18,7 +18,7 @@ public class AssetPipe : Pipe
 	static public readonly string IconsPath = AssetsPath + "Icons/";
 	static public readonly string FilesIcon = IconsPath + "PaintPower Filetypes/";
 	static public readonly string CursorsIcon = IconsPath + "Cursors/";
-	
+
 	public AssetPipe(string name, string path) : base(name, path)
 	{
 		//
@@ -26,7 +26,7 @@ public class AssetPipe : Pipe
 
 	public string LoadAsset(string path)
 	{
-		return PipeOut(new Uri(Path.Combine(AssetPath, path)));
+		return PipeOut(new Uri($"{AssetPath}{path}"));
 	}
 
 	public bool AssetExists(Uri uri)
@@ -36,23 +36,25 @@ public class AssetPipe : Pipe
 
 	public bool AssetExists(string path)
 	{
-		return AssetExists(new Uri(Path.Combine(AssetPath, path)));
+		return AssetExists(new Uri($"{AssetPath}{path}"));
 	}
 
 	public Bitmap GetIcon(string path)
 	{
-		Uri uri = new(Path.Combine(IconPath, path));
-		Uri fallbackUri = new Uri(Path.Combine(IconPath, "Fallback2.png"));
+		Uri uri = new($"{IconPath}{path}");
+		Uri fallbackUri = new($"{IconPath}Fallback2.png");
 
 		Bitmap bitmap;
 
 		if (AssetExists(uri))
 		{
 			bitmap = new(PipeOut(uri));
-		} else if (AssetExists(fallbackUri))
+		}
+		else if (AssetExists(fallbackUri))
 		{
 			bitmap = new(PipeOut(fallbackUri));
-		} else
+		}
+		else
 		{
 			// For now.
 			bitmap = new(PipeOut(fallbackUri));
@@ -64,12 +66,25 @@ public class AssetPipe : Pipe
 	// Pipes a stream into folder, then returns path.
 	public override string PipeOut(Uri uri)
 	{
-		this.stream = AssetLoader.Open(uri);
-		string outpath = Path.Combine(path, Guid.NewGuid().ToString());
+		using var stream = AssetLoader.Open(uri);
 
+		// First copy
+		string outpath = Path.Combine(path, Guid.NewGuid().ToString());
 		using (var fs = File.Create(outpath))
-            stream.CopyTo(fs);
+		{
+			stream.CopyTo(fs);
+		}
+
+		// Rewind
+		stream.Position = 0;
+
+		// Second copy, append
+		using (var bin = File.Open(Path.Combine(this.path, "pipe.bin"), FileMode.Append))
+		{
+			stream.CopyTo(bin);
+		}
 
 		return outpath;
 	}
+
 }

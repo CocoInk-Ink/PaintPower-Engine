@@ -865,7 +865,7 @@ public partial class SkinEditorView : SpriteEditor
 
     private Image LoadFallbackImage()
     {
-        return new Image { Source = new Bitmap(new Plumber().GetAssetPipe().LoadAsset("PaintPower Filetypes/Fallback.png")) };
+        return new Image { Source = new Bitmap(Plumber.MainPlumber.AssetPipe.LoadAsset("PaintPower Filetypes/Fallback.png")) };
     }
 
     private void OnAssetPointerPressed(object? sender, PointerPressedEventArgs e)

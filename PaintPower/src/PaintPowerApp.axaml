@@ -39,7 +39,6 @@
 
 	<Application.Styles>
 		<FluentTheme />
-		<SimpleTheme />
 		<ClassicTheme />
 		<StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
 

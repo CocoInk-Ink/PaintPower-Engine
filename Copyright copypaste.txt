@@ -1,0 +1,13 @@
+In PaintPower:
+
+{Project}/{Path to file}.cs
+Copyright (c) 2026 CocoInk Software.
+
+The xPaint Project, PaintPower Engine/{Project}.
+
+In xPaint:
+
+{Project}/{Path to file}.cs
+Copyright (c) 2026 CocoInk Software.
+
+The xPaint Project, xPaint/{Project}.

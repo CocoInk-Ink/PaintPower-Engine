@@ -7,6 +7,8 @@ using Toolbox.Plumbing;
 using Toolbox.Keyboard;
 using System;
 using System.Threading.Tasks;
+using Toolbox.Plumbing.Pipes;
+using PaintPower.Templates.FileTemplates;
 
 namespace PaintPower;
 
@@ -18,84 +20,33 @@ public partial class PaintPower_Engine : FileEditor
     public static PaintPower_Engine App;
     public static MainWindow? window => MainWindow.window;
 
-    public static string version => "PaintPower Engine vPre-Alpha 2.0.0.0";
-
-    // Reference to the active GUI (set by MainWindow)
-    public MainGUI MainGui { get; private set; }
+    // Must not be public
 
     public Plumber plumber;
+    public AssetPipe assetPipe;
+    public PluginPipe pluginPipe;
 
     // --------------------------------------------------------------------
     // Constructor
     // --------------------------------------------------------------------
     public PaintPower_Engine()
     {
+
+        plumber = Plumber.MainPlumber ?? new Plumber();
+
+        plumber.MakeMainPlumber();
+
         Translator.load("en");
 
-        plumber = new();
+        assetPipe = plumber.AssetPipe;
+        pluginPipe = plumber.PluginPipe;
 
         App = this;
     }
 
     // --------------------------------------------------------------------
-    // Wiring from MainWindow
-    // --------------------------------------------------------------------
-    public void attachMainGUI(MainGUI gui)
-    {
-        MainGui = gui;
-        Header.header.SetVersion(version);
-    }
-
-    // --------------------------------------------------------------------
-    // Legacy project actions (forwarded to MainGUI)
-    // --------------------------------------------------------------------
-    public async Task OpenProjectFile(string path)
-    {
-        if (!string.IsNullOrWhiteSpace(path))
-            await MainGui.OpenProject(path);
-    }
-
-    public async void newProject()
-    {
-        await MainGui.NewProject();
-    }
-
-    public async Task Save()
-    {
-        await MainGui.SaveProject();
-    }
-
-    public void SaveAs()
-    {
-        // SaveAs is handled by MainGUI or ProjectEditorLogic
-    }
-
-    public void CloseProject()
-    {
-        MainGui.CloseProject();
-    }
-
-    // --------------------------------------------------------------------
-    // Legacy editor actions (forwarded to MainGUI)
-    // --------------------------------------------------------------------
-    public void OpenFile(string path)
-    {
-        MainGui.OpenFile(path);
-    }
-
-    public void CloseEditor()
-    {
-        MainGui.CloseCurrentEditor();
-    }
-
-    public void CloseCurrentEditor()
-    {
-        MainGui.CloseCurrentEditor();
-    }
-
-    // --------------------------------------------------------------------
     // Key handling (still useful)
-    // --------------------------------------------------------------------
+    /* --------------------------------------------------------------------
     public void HandleKeyDown(KeyEventArgs e)
     {
         if (SKeyPress.combo(e, "ctrl", "s"))
@@ -120,5 +71,5 @@ public partial class PaintPower_Engine : FileEditor
     public void HandleKeyUp(KeyEventArgs e)
     {
         // No-op
-    }
+    }*/
 }

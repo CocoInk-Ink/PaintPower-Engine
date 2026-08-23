@@ -22,6 +22,8 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+    <AvaloniaResource Include="Resources\**" />
+    <AvaloniaResource Include="Assets\Resources\**" />
   </ItemGroup>
 
 </Project>

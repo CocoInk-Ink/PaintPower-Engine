@@ -96,7 +96,7 @@ public partial class ScriptEditor : FileEditor
         }
         else if (types.Contains(ext))
         {
-            var assetPipe = new Plumber().GetAssetPipe();
+            var assetPipe = Plumber.MainPlumber.AssetPipe;
             var grammarPath = assetPipe.LoadAsset($"Grammars/{getGrammarFile(ext)}");
 
             _textMateInstallation.SetGrammarFile(grammarPath);
