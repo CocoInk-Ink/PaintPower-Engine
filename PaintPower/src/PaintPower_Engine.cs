@@ -32,7 +32,13 @@ public partial class PaintPower_Engine : FileEditor
     public PaintPower_Engine()
     {
 
-        plumber = Plumber.MainPlumber ?? new Plumber();
+        if (Plumber.MainPlumber == null)
+        {
+            plumber = new Plumber();
+        } else
+        {
+            plumber = Plumber.MainPlumber;
+        }
 
         plumber.MakeMainPlumber();
 

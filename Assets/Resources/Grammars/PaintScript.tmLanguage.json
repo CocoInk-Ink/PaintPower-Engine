@@ -1,0 +1,159 @@
+{
+	"scopeName": "source.paintscript",
+	"patterns": [
+		{ "include": "#comments" },
+		{ "include": "#directives" },
+		{ "include": "#events" },
+		{ "include": "#keywords" },
+		{ "include": "#types" },
+		{ "include": "#strings" },
+		{ "include": "#numbers" },
+		{ "include": "#constants" },
+		{ "include": "#functions" }
+	],
+
+	"repository": {
+		"comments": {
+			"patterns": [
+				{
+					"name": "comment.line.double-slash.paintscript",
+					"match": "//.*$"
+				},
+				{
+					"name": "comment.block.paintscript",
+					"begin": "/\\*",
+					"end": "\\*/"
+				},
+				{
+					"name": "comment.block.documentation.paintscript",
+					"begin": "/\\*\\*",
+					"end": "\\*/"
+				}
+			]
+		},
+
+		"directives": {
+			"patterns": [
+				{
+					"name": "keyword.directive.paintscript",
+					"match": "^\\s*#(PaintScript|Sprite)\\b.*$"
+				}
+			]
+		},
+
+		"events": {
+			"patterns": [
+				{
+					"name": "entity.name.function.event.paintscript",
+					"match": "@[A-Za-z_][A-Za-z0-9_]*"
+				},
+				{
+					"name": "entity.name.function.event.call.paintscript",
+					"match": "call\\s+@[A-Za-z_][A-Za-z0-9_]*"
+				},
+				{
+					"name": "support.class.paintscript",
+					"match": "\\b(Broadcast|BroadcastAndWait)\\b"
+				},
+				{
+					"name": "entity.name.function.event.parameter.paintscript",
+					"match": "@[A-Za-z_][A-Za-z0-9_]*\\s*\\([^)]*\\)"
+				},
+				{
+					"name": "entity.name.function.event.multi.paintscript",
+					"match": "@receive\\s+[A-Za-z_][A-Za-z0-9_]*(\\s*,\\s*[A-Za-z_][A-Za-z0-9_]*)+"
+				}
+			]
+		},
+
+		"keywords": {
+			"patterns": [
+				{
+					"name": "keyword.control.paintscript",
+					"match": "\\b(if(\\s+not)?|else(\\s+if(\\s+not)?)?|repeat(\\s+until)?|forever|while|for|return|call|wait|log)\\b"
+				},
+				{
+					"name": "keyword.declaration.paintscript",
+					"match": "\\b(global|public|private|var|const|function|strict)\\b"
+				},
+
+				{
+					"name": "keyword.function.paintscript",
+					"match": "\\b(SwitchSkin|changeVar)\\b"
+				},
+				{
+					"name": "entity.name.function.event.multi.paintscript",
+					"match": "@receive\\s+[A-Za-z_][A-Za-z0-9_]*(\\s*,\\s*[A-Za-z_][A-Za-z0-9_]*)+"
+				}
+			]
+		},
+
+		"types": {
+			"patterns": [
+				{
+					"name": "storage.type.paintscript",
+					"match": "\\b(String|Number|Boolean|Skin|KeyboardKey|\\*)\\b"
+				}
+			]
+		},
+
+		"strings": {
+			"patterns": [
+				{
+					"name": "string.quoted.double.paintscript",
+					"begin": "\"",
+					"end": "\"",
+					"patterns": [
+						{
+							"name": "constant.character.escape.paintscript",
+							"match": "\\\\."
+						}
+					]
+				}
+			]
+		},
+
+		"constants": {
+			"patterns": [
+				{
+					"name": "constant.language.boolean.paintscript",
+					"match": "\\b(true|false)\\b"
+				},
+				{
+					"name": "constant.language.null.paintscript",
+					"match": "\\b(undefined|empty|null|None)\\b"
+				},
+				{
+					"name": "constant.language.nan.paintscript",
+					"match": "\\bNaN\\b"
+				}
+			]
+		},
+
+		"functions": {
+			"patterns": [
+				{
+					"name": "entity.name.function.definition.paintscript",
+					"match": "\\b(strict\\s+)?function\\s+[A-Za-z_][A-Za-z0-9_]*"
+				},
+				{
+					"name": "entity.name.function.call.paintscript",
+					"match": "\\b[A-Za-z_][A-Za-z0-9_]*\\s*(?=\\()"
+				},
+				{
+					"name": "entity.name.function.call.paintscript",
+					"match": "\\bcall\\s+([A-Za-z_][A-Za-z0-9_]*)\\b"
+				}
+			]
+		},
+
+		"numbers": {
+			"patterns": [
+				{
+					"name": "constant.numeric.paintscript",
+					"match": "\\b[0-9]+\\b"
+				}
+			]
+		}
+	}
+}

@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Toolbox.Logging;
 
 namespace Toolbox.Plumbing.Pipes;
 
@@ -31,7 +32,9 @@ public class AssetPipe : Pipe
 
 	public bool AssetExists(Uri uri)
 	{
-		return AssetLoader.Exists(uri);
+		bool b = AssetLoader.Exists(uri);
+		Log.QuickLog($"Asset found?: {b}, Asset: {uri}");
+		return b;
 	}
 
 	public bool AssetExists(string path)

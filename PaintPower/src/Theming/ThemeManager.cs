@@ -38,7 +38,7 @@ public static class ThemeManager
         if (_currentTheme != null)
             app.Resources.MergedDictionaries.Remove(_currentTheme);
 
-        var p = new Plumber();
+        var p = Plumber.MainPlumber;
 
         if (!p.AssetPipe.AssetExists(uri)) throw new Exception($"Asset does not exist!: {uri}");
 
