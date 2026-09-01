@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Avalonia.Controls;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Toolbox.Logging;
 
 namespace Toolbox.Plumbing;
 
@@ -18,7 +20,7 @@ public static class ResourceKit
 
 	public static void Initialize(Plumber plumber) {
 		Plumber = plumber;
-		OnReadyToLoadResources += Setup;
+		OnReadyToLoadResources = Setup;
 
 		Reset();
 	}
@@ -30,8 +32,9 @@ public static class ResourceKit
 		ResourcePaths.Clear();
 		LoadedImages.Clear();
 		LoadedTextFiles.Clear();
+		Log.QuickLog("ResourceKit reset completed");
 		OnReadyToLoadResources = Setup;
-		OnReadyToLoadResources?.Invoke();
+		Log.QuickLog("OnReadyToLoadResources reassigned to Setup");
 	}
 
 	public static Action? OnReadyToLoadResources { get; set; }
@@ -57,7 +60,7 @@ public static class ResourceKit
 		public static class Small {}
 		public static class Large {}
 		public static class Cursors {
-			public static Image Pencil { get; private set; } = new Image();
+			public static Image Pencil { get; private set; } = (Image)new Image();
 		}
 	}
 	public static class Documents {}
@@ -150,6 +153,8 @@ public static class ResourceKit
 
 	public static void Setup()
 	{
+		Log.QuickLog("ResourceKit setup called");
+		Log.QuickLog($"Keys is {(Keys is null ? "null" : "not null")}");
 		// For each key, check type, and load the resource accordingly.
 		// Images are loaded based on their type and imagetype property.
 
@@ -175,7 +180,11 @@ public static class ResourceKit
 
 		/**/
 
-		Keys ??= DefaultKeys;
+		if (Keys is null) {
+			Keys = DefaultKeys;
+			Log.QuickLog("Keys was null, using DefaultKeys");
+		}
+
 		foreach (var property in Keys.GetType().GetProperties())
 		{
 			var entry = property.GetValue(Keys);
@@ -221,6 +230,7 @@ public static class ResourceKit
 				SetItemValue(entry, resolvedPath);
 			}
 		}
+		Log.QuickLog("ResourceKit setup completed");
 	}
 
 	// Paths to resources like images, icons, and other assets

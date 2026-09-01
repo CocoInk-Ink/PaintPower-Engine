@@ -21,12 +21,10 @@ public class ProjectLoader
     public async Task LoadDefaultProject(PaintProject project, ProjectEditorLogic logic)
     {
         // Embedded ZIP inside the application
-        string filename = "Default Projects/Untitled.xPaint";
-
-        AssetPipe pipe = PaintPower_Engine.App.plumber.AssetPipe;
+        string? path = ResourceKit.Other.Paths.DefaultProject_1;
 
         // Try to open the embedded ZIP
-        if (!pipe.AssetExists(filename))
+        if (path == null)
         {
             Log.QuickLog("Default Project does not exist!");
             project.Metadata = new ProjectMetadata { name = "Untitled Project" };
@@ -35,7 +33,10 @@ public class ProjectLoader
 
         logic.RefreshUI();
 
-        await logic.LoadProject(pipe.LoadAsset(filename), true);
+        if (path != null)
+        {
+            await logic.LoadProject(path, true);
+        }
 
         // IMPORTANT: Reset path so Save asks for a location
         project.ProjectPath = "";

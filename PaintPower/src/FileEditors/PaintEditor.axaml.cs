@@ -16,6 +16,7 @@ using PaintPower.FileEditors.Tools;
 using System.Runtime.CompilerServices;
 using Toolbox.Plumbing;
 using Toolbox;
+using Toolbox.Logging;
 
 namespace PaintPower.FileEditors;
 
@@ -79,9 +80,9 @@ public partial class PaintEditor : FileEditor
                 CheckerZoom.LayoutTransform = new ScaleTransform(scale, scale);
                 CheckerZoom.InvalidateVisual();
 
-                BrushCursor.Source = (IImage)ResourceKit.Icons.Cursors.Pencil;
+                BrushCursor = ResourceKit.Icons.Cursors.Pencil;
+                Log.QuickLog(BrushCursor.ToString());
                 BrushCursor.RenderTransform = new ScaleTransform(scale, scale);
-                BrushCursor.InvalidateVisual();
 
                 pixelGrid.Zoom = scale;
                 pixelGrid.InvalidateVisual();
