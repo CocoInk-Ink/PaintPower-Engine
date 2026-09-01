@@ -24,6 +24,7 @@ namespace PaintPower.ProjectSystem.SpriteEditor
             RemoveSkinButton.Click += OnRemoveSkin;
             RenameSkinButton.Click += OnRenameSkin;
             NameBox.LostFocus += OnNameChanged;
+            InstanceNameBox.LostFocus += OnInstanceNameChanged;
             SkinsList.SelectionChanged += OnSkinSelected;
         }
 
@@ -35,6 +36,7 @@ namespace PaintPower.ProjectSystem.SpriteEditor
             _sprite = sprite;
 
             NameBox.Text = sprite.Name;
+            InstanceNameBox.Text = sprite.InstanceName ?? "";
 
             _suppressSelection = true;
             SkinsList.ItemsSource = sprite.Skins.ToList();
@@ -93,7 +95,16 @@ namespace PaintPower.ProjectSystem.SpriteEditor
             _sprite.Name = NameBox.Text ?? "";
             RefreshList();
         }
+        // ---------------------------------------------------------
+        // Rename Instance Name
+        // ---------------------------------------------------------
+        private void OnInstanceNameChanged(object? sender, EventArgs e)
+        {
+            if (_sprite == null) return;
 
+            _sprite.InstanceName = InstanceNameBox.Text ?? "";
+            RefreshList();
+        }
         // ---------------------------------------------------------
         // Add Skin
         // ---------------------------------------------------------

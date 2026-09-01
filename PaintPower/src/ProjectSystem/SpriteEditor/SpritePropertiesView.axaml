@@ -6,7 +6,11 @@
                 <Separator />
                 <!-- Sprite Name -->
                 <TextBlock Text="Sprite Name" Foreground="White" FontSize="14" />
-                <TextBox x:Name="NameBox" Background="#404040" Foreground="White" BorderBrush="#606060" />
+                <TextBox x:Name="NameBox" Background="#7c8083" Foreground="White" BorderBrush="#707070" />
+                <Separator />
+                <!-- Instance name (safe name) -->
+                <TextBlock Text="Instance/Safe Name" Foreground="White" FontSize="14" />
+                <TextBox x:Name="InstanceNameBox" Background="#404040" Foreground="White" BorderBrush="#7c8083" />
                 <Separator />
                 <!-- Skins List -->
                 <TextBlock Text="Skins" Foreground="White" FontSize="14" />

@@ -13,6 +13,7 @@ namespace PaintPower.ProjectSystem;
 public class PaintSprite
 {
     public string Name { get; set; } = "";
+    public string InstanceName { get; set; } = "";
     public string SpriteFolder { get; set; } = ""; // absolute path in workspace
 
     public string JsonPath => Path.Combine(SpriteFolder, "Sprite.json");
