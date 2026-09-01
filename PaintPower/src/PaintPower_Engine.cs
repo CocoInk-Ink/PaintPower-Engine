@@ -9,6 +9,7 @@ using System;
 using System.Threading.Tasks;
 using Toolbox.Plumbing.Pipes;
 using PaintPower.Templates.FileTemplates;
+using Toolbox;
 
 namespace PaintPower;
 
@@ -21,7 +22,8 @@ public partial class PaintPower_Engine : FileEditor
     public static MainWindow? window => MainWindow.window;
 
     // Must not be public
-
+    public Toolkit Toolkit { get; private set; }
+    public new Resources Resources { get; private set; }
     public Plumber plumber;
     public AssetPipe assetPipe;
     public PluginPipe pluginPipe;
@@ -31,6 +33,7 @@ public partial class PaintPower_Engine : FileEditor
     // --------------------------------------------------------------------
     public PaintPower_Engine()
     {
+        Toolkit = new Toolkit();
 
         if (Plumber.MainPlumber == null)
         {
@@ -46,6 +49,8 @@ public partial class PaintPower_Engine : FileEditor
 
         assetPipe = plumber.AssetPipe;
         pluginPipe = plumber.PluginPipe;
+
+        Resources = Toolkit.Resources;
 
         App = this;
     }

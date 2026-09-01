@@ -21,7 +21,7 @@ public class ProjectLoader
     public async Task LoadDefaultProject(PaintProject project, ProjectEditorLogic logic)
     {
         // Embedded ZIP inside the application
-        string filename = "Untitled.xPaint";
+        string filename = "Default Projects/Untitled.xPaint";
 
         AssetPipe pipe = PaintPower_Engine.App.plumber.AssetPipe;
 
