@@ -18,7 +18,7 @@
     <x:String x:Key="EngineName">PaintPower Engine</x:String>
 
     <!-- Brand version (optional) -->
-    <x:String x:Key="EngineVersion">Pre-Alpha 2.0.0.0</x:String>
+    <x:String x:Key="EngineVersion">Pre-Alpha 2.1.0.0</x:String>
     <x:String x:Key="PoweredByText"> </x:String>
 
 
