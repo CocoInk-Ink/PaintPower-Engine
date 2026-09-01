@@ -71,6 +71,8 @@ public class AssetPipe : Pipe
 	{
 		using var stream = AssetLoader.Open(uri);
 
+		AssetExists(uri);
+
 		// First copy
 		string outpath = Path.Combine(path, Guid.NewGuid().ToString());
 		using (var fs = File.Create(outpath))

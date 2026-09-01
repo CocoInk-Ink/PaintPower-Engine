@@ -63,7 +63,7 @@ public partial class ScriptEditor : FileEditor
 
         // .pxml -> xml
         // .pss, psf -> css
-        // .pxs -> csharp
+        // .pxs -> PaintScript (new)
         if (ext == ".Coco" || ext == ".coco")
             scope = _registryOptions.GetScopeByExtension(".cs");
         else if (ext == ".CocoScript" || ext == ".cocoscript")
@@ -74,8 +74,6 @@ public partial class ScriptEditor : FileEditor
             scope = _registryOptions.GetScopeByExtension(".css");
         else if (ext == ".pss")
             scope = _registryOptions.GetScopeByExtension(".css");
-        else if (ext == ".pxs")
-            scope = _registryOptions.GetScopeByExtension(".cs");
         else if (ext == ".jsfl")
             scope = _registryOptions.GetScopeByExtension(".js");
         else if (ext == ".asc")
@@ -131,6 +129,7 @@ public partial class ScriptEditor : FileEditor
             ".as2" => "AS3",
             ".as3" => "AS3",
             ".mxml" => "MXML",
+            ".pxs" => "PaintScript",
             _ => throw new Exception("Should not happen! Error loading grammar in script editor!")
         } + ".tmLanguage.json";
     }
