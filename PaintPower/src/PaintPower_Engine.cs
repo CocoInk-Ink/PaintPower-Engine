@@ -23,7 +23,6 @@ public partial class PaintPower_Engine : FileEditor
 
     // Must not be public
     public Toolkit Toolkit { get; private set; }
-    public new Resources Resources { get; private set; }
     public Plumber plumber;
     public AssetPipe assetPipe;
     public PluginPipe pluginPipe;
@@ -50,7 +49,8 @@ public partial class PaintPower_Engine : FileEditor
         assetPipe = plumber.AssetPipe;
         pluginPipe = plumber.PluginPipe;
 
-        Resources = Toolkit.Resources;
+        if (ResourceKit.Plumber == null) ResourceKit.Initialize(plumber);
+        ResourceKit.OnReadyToLoadResources?.Invoke();
 
         App = this;
     }

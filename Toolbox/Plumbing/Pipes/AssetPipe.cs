@@ -83,10 +83,18 @@ public class AssetPipe : Pipe
 		// Rewind
 		stream.Position = 0;
 
-		// Second copy, append
-		using (var bin = File.Open(Path.Combine(this.path, "pipe.bin"), FileMode.Append))
+		try
 		{
-			stream.CopyTo(bin);
+			// Second copy, append
+			using (var bin = File.Open(Path.Combine(this.path, "pipe.bin"), FileMode.Append))
+			{
+				stream.CopyTo(bin);
+				bin.Close();
+			}
+		}
+		catch
+		{
+			Log.QuickLog($"Error piping to pipe.bin, continuing...");
 		}
 
 		return outpath;
