@@ -14,7 +14,7 @@ public static class Log
         }
     }
     // Made to just log something real quick
-    public static void QuickLog(params object[]? messages)
+    public static void QuickLog(params object?[]? messages)
     {
         if (messages == null) return;
         foreach (object? message in messages)
