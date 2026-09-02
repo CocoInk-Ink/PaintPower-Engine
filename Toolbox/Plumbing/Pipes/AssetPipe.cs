@@ -20,10 +20,7 @@ public class AssetPipe : Pipe
 	static public readonly string FilesIcon = IconsPath + "PaintPower Filetypes/";
 	static public readonly string CursorsIcon = IconsPath + "Cursors/";
 
-	public AssetPipe(string name, string path) : base(name, path)
-	{
-		//
-	}
+	public AssetPipe(string name, string path) : base(name, path) {}
 
 	public string LoadAsset(string path)
 	{
