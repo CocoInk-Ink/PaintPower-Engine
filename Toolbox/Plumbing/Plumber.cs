@@ -33,7 +33,7 @@ namespace Toolbox.Plumbing;
 public class Plumber
 {
 	// Don't make nullable, should throw if not initialized. Don't init in constructor.
-	public static Plumber MainPlumber;
+	public static Plumber MainPlumber = null!;
 
 	// Pipes and stuff
 	private readonly Dictionary<string, Pipe> pipes = new();

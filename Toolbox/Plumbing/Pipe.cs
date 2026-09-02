@@ -1,3 +1,11 @@
+/*
+	Toolbox/Plumbing/Pipe.cs
+	The xPaint Project, PaintPower Engine/Toolbox.
+	Copyright (c) 2026 CocoInk Software.
+
+	A base class for pipes in the toolbox.
+*/
+
 using System;
 using System.IO;
 

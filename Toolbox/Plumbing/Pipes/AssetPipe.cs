@@ -1,3 +1,15 @@
+/*
+	Toolbox/Plumbing/Pipes/AssetPipe.cs
+	The xPaint Project, PaintPower Engine/Toolbox.
+	Copyright (c) 2026 CocoInk Software.
+
+	The xPaint Project, PaintPower Engine/Toolbox.
+
+
+	A pipe for loading and managing assets.
+	Most files need to be extracted before use, this pipe handles that.
+*/
+
 using System;
 using System.IO;
 using Avalonia.Media.Imaging;
