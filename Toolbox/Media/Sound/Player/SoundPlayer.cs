@@ -37,9 +37,9 @@ public class SoundPlayer : MediaPlayer, IDisposable
             LoadMedia(media);
     }
 
-    public override void LoadMedia(Media media)
+    public override async Task LoadMedia(Media media)
     {
-        base.LoadMedia(media);
+        await base.LoadMedia(media);
 
         if (media.FilePath == null)
             throw new InvalidOperationException("Sound must have a file path.");
@@ -69,7 +69,7 @@ public class SoundPlayer : MediaPlayer, IDisposable
         }
     }
 
-    public override void Play()
+    public override async Task Play()
     {
         Log.Info("Playing sound.");
 
@@ -85,7 +85,7 @@ public class SoundPlayer : MediaPlayer, IDisposable
         isPaused = false;
     }
 
-    public override void Pause()
+    public override async Task Pause()
     {
         if (output == null)
             return;
@@ -94,7 +94,7 @@ public class SoundPlayer : MediaPlayer, IDisposable
         isPaused = true;
     }
 
-    public override void Resume()
+    public override async Task Resume()
     {
         if (output == null || !isPaused)
             return;
@@ -103,7 +103,7 @@ public class SoundPlayer : MediaPlayer, IDisposable
         isPaused = false;
     }
 
-    public override void Stop()
+    public override async Task Stop()
     {
         if (output == null)
             return;
@@ -112,7 +112,7 @@ public class SoundPlayer : MediaPlayer, IDisposable
         isPaused = false;
     }
 
-    public override void Seek(TimeSpan position)
+    public override async Task Seek(TimeSpan position)
     {
         if (reader == null)
             return;

@@ -21,10 +21,12 @@ public class ProjectLoader
     public async Task LoadDefaultProject(PaintProject project, ProjectEditorLogic logic)
     {
         // Embedded ZIP inside the application
-        string? path = ResourceKit.Other.Paths.DefaultProject_1;
+        string path = ResourceKit.Other.Paths.DefaultProject_1;
+
+        Log.QuickLog($"Project path: {path}");
 
         // Try to open the embedded ZIP
-        if (path == null)
+        if (path == string.Empty || path == null)
         {
             Log.QuickLog("Default Project does not exist!");
             project.Metadata = new ProjectMetadata { name = "Untitled Project" };

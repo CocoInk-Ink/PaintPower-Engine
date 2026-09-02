@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -27,7 +29,7 @@ public static class ResourceKit
 
 	public static void Reset()
 	{
-		Keys = DefaultKeys;
+		Keys = LoadResourceManifest();
 		LoadedResources.Clear();
 		ResourcePaths.Clear();
 		LoadedImages.Clear();
@@ -60,7 +62,7 @@ public static class ResourceKit
 		public static class Small {}
 		public static class Large {}
 		public static class Cursors {
-			public static Image Pencil { get; private set; } = (Image)new Image();
+			public static Image Pencil { get; private set; } = new Image();
 		}
 	}
 	public static class Documents {}
@@ -83,25 +85,119 @@ public static class ResourceKit
 
 		// For binary files, use paths instead.
 		public static class Paths {
-			public static string? DefaultProject_1 = null;
+			public static string DefaultProject_1 = string.Empty;
+		}
+	}
+
+	private sealed class ResourceManifestEntry
+	{
+		public string Name { get; set; } = string.Empty;
+		public string Path { get; set; } = string.Empty;
+		public string type { get; set; } = string.Empty;
+		public string imagetype { get; set; } = string.Empty;
+		public bool isEmbedded { get; set; } = true;
+		public object? Item { get; set; }
+	}
+
+	private static readonly JsonSerializerOptions JsonOptions = new()
+	{
+		PropertyNameCaseInsensitive = true,
+		ReadCommentHandling = JsonCommentHandling.Skip,
+	};
+
+	private static Dictionary<string, object> LoadResourceManifest()
+	{
+		var candidates = new[]
+		{
+			Path.Combine(AppContext.BaseDirectory, "resource_manifest.json"),
+			Path.Combine(AppContext.BaseDirectory, "Assets", "Resources", "resource_manifest.json"),
+			Path.Combine(Directory.GetCurrentDirectory(), "resource_manifest.json"),
+			Path.Combine(Directory.GetCurrentDirectory(), "Assets", "Resources", "resource_manifest.json"),
+		};
+
+		foreach (var candidate in candidates.Distinct(StringComparer.OrdinalIgnoreCase))
+		{
+			if (string.IsNullOrWhiteSpace(candidate) || !File.Exists(candidate))
+				continue;
+
+			var manifest = LoadManifestFromFile(candidate);
+			if (manifest.Count > 0)
+				return manifest;
+		}
+
+		if (Plumber is not null && Plumber.AssetPipe.AssetExists("resource_manifest.json"))
+		{
+			var assetPath = Plumber.AssetPipe.LoadAsset("resource_manifest.json");
+			if (File.Exists(assetPath))
+			{
+				var manifest = LoadManifestFromFile(assetPath);
+				if (manifest.Count > 0)
+					return manifest;
+			}
+		}
+
+		return DefaultKeys;
+	}
+
+	private static Dictionary<string, object> LoadManifestFromFile(string path)
+	{
+		try
+		{
+			var json = File.ReadAllText(path);
+			var manifestDictionary = JsonSerializer.Deserialize<Dictionary<string, ResourceManifestEntry>>(json, JsonOptions);
+			if (manifestDictionary is null || manifestDictionary.Count == 0)
+				return new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+
+			return manifestDictionary
+				.ToDictionary(
+					kvp => kvp.Key,
+					kvp => (object)new ResourceManifestEntry
+					{
+						Name = kvp.Value.Name,
+						Path = kvp.Value.Path,
+						type = kvp.Value.type,
+						imagetype = kvp.Value.imagetype,
+						isEmbedded = kvp.Value.isEmbedded,
+						Item = kvp.Value.Item,
+					},
+					StringComparer.OrdinalIgnoreCase);
+		}
+		catch (Exception ex)
+		{
+			Log.QuickLog($"Failed to load resource manifest from '{path}': {ex.Message}");
+			return new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 		}
 	}
 
 	private static string? GetStringProperty(object instance, string name)
 	{
+		if (instance is null) return null;
+		if (instance is IDictionary<string, object> dict && dict.TryGetValue(name, out var dictValue))
+			return dictValue?.ToString();
+
 		var property = instance.GetType().GetProperty(name);
 		return property?.GetValue(instance)?.ToString();
 	}
 
 	private static bool GetBoolProperty(object instance, string name)
 	{
+		if (instance is IDictionary<string, object> dict && dict.TryGetValue(name, out var dictValue))
+			return dictValue is bool value && value;
+
 		var property = instance.GetType().GetProperty(name);
-		return property is not null && property.GetValue(instance) is bool value && value;
+		return property is not null && property.GetValue(instance) is bool value2 && value2;
 	}
 
 	private static void SetItemValue(object instance, object value)
 	{
-		if (instance is null) return;
+		if (instance is null) { Log.QuickLog("Instance is null"); return; }
+		Log.QuickLog($"Instance: {instance}");
+
+		if (instance is ResourceManifestEntry entry)
+		{
+			entry.Item = value;
+			return;
+		}
 
 		var property = instance.GetType().GetProperty("Item");
 		if (property is not null && property.CanWrite)
@@ -180,15 +276,20 @@ public static class ResourceKit
 
 		/**/
 
-		if (Keys is null) {
+		if (Keys is null || Keys.Count == 0)
+		{
 			Keys = DefaultKeys;
-			Log.QuickLog("Keys was null, using DefaultKeys");
+			Log.QuickLog("Keys was null or empty, using DefaultKeys");
 		}
 
-		foreach (var property in Keys.GetType().GetProperties())
+		foreach (var kvp in Keys)
 		{
-			var entry = property.GetValue(Keys);
+			var keyName = kvp.Key;
+			var entry = kvp.Value;
 			if (entry is null) continue;
+
+			Log.QuickLog($"\nEntry: {keyName}\n");
+			Log.QuickLog(entry);
 
 			var path = GetStringProperty(entry, "Path");
 			if (string.IsNullOrWhiteSpace(path)) continue;
@@ -197,14 +298,16 @@ public static class ResourceKit
 			var imageType = GetStringProperty(entry, "imagetype");
 			var isEmbedded = GetBoolProperty(entry, "isEmbedded");
 			var resolvedPath = ResolveResourcePath(path, type, imageType, isEmbedded);
-			ResourcePaths[property.Name] = resolvedPath;
+			ResourcePaths[keyName] = resolvedPath;
+
+			Log.QuickLog($"Path of asset: {resolvedPath}");
 
 			if (string.Equals(type, "image", StringComparison.OrdinalIgnoreCase))
 			{
 				var bitmap = new Bitmap(resolvedPath);
 				var image = new Image { Source = bitmap };
-				LoadedImages[property.Name] = image;
-				LoadedResources[property.Name] = image;
+				LoadedImages[keyName] = image;
+				LoadedResources[keyName] = image;
 				SetItemValue(entry, image);
 				continue;
 			}
@@ -213,34 +316,60 @@ public static class ResourceKit
 				string.Equals(type, "project", StringComparison.OrdinalIgnoreCase) ||
 				string.Equals(type, "binary", StringComparison.OrdinalIgnoreCase))
 			{
-				LoadedResources[property.Name] = resolvedPath;
+				LoadedResources[keyName] = resolvedPath;
 				SetItemValue(entry, resolvedPath);
 				continue;
 			}
 
 			if (File.Exists(resolvedPath))
 			{
-				LoadedTextFiles[property.Name] = File.ReadAllText(resolvedPath);
-				LoadedResources[property.Name] = LoadedTextFiles[property.Name];
-				SetItemValue(entry, LoadedTextFiles[property.Name]);
+				LoadedTextFiles[keyName] = File.ReadAllText(resolvedPath);
+				LoadedResources[keyName] = LoadedTextFiles[keyName];
+				SetItemValue(entry, LoadedTextFiles[keyName]);
 			}
 			else
 			{
-				LoadedResources[property.Name] = resolvedPath;
+				LoadedResources[keyName] = resolvedPath;
 				SetItemValue(entry, resolvedPath);
 			}
 		}
+
+		Log.QuickLog("\n");
 		Log.QuickLog("ResourceKit setup completed");
+		Log.QuickLog("\n");
 	}
 
 	// Paths to resources like images, icons, and other assets
-	public static dynamic Keys;
+	public static Dictionary<string, object> Keys { get; private set; } = new(StringComparer.OrdinalIgnoreCase);
 
-	private static dynamic DefaultKeys = new
+	private static Dictionary<string, object> DefaultKeys => new(StringComparer.OrdinalIgnoreCase)
 	{
-								//	File Path,								// type,			// imagetype (Parent Folder)	// Is embedded into output .dll file?	// Thing to be (usage) (associated with the resource)
-		PaintPower_Logo = new { Path = "PaintPower Logo.png", 				type = "image", 	imagetype = "resource",			isEmbedded = true,                    	Item = Images.Thumbnails.UI.Logo },
-		Default_Project = new { Path = "Untitled.xPaint", 					type = "project", 	imagetype = string.Empty,		isEmbedded = false,       				Item = Other.Paths.DefaultProject_1 },
-		Pencil_Cursor = new {	Path = "Pencil.png", 						type = "image", 	imagetype = "cursor",			isEmbedded = true,                    	Item = Icons.Cursors.Pencil },
+		["PaintPower_Logo"] = new ResourceManifestEntry
+		{
+			Name = "PaintPower Logo",
+			Path = "PaintPower Logo.png",
+			type = "image",
+			imagetype = "resource",
+			isEmbedded = true,
+			Item = Images.Thumbnails.UI.Logo,
+		},
+		["Default_Project"] = new ResourceManifestEntry
+		{
+			Name = "Default Project 1",
+			Path = "Untitled.xPaint",
+			type = "project",
+			imagetype = string.Empty,
+			isEmbedded = true,
+			Item = Other.Paths.DefaultProject_1,
+		},
+		["Pencil_Cursor"] = new ResourceManifestEntry
+		{
+			Name = "Pencil Cursor",
+			Path = "Pencil.png",
+			type = "image",
+			imagetype = "cursor",
+			isEmbedded = true,
+			Item = Icons.Cursors.Pencil,
+		},
 	};
 }

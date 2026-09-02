@@ -1,0 +1,23 @@
+{
+  "PaintPower_Logo": {
+    "Name": "PaintPower Logo",
+    "Path": "PaintPower Logo.png",
+    "type": "image",
+    "imagetype": "resource",
+    "isEmbedded": true
+  },
+  "Default_Project": {
+    "Name": "Default Project 1",
+    "Path": "Untitled.xPaint",
+    "type": "project",
+    "imagetype": "",
+    "isEmbedded": true
+  },
+  "Pencil_Cursor": {
+    "Name": "Pencil Cursor",
+    "Path": "Pencil.png",
+    "type": "image",
+    "imagetype": "cursor",
+    "isEmbedded": true
+  }
+}

@@ -4,6 +4,7 @@
 */
 
 using System;
+using System.Threading.Tasks;
 
 namespace Toolbox.Media.Player;
 
@@ -18,17 +19,17 @@ public class MediaPlayer
         
     }
 
-    public virtual void Play() {}
+    public virtual async Task Play() {}
 
-    public virtual void Stop() {}
+    public virtual async Task Stop() {}
+    
+    public virtual async Task Pause() {}
 
-    public virtual void Pause() {}
+    public virtual async Task Resume() {}
 
-    public virtual void Resume() {}
+    public virtual async Task Seek(TimeSpan position) {}
 
-    public virtual void Seek(TimeSpan position) {}
-
-    public virtual void LoadMedia(Media media)
+    public virtual async Task LoadMedia(Media media)
     {
         this.media = media;
         media.Load();

@@ -34,7 +34,7 @@ public class Media
         set => duration = value;
     }
 
-    public void Load()
+    public async void Load()
     {
         data = System.IO.File.ReadAllBytes(filePath ?? throw new InvalidOperationException("File path must be set to load media."));
         // Additional loading logic here (e.g., parsing metadata, etc.)
