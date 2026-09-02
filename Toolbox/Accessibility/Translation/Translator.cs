@@ -21,9 +21,9 @@ public static class Translator
 
     public static bool refreshNeeded = false;
 
-    private static readonly string LangList = "lang/lang-list.txt";
+    private static readonly string LangList = "Text/lang/lang-list.txt";
 
-    private static string LangPath => $"lang/{lang}.po";
+    private static string LangPath => $"Text/lang/{lang}.po";
 
     public static event Action? LanguageChanged;
 
@@ -75,7 +75,7 @@ public static class Translator
             try
             {
                 Log.QuickLog("Getting lang file.");
-                LoadGettextFile($"lang/{lang}.po");
+                LoadGettextFile(LangPath);
                 Log.QuickLog("Got lang file.");
             }
             catch
@@ -126,7 +126,7 @@ public static class Translator
 
     public static void AddTranslation(string word, string translation)
     {
-        langList[word] = translation;
+        langDict[word] = translation;
     }
 
     public static string Translate(string s)
