@@ -141,6 +141,15 @@ public static class ResourceKit
 			{
 				public static Image Pencil { get; private set; } = new Image();
 			}
+
+			public static Image File { get; private set; } = new Image();
+			public static Image Image { get; private set; } = new Image();
+			public static Image ImageFile { get; private set; } = new Image();
+			public static Image Folder1 { get; private set; } = new Image();
+			public static Image Folder2 { get; private set; } = new Image();
+			public static Image FolderOpen { get; private set; } = new Image();
+			public static Image Import { get; private set; } = new Image();
+			public static Image Export { get; private set; } = new Image();
 		}
 		public static class UI
 		{

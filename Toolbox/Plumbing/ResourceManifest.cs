@@ -46,8 +46,6 @@ public static class ResourceManifest
         ["Images.Icons.Import"] = "Images/Icons/Import.png",
         ["Images.Icons.Export"] = "Images/Icons/Export.png",
 
-        
-
 
     };
 
