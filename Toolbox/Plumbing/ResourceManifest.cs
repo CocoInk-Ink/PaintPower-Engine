@@ -19,8 +19,8 @@ public static class ResourceManifest
         ["Images.Fallback"] = "Images/Icons/Fallback.png",
 
         // Branding and logos
-        ["Images.Thumbnails.UI.Logo"] = "Images/UI/Logo.png",
-        ["Images.UI.xPaintLogo"] = "Images/UI/xPaintLogo.png",
+        ["Images.Thumbnails.UI.Logo"] = "Images/UI/PaintPower Logo.png",
+        ["Images.UI.xPaintLogo"] = "Images/UI/xPaint Logo.png",
 
         // No access
         ["Images.UI.No.NoAccess"] = "Images/UI/NoAccess.gif",
