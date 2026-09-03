@@ -14,13 +14,41 @@ public static class ResourceManifest
 	// Add your images here.
     public static readonly Dictionary<string, string> Images = new()
     {
-        ["Images.Placeholder"] = "UI/Placeholder.png",
-        ["Images.Fallback"] = "UI/Fallback.png",
+        // Placeholder and fallback images
+        ["Images.Placeholder"] = "Images/Icons/Fallback2.png",
+        ["Images.Fallback"] = "Images/Icons/Fallback.png",
 
-        ["Images.Thumbnails.UI.Logo"] = "Icons/UI/Logo.png",
-        ["Images.Thumbnails.UI.xPaintLogo"] = "Icons/UI/xPaintLogo.png",
+        // Branding and logos
+        ["Images.Thumbnails.UI.Logo"] = "Images/UI/Logo.png",
+        ["Images.UI.xPaintLogo"] = "Images/UI/xPaintLogo.png",
 
-        ["Icons.Cursors.Pencil"] = "Cursors/Pencil.png",
+        // No access
+        ["Images.UI.No.NoAccess"] = "Images/UI/NoAccess.gif",
+
+        // It's red because no blue
+        ["Images.UI.No.Red"] = "Images/UI/NoRed.png",
+
+        // It's blue because no red
+        ["Images.UI.No.Blue"] = "Images/UI/NoBlue.png",
+
+        // Cursors
+        ["Images.Cursors.Pencil"] = "Cursors/Pencil.png",
+
+        // Icons
+        ["Images.Icons.File"] = "Images/Icons/File.png",
+        ["Images.Icons.Image"] = "Images/Icons/Image.png",
+        ["Images.Icons.ImageFile"] = "Images/Icons/Image file.png",
+
+        ["Images.Icons.Folder1"] = "Images/Icons/Folder.png",
+        ["Images.Icons.Folder2"] = "Images/Icons/Folder2.png",
+        ["Images.Icons.FolderOpen"] = "Images/Icons/Folder open.png",
+
+        ["Images.Icons.Import"] = "Images/Icons/Import.png",
+        ["Images.Icons.Export"] = "Images/Icons/Export.png",
+
+        
+
+
     };
 
 	// Add your text files here.

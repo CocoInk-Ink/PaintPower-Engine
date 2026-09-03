@@ -80,7 +80,7 @@ public partial class PaintEditor : FileEditor
                 CheckerZoom.LayoutTransform = new ScaleTransform(scale, scale);
                 CheckerZoom.InvalidateVisual();
 
-                BrushCursor = ResourceKit.Icons.Cursors.Pencil;
+                BrushCursor = ResourceKit.Images.Icons.Cursors.Pencil;
                 Log.QuickLog(BrushCursor.ToString());
                 BrushCursor.RenderTransform = new ScaleTransform(scale, scale);
 
