@@ -155,6 +155,13 @@ public static class ResourceKit
 		{
 			public static Image Logo { get; private set; } = new Image();
 			public static Image xPaintLogo { get; private set; } = new Image();
+
+			public static class No
+			{
+				public static Image NoAccess { get; private set; } = new Image();
+				public static Image Red { get; private set; } = new Image();
+				public static Image Blue { get; private set; } = new Image();
+			}
 		}
 	}
 
