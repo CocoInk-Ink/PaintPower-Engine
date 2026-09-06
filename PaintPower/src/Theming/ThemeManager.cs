@@ -21,7 +21,7 @@ public static class ThemeManager
 
     public static void RegisterBuiltInTheme(string name, string? FileName = null)
     {
-        RegisterTheme(name, $"avares://Assets/Resources/Themes/{FileName ?? name}.axamlt");
+        RegisterTheme(name, $"avares://Assets/Resources/Text/Themes/{FileName ?? name}.axamlt");
     }
 
     public static void ApplyTheme(string name)

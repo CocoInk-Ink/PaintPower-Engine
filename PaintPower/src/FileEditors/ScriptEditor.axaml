@@ -5,7 +5,7 @@
 
 	<Grid>
 		<Grid.Background>
-			<ImageBrush Source="avares://Assets/Resources/Background.png"
+			<ImageBrush Source="avares://Assets/Resources/Images/UI/Background/Background.png"
 						Stretch="None"
 						TileMode="Tile"
 						DestinationRect="0,0,10,10" />

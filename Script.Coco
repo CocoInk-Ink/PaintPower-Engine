@@ -1,0 +1,32 @@
+import Coco.Schema.JSON;
+
+function Main() {
+	var var1:String = "text";
+	var var2:int = 5;
+	var var3:String = var1 + var2;
+	
+	print typepass<String>(var1);
+	print typepass<int>(var2);
+	print any("23r");
+	print var3;
+	
+	repeat(4) {
+		print Math.Random(1, 100);
+	}
+	
+	print JSON.parse('{"Key": "Value"}');
+}
+
+function typepass<String string>(string s):string {
+	s =? new();
+	return s;
+}
+
+function typepass2<T *>(T variable):T {
+	variable =? new();
+	return variable
+}
+
+function any(v:*):* {
+	return v;
+}

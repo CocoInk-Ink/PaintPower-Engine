@@ -14,9 +14,5 @@ public class Toolkit
 {
 	public Toolkit()
 	{
-		Plumber plumber = new();
-		plumber.MakeMainPlumber();
-
-		ResourceKit.Initialize(plumber);
 	}
 }

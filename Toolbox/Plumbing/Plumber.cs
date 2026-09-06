@@ -27,6 +27,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Toolbox.Plumbing.Pipes;
+using Toolbox.Sessions;
 
 namespace Toolbox.Plumbing;
 
@@ -49,7 +50,7 @@ public class Plumber
 
 	public Plumber()
 	{
-		path = Path.Combine(Path.GetTempPath(), "PaintPowerPlumber_" + Guid.NewGuid() + "/");
+		path = Path.Combine(Session.Current.SessionDir, "Plumber");
 
 		if (!Directory.Exists(path)) Directory.CreateDirectory(path);
 

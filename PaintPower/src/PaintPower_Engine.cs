@@ -21,6 +21,8 @@ public partial class PaintPower_Engine : FileEditor
     public static PaintPower_Engine App;
     public static MainWindow? window => MainWindow.window;
 
+    public static string Version => "Pre-Alpha 2.1.0.0";
+
     // Must not be public
     public Toolkit Toolkit { get; private set; }
     public Plumber plumber;

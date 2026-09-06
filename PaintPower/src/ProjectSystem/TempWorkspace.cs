@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Toolbox.Sessions;
 
 namespace PaintPower.ProjectSystem;
 
@@ -17,7 +18,7 @@ public class TempWorkspace
 
     public TempWorkspace()
     {
-        Root = Path.Combine(Path.GetTempPath(), "PaintPower_" + Guid.NewGuid());
+        Root = Path.Combine(Session.Current.SessionDir, "workspace");
 
         // Delete the directory if it already exists because TempWorkspace might be reused for multiple projects
         if (Directory.Exists(Root))

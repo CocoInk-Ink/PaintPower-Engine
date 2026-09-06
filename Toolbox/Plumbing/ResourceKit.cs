@@ -134,13 +134,14 @@ public static class ResourceKit
 		public static Image Placeholder { get; private set; } = new Image();
 		public static Image Fallback { get; private set; } = new Image();
 
+		public static class Cursors
+		{
+			public static Image Pencil { get; private set; } = new Image();
+		}
+
 		public static class Icons
 		{
 			public static class FileIcons { }
-			public static class Cursors
-			{
-				public static Image Pencil { get; private set; } = new Image();
-			}
 
 			public static Image File { get; private set; } = new Image();
 			public static Image Image { get; private set; } = new Image();

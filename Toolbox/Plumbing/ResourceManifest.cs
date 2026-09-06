@@ -32,7 +32,7 @@ public static class ResourceManifest
         ["Images.UI.No.Blue"] = "Images/UI/NoBlue.png",
 
         // Cursors
-        ["Images.Cursors.Pencil"] = "Cursors/Pencil.png",
+        ["Images.Cursors.Pencil"] = "Images/Cursors/Pencil.png",
 
         // Icons
         ["Images.Icons.File"] = "Images/Icons/File.png",

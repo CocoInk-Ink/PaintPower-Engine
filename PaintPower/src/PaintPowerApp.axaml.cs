@@ -14,21 +14,9 @@ public class PaintPowerApp : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        // ------------------------------------------------------------
-        // 1. Register built‑in themes
-        // ------------------------------------------------------------
-        ThemeManager.RegisterBuiltInTheme(
-            "PaintPower",
-            "PaintPowerTheme"
-        );
 
         // ------------------------------------------------------------
-        // 2. Apply default theme
-        // ------------------------------------------------------------
-        //ThemeManager.ApplyTheme("PaintPower");
-
-        // ------------------------------------------------------------
-        // 3. Standard Avalonia initialization
+        // 1. Standard Avalonia initialization
         // ------------------------------------------------------------
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
@@ -48,6 +36,19 @@ public class PaintPowerApp : Application
 
             desktop.MainWindow = window;
         }
+
+                // ------------------------------------------------------------
+        // 2. Register built‑in themes
+        // ------------------------------------------------------------
+        ThemeManager.RegisterBuiltInTheme(
+            "PaintPower",
+            "PaintPowerTheme"
+        );
+
+        // ------------------------------------------------------------
+        // 3. Apply default theme
+        // ------------------------------------------------------------
+        ThemeManager.ApplyTheme("PaintPower");
 
         base.OnFrameworkInitializationCompleted();
     }

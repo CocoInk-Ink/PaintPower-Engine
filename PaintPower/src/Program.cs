@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using System;
 using System.Runtime.InteropServices;
+using Toolbox.Sessions;
 
 namespace PaintPower;
 
@@ -11,16 +12,9 @@ class Program
     // yet and stuff might break.
     [STAThread]
     public static void Main(string[] args) {
-        BuildAvaloniaApp()
-        .StartWithClassicDesktopLifetime(args);
+        Session.InitializeSession<PaintPowerApp>(args, PaintPower_Engine.Version, "PaintPower-Engine");
     }
 
-    // Avalonia configuration, don't remove; also used by visual designer.
-    public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<PaintPowerApp>()
-            .UsePlatformDetect()
-            .WithInterFont()
-            .LogToTrace();
 
     [DllImport("kernel32.dll")]
     private static extern bool AllocConsole();

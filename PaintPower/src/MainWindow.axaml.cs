@@ -9,7 +9,7 @@ namespace PaintPower;
 public partial class MainWindow : Window
 {
     // Legacy compatibility wrapper
-    public static PaintPower_Engine? App { get; } = new PaintPower_Engine();
+    public static PaintPower_Engine? App;
 
     public string? StartupProjectPath { get; set; }
 
@@ -21,6 +21,8 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
+
+        App = new PaintPower_Engine();
 
         window = this;
     }
