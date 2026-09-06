@@ -1,0 +1,17 @@
+
+[quote=localrulebreaker]This reminds me a bit of ACS.
+Also, can you update the link? It seems to be broken.[/quote]
+
+[quote=Julesvernebeales]i would like to take a look, this looks quite interesting, bu thte github link isn working for some reason, could you try double checking the link?[/quote]
+
+Sorry, the repo was private. I just made it public. This repo is just the runtime, written in C#. The compiler and linker is written in Python.
+The compiler compiles PaintScript to JSON. I'm also working on a language server for vscode.
+
+
+The Compiler, and Definition of the language here: https://github.com/CocoInk-Ink/PaintScript-Standard
+
+The language server here (I forgot to change the readme): https://github.com/CocoInk-Ink/Paintscript-Language-Support
+
+The runtime: https://github.com/CocoInk-Ink/PaintScript-Engine
+
+The app that uses PaintScript (Broken!): https://github.com/CocoInk-Ink/PaintPower-Engine
