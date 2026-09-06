@@ -1,13 +1,14 @@
 # PaintPower Engine
-# Copyright (c) 2026 CocoInk Software.
-#
-# The xPaint Project, PaintPower Engine.
+<strong>Copyright (c) 2026 CocoInk Software. <br>
+The xPaint Project, PaintPower Engine.</strong>
 
 # What is PaintPower?
 The PaintPower Engine is just the underlying application of xPaint.
 xPaint extends PaintPower to add branding and website connectivity.
 
 But PaintPower is the app itself.
+
+<h3>Look at #ResourceKit for details about the status.</h3>
 
 # Code styles
 
@@ -48,4 +49,8 @@ Toolbox       (Tools that both the PaintPower and PaintPower-VM projects use)
 
 # ResourceKit
 For assets, we use a class called "ResourceKit". It extracts all assets from inside the app and links them for immediate use.
-This is the system I have been working on and it's killing me to work on this all by myself (I have no freinds and my family is not intreisted). 
+This is the system I have been working on and it's killing me to work on
+this all by myself (I have no friends and my family is not interested). So i'm making this repo public to
+try to bring this to life.
+
+I'm trying to bring this to life by 2027, just like Scratch in 2007 20 years earlier.
