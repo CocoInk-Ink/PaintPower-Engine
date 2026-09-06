@@ -15,3 +15,7 @@ The language server here (I forgot to change the readme): https://github.com/Coc
 The runtime: https://github.com/CocoInk-Ink/PaintScript-Engine
 
 The app that uses PaintScript (Broken!): https://github.com/CocoInk-Ink/PaintPower-Engine
+
+Any contributions will help, if you can't code you can at least help define PaintScript's structure.
+
+bump
