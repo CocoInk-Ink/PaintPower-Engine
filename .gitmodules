@@ -1,0 +1,6 @@
+[submodule "PaintScript Engine"]
+	path = PaintScript Engine
+	url = https://github.com/CocoInk-Ink/PaintScript-Engine.git
+[submodule "PaintScript Standard"]
+	path = PaintScript Standard
+	url = https://github.com/CocoInk-Ink/PaintScript-Standard.git
