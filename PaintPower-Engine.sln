@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolbox", "Toolbox\Toolbox.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assets", "Assets\Assets.csproj", "{0558E24B-5C4A-4B54-B58B-F44FB9569133}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaintScript Engine", "PaintScript Engine\PaintScript Engine.csproj", "{0558E24B-5C4A-4B54-B58B-F44FB9569133}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

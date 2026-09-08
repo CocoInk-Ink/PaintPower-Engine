@@ -23,6 +23,7 @@
   <!-- Include the assets. -->
   <ItemGroup>
     <ProjectReference Include="..\Assets\Assets.csproj" />
+    <ProjectReference Include="..\PaintScript Engine\PaintScript Engine.csproj" />
   </ItemGroup>
 
   <ItemGroup>
