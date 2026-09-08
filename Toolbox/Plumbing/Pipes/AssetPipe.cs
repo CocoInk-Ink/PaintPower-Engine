@@ -32,7 +32,7 @@ public class AssetPipe : Pipe
 	static public readonly string FilesIcon = IconsPath + "PaintPower Filetypes/";
 	static public readonly string CursorsIcon = IconsPath + "Cursors/";
 
-	public AssetPipe(string name, string path) : base(name, path) {}
+	public AssetPipe(string name, string path) : base(name, path) { }
 
 	public string LoadAsset(string path)
 	{
@@ -107,6 +107,29 @@ public class AssetPipe : Pipe
 		}
 
 		return outpath;
+	}
+
+	public string ExtractIfNeeded(Uri uri)
+	{
+		string fileName = uri.Segments.Last();
+		string outPath = Path.Combine(path, fileName);
+
+		Log.QuickLog($"Ready to extract: {uri}...");
+
+		if (File.Exists(outPath))
+		{
+			Log.QuickLog($"Asset already extracted: {fileName}");
+			return outPath;
+		}
+
+		Log.QuickLog($"Extracting: {uri}...");
+
+		using var stream = AssetLoader.Open(uri);
+		using var fs = File.Create(outPath);
+		stream.CopyTo(fs);
+
+		Log.QuickLog($"Extracted asset: {fileName}");
+		return outPath;
 	}
 
 }

@@ -55,17 +55,20 @@ public static class ResourceManifest
 	// Not grammar like languages, grammar like for programming languages.
     public static readonly Dictionary<string, string> Grammars = new()
     {
-        ["Other.Grammars.ActionScript_3"] 	=	"AS3.tmLanguage.json",
-		["Other.Grammars.MXML"]				=	"MXML.tmLanguage.json",
-		["Other.Grammars.PaintScript"]		=	"PaintScript.tmLanguage.json"
+        ["Other.Grammars.ActionScript"] 	=	"Grammars/AS3.tmLanguage.json",
+		["Other.Grammars.MXML"]				=	"Grammars/MXML.tmLanguage.json",
+		["Other.Grammars.PaintScript"]		=	"Grammars/PaintScript.tmLanguage.json"
     };
 
 	// Add raw binary files here.
-    public static readonly Dictionary<string, string> BinaryFiles = new() {};
+    public static readonly Dictionary<string, string> BinaryFiles = new()
+    {
+        ["Media.Audio.Click"] = "Binary/Sounds/Click.wav"
+    };
 
 	// Add default projects here.
 	public static readonly Dictionary<string, string> DefaultProjects = new()
     {
-        ["Other.Paths.DefaultProject_1"] = "Untitled.xPaint"
+        ["Other.Paths.DefaultProject_1"] = "Binary/Default Projects/Untitled.xPaint"
     };
 }

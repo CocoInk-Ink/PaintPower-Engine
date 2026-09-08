@@ -50,7 +50,7 @@ public class Plumber
 
 	public Plumber()
 	{
-		path = Path.Combine(Session.Current.SessionDir, "Plumber");
+		path = Path.Combine(Session.Current.AppDir, "Plumber");
 
 		if (!Directory.Exists(path)) Directory.CreateDirectory(path);
 
