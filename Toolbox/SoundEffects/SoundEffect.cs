@@ -15,7 +15,7 @@ public class SoundEffect
         {
             try
             {
-                var media = new Media.Media(Plumber.MainPlumber.AssetPipe.LoadAsset("Sounds/" + name + ".wav"));
+                var media = new Media.Media(Plumber.MainPlumber.AssetPipe.GetExtractedPath("Sounds/" + name + ".wav"));
                 media.Load();
                 MediaList.Add(media);
             }

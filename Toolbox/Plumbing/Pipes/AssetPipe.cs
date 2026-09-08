@@ -75,6 +75,12 @@ public class AssetPipe : Pipe
 		return bitmap;
 	}
 
+	public string GetExtractedPath(string relativePath)
+	{
+		var uri = new Uri($"{AssetPath}{relativePath}");
+		return ExtractIfNeeded(uri);
+	}
+
 	// Pipes a stream into folder, then returns path.
 	public override string PipeOut(Uri uri)
 	{

@@ -152,7 +152,7 @@ public static class Translator
         if (!Plumber.MainPlumber.AssetPipe.AssetExists(path))
             throw new FileNotFoundException("Language file not found", path);
 
-        path = Plumber.MainPlumber.AssetPipe.LoadAsset(path);
+        path = Plumber.MainPlumber.AssetPipe.GetExtractedPath(path);
 
         var lines = File.ReadAllLines(path);
         ParseGettext(lines);
@@ -249,7 +249,7 @@ public static class Translator
         if (!Plumber.MainPlumber.AssetPipe.AssetExists(path))
             throw new FileNotFoundException("Language file not found", path);
 
-        path = Plumber.MainPlumber.AssetPipe.LoadAsset(path);
+        path = Plumber.MainPlumber.AssetPipe.GetExtractedPath(path);
 
         langList.Clear();
         langDict.Clear();
