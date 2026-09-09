@@ -5,7 +5,7 @@
 			 xmlns:baseTools="clr-namespace:PaintPower.FileEditors.Tools"
 			 xmlns:tools="clr-namespace:PaintPower.FileEditors.Tools.PaintEditorTools">
 
-	<Grid RowDefinitions="60,*">
+	<Grid RowDefinitions="60,*" Background="{DynamicResource MainBackground}">
 
 		<Rectangle Fill="#80000000"
 				   Grid.RowSpan="2"

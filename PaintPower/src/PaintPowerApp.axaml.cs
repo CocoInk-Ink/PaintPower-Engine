@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using PaintPower.Theming;
+using Toolbox.Logging;
 
 namespace PaintPower;
 
@@ -14,7 +15,7 @@ public class PaintPowerApp : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-
+        Log.QuickLog("Starting Avalonia...");
         // ------------------------------------------------------------
         // 1. Standard Avalonia initialization
         // ------------------------------------------------------------
@@ -37,7 +38,9 @@ public class PaintPowerApp : Application
             desktop.MainWindow = window;
         }
 
-                // ------------------------------------------------------------
+        Log.QuickLog("Registering themes...");
+
+        // ------------------------------------------------------------
         // 2. Register built‑in themes
         // ------------------------------------------------------------
         ThemeManager.RegisterBuiltInTheme(
@@ -45,6 +48,7 @@ public class PaintPowerApp : Application
             "PaintPowerTheme"
         );
 
+        Log.QuickLog("Applying themes...");
         // ------------------------------------------------------------
         // 3. Apply default theme
         // ------------------------------------------------------------
