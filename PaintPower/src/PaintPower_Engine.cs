@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using Toolbox.Plumbing.Pipes;
 using PaintPower.Templates.FileTemplates;
 using Toolbox;
+using Toolbox.Logging;
+using Toolbox.Time;
 
 namespace PaintPower;
 
@@ -21,7 +23,7 @@ public partial class PaintPower_Engine : FileEditor
     public static PaintPower_Engine App;
     public static MainWindow? window => MainWindow.window;
 
-    public static string Version => "Pre-Alpha 2.1.0.0";
+    public static string Version => $"Pre-Alpha 2.1.0.0 build {new Time().getBuildTime()}";
 
     // Must not be public
     public Toolkit Toolkit { get; private set; }
@@ -34,6 +36,7 @@ public partial class PaintPower_Engine : FileEditor
     // --------------------------------------------------------------------
     public PaintPower_Engine()
     {
+        Log.QuickLog(Version);
         Toolkit = new Toolkit();
 
         if (Plumber.MainPlumber == null)

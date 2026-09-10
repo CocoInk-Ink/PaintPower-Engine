@@ -65,12 +65,6 @@
 
   </ItemGroup>
 
-  <!-- Build timestamp -->
-  <PropertyGroup>
-    <BuildTimestamp>$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss"))</BuildTimestamp>
-    <DefineConstants>$(DefineConstants);BUILD_TIME=$(BuildTimestamp)</DefineConstants>
-  </PropertyGroup>
-
   <!-- External reference -->
   <ItemGroup>
     <Reference Include="AvaloniaEdit">

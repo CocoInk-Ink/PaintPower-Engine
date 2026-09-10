@@ -1,4 +1,4 @@
-<!-- Tools -->
+<!-- Tools.csproj -->
 
 <Project Sdk="Microsoft.NET.Sdk">
 
@@ -26,6 +26,7 @@
     <ProjectReference Include="..\PaintScript Engine\PaintScript Engine.csproj" />
   </ItemGroup>
 
+  <!-- Packages -->
   <ItemGroup>
     <PackageReference Include="AnimatedImage.Avalonia" Version="2.1.4" />
     <PackageReference Include="Avalonia" Version="11.3.12" />
@@ -40,6 +41,10 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
     <PackageReference Include="Svg.Skia" Version="1.0.0" />
   </ItemGroup>
+
+  <Target Name="GenerateBuildInfo" BeforeTargets="BeforeBuild">
+    <Exec Command="powershell -ExecutionPolicy Bypass -File ..\bake_timestamp.ps1" />
+  </Target>
 
 </Project>
 

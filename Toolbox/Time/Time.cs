@@ -20,6 +20,11 @@ public class Time
         return Now.Millisecond;
     }
 
+    public string getBuildTime()
+    {
+        return Now.getBuildTimestamp();
+    }
+
     public Time() {
         Now = CachedTimer.GetCachedTimer();
     }

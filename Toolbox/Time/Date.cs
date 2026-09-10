@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -34,12 +35,6 @@ public class Date
 
     public string getBuildTimestamp()
     {
-
-        #if BUILD_TIME
-            return BUILD_TIME.ToString();
-        #else
-            return "Unknown";
-        #endif
-
+        return BuildInfo.Timestamp;
     }
 }
