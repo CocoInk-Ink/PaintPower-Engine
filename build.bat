@@ -1,2 +1,1 @@
-
 dotnet build --configuration Release
