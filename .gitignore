@@ -8,6 +8,8 @@
 PaintPower-VM/out/
 PaintPower-VM/.vs/
 
+your-build.iss
+
 # User-specific files
 *.rsuser
 *.suo
