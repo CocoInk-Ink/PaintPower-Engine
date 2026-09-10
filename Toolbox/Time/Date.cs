@@ -35,6 +35,7 @@ public class Date
 
     public string getBuildTimestamp()
     {
+        // Generated on build.
         return BuildInfo.Timestamp;
     }
 }
