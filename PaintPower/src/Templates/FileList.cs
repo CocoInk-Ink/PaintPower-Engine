@@ -9,6 +9,20 @@ public class FileList
 
     public FileList()
     {
+        bool useFullList = true;
+        if (useFullList) addFullList();
+        else addSmallList();
+    }
+
+    private void addSmallList()
+    {
+        templates.Add(new Png());
+        templates.Add(new Txt());
+        templates.Add(new Pxs());
+        templates.Add(new Wxa());
+    }
+
+    private void addFullList() {
         // Alphabetical order
         templates.Add(new As());
         templates.Add(new Asm());
