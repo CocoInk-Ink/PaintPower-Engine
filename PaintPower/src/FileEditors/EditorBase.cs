@@ -1,4 +1,6 @@
-﻿using Avalonia.Controls;
+﻿// EditorBase.cs
+
+using Avalonia.Controls;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,4 +1,6 @@
-﻿using System;
+﻿// FileEditorManager.cs
+
+using System;
 using System.IO;
 using Avalonia.Controls;
 using PaintPower.ProjectSystem;
