@@ -7,9 +7,8 @@ public class FileList
 {
     public List<FileTemplate> templates = new List<FileTemplate>();
 
-    public FileList()
-    {
-        bool useFullList = true;
+    public FileList() {
+    bool useFullList = !true;
         if (useFullList) addFullList();
         else addSmallList();
     }
