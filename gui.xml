@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scene id="scene1" binding="scene1">
+	<div>
+		<a href="http://www.cocoink.ink/">Coco website.</a>
+		<input id="name" />
+		<button onclick="Script1.getName">Click me!</button>
+	</div>
+	<Script id="Script1" type="CocoScript" options="WebCocoScript=true;">
+		@getName() {
+			!name = get("#name").value;
+			PlayJS("sayName", name);
+		}
+	</Script>
+	<Script type="JavaScript" options="" >
+		function sayName(name) {
+			alert("Hello, " + name + "!");
+		}
+	</Script>
+</Scene>
