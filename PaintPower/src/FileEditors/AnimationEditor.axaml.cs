@@ -32,6 +32,7 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged
     private PlaybackTool _playback;
     private List<FrameTool> _frameTools = new();
     private LayerManagerTool _layers;
+    public LayerManagerTool Layers => _layers;
 
     public int SelectedFrame => _timeline.SelectedFrame;
 
@@ -54,6 +55,13 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged
 
         SetRelativePath(path);
         SetFullPath(System.IO.Path.Combine(_workspace.ItemsDir, path));
+
+        _layers = new LayerManagerTool();
+        _layers.AddLayer("Layer 1");
+        _layers.AddLayer("Layer 2");
+        _layers.AddLayer("Layer 3");
+
+        SelectedLayer = _layers.Layers[0];
 
         InitializeComponent();
         DataContext = this;
@@ -80,13 +88,6 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged
             RenderFrame(frame);
 
         };
-
-        _layers = new LayerManagerTool();
-        _layers.AddLayer("Layer 1");
-        _layers.AddLayer("Layer 2");
-        _layers.AddLayer("Layer 3");
-
-        SelectedLayer = _layers.Layers[0];
 
         this.AttachedToVisualTree += (_, _) => OnLoaded();
     }
