@@ -274,7 +274,8 @@ public class PaintSprite
     {
         string parent = Directory.GetParent(sprite.SpriteFolder)!.FullName;
 
-        string newName = SafeRename(sprite.Name, parent);
+        string? newName = SafeRename(sprite.Name, parent);
+        if (newName == null) throw new Exception("Can't duplicate!");
         string newFolder = Path.Combine(parent, newName);
 
         CopyDirectory(sprite.SpriteFolder, newFolder);
