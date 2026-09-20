@@ -39,8 +39,25 @@
                 Margin="4"
                 Background="#202020"
                 BorderBrush="#404040"
-                BorderThickness="1">
-            <Canvas x:Name="AnimationCanvas"/>
+                BorderThickness="1"
+                HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Canvas x:Name="AnimationCanvas"
+                    Background="#ECECEC"
+                    PointerPressed="OnCanvasPointerPressed"
+                    PointerMoved="OnCanvasPointerMoved"
+                    PointerReleased="OnCanvasPointerReleased"
+                    Width="{Binding CanvasWidth}"
+                    Height="{Binding CanvasHeight}"
+                    x:CompileBindings="False"
+                    MinWidth="50"
+                    MinHeight="50">
+                <Canvas.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform ScaleX="1" ScaleY="1"/>
+                        <TranslateTransform X="0" Y="0"/>
+                    </TransformGroup>
+                </Canvas.RenderTransform>
+            </Canvas>
         </Border>
 
         <!-- Vertical splitter -->
@@ -59,6 +76,23 @@
                 BorderThickness="1">
 
             <StackPanel Margin="8" Spacing="6">
+
+                <TextBlock Text="Canvas Size" Foreground="White" Margin="0,8,0,0"/>
+
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <TextBlock Text="W:" Foreground="White"/>
+                    <NumericUpDown Minimum="50" Maximum="1920"
+                                   x:CompileBindings="False"
+                                   Value="{Binding CanvasWidth}" Width="80"/>
+
+                    <TextBlock Text="H:" Foreground="White" Margin="8,0,0,0"/>
+                    <NumericUpDown Minimum="50" Maximum="1080"
+                                   x:CompileBindings="False"
+                                   Value="{Binding CanvasHeight}" Width="80"/>
+
+                    <Button Content="Fit Canvas" Click="OnFitCanvas"/>
+                </StackPanel>
+
 
                 <TextBlock Text="Layers"
                            FontWeight="Bold"
@@ -91,6 +125,9 @@
 
                 <TextBlock Text="Opacity" Foreground="White" Margin="0,8,0,0"/>
                 <Slider Minimum="0" Maximum="1" Value="1"/>
+
+                <TextBlock Text="Zoom" Foreground="White" Margin="0,8,0,0"/>
+                <Slider Minimum="0.1" Maximum="4.0" x:CompileBindings="False" Value="{Binding ZoomLevel}" Width="150"/>
 
             </StackPanel>
         </Border>
@@ -134,11 +171,11 @@
                             <Border Width="120"
                                     Height="80"
                                     Margin="4"
-                                    BorderBrush="#606060"
+                                    BorderBrush="#707070"
                                     BorderThickness="1"
                                     Background="{Binding #AnimationEditor1.SelectedFrame,
-                                        Converter={StaticResource FrameColorConverter},
-                                        ConverterParameter={Binding}}">
+                                    Converter={StaticResource FrameColorConverter},
+                                    ConverterParameter={Binding}}">
 
                                 <Button Click="OnFrameClicked"
                                         Tag="{Binding}"

@@ -21,11 +21,17 @@ public class LayerTool
 
 public class LayerFrameTool
 {
-    public Action<Canvas> DrawAction { get; set; }
+    public List<Action<Canvas>> DrawActions { get; } = new();
 
-    public LayerFrameTool(Action<Canvas> drawAction)
+    public void AddShape(Action<Canvas> shape)
     {
-        DrawAction = drawAction;
+        DrawActions.Add(shape);
+    }
+
+    public void Render(Canvas canvas)
+    {
+        foreach (var shape in DrawActions)
+            shape(canvas);
     }
 }
 
