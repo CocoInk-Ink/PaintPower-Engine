@@ -132,12 +132,12 @@
             </StackPanel>
         </Border>
 
-        <!-- Horizontal splitter -->
+        <!-- Horizontal splitter -
         <GridSplitter Grid.Row="2"
                       Grid.ColumnSpan="3"
                       ResizeDirection="Rows"
                       Background="#505050"
-                      Height="4"/>
+                      Height="4"/>-->
 
         <!-- Drawer: Frame previews -->
         <Expander Grid.Row="3"
@@ -156,13 +156,21 @@
                            Margin="4"/>
             </Expander.Header>
 
-            <StackPanel Margin="8" Spacing="4">
+            <Expander.Transitions>
+                <Transitions>
+                    <DoubleTransition Property="Height"
+                                      Duration="0:0:1.25"
+                                      Easing="CubicEaseOut"/>
+                </Transitions>
+            </Expander.Transitions>
 
-                <!-- Frames for selected layer -->
-                <ItemsControl x:CompileBindings="False" ItemsSource="{Binding SelectedLayer.Frames}">
+            <ScrollViewer HorizontalScrollBarVisibility="Visible"
+                          VerticalScrollBarVisibility="Disabled">
+                <ItemsControl x:CompileBindings="False"
+                              ItemsSource="{Binding SelectedLayer.Frames}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <WrapPanel/>
+                            <StackPanel Orientation="Horizontal"/>
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
 
@@ -207,8 +215,7 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-
-            </StackPanel>
+            </ScrollViewer>
         </Expander>
 
     </Grid>

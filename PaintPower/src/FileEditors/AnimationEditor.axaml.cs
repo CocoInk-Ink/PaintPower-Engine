@@ -322,17 +322,27 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged
         }
 
         // Convert pointer position to unscaled/untranslated canvas space
-        var rawPoint = e.GetPosition(AnimationCanvas);
-        var point = new Point(
-            (rawPoint.X - (_translate?.X ?? 0)) / (_scale?.ScaleX ?? 1),
-            (rawPoint.Y - (_translate?.Y ?? 0)) / (_scale?.ScaleY ?? 1)
-        );
+        var rawPoint = e.GetPosition(CanvasArea); // IMPORTANT: Border, not Canvas
 
+        // Canvas position inside the Border
+        double canvasLeft = CanvasArea.Bounds.Width / 2 - (CanvasWidth * (_scale?.ScaleX ?? 1)) / 2 + (_translate?.X ?? 0);
+        double canvasTop = CanvasArea.Bounds.Height / 2 - (CanvasHeight * (_scale?.ScaleY ?? 1)) / 2 + (_translate?.Y ?? 0);
 
-        point = new Point(
-            Math.Clamp(point.X, 0, AnimationCanvas.Bounds.Width),
-            Math.Clamp(point.Y, 0, AnimationCanvas.Bounds.Height)
-        );
+        // Convert to canvas space BEFORE reversing zoom
+        double px = rawPoint.X - canvasLeft;
+        double py = rawPoint.Y - canvasTop;
+
+        // Reverse zoom
+        double scaleX = _scale?.ScaleX ?? 1;
+        double scaleY = _scale?.ScaleY ?? 1;
+
+        double logicalX = px / scaleX;
+        double logicalY = py / scaleY;
+
+        // Clamp to logical canvas size
+        logicalX = Math.Clamp(logicalX, 0, CanvasWidth);
+        logicalY = Math.Clamp(logicalY, 0, CanvasHeight);
+
 
         int frameIndex = SelectedFrame;
         if (frameIndex < 0 || frameIndex >= SelectedLayer.Frames.Count)
@@ -343,7 +353,8 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged
         switch (_drawMode)
         {
             case DrawMode.Circle:
-                frame.DrawActions.Add(c => DrawCircle(c, point.X, point.Y));
+                // Draw
+                frame.DrawActions.Add(c => DrawCircle(c, logicalX, logicalY));
                 break;
         }
 
