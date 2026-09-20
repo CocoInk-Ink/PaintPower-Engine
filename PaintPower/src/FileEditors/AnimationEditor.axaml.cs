@@ -282,6 +282,15 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged
             _layers.RemoveLayer(SelectedLayer);
     }
 
+    private bool _drawerOpen = false;
+
+    public void OnToggleDrawer(object? sender, RoutedEventArgs e)
+    {
+        _drawerOpen = !_drawerOpen;
+
+        FrameDrawer.Height = _drawerOpen ? (SelectedLayer.Frames.Count < 1) ? 72 : 160 : 32;
+    }
+
     public void OnCanvasPointerMoved(object? sender, PointerEventArgs e)
     {
         if (!_isPanning || _translate == null)

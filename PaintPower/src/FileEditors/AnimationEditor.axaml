@@ -30,6 +30,7 @@
 
             <Button Content="Add Layer" Click="OnAddLayer" Margin="16,0,0,0"/>
             <Button Content="Remove Layer" Click="OnRemoveLayer"/>
+            <Button Content="Frames" Click="OnToggleDrawer"/>
         </StackPanel>
 
         <!-- Canvas -->
@@ -134,89 +135,97 @@
 
         <!-- Horizontal splitter -
         <GridSplitter Grid.Row="2"
-                      Grid.ColumnSpan="3"
-                      ResizeDirection="Rows"
-                      Background="#505050"
-                      Height="4"/>-->
+        Grid.ColumnSpan="3"
+        ResizeDirection="Rows"
+        Background="#505050"
+        Height="4"/>-->
 
         <!-- Drawer: Frame previews -->
-        <Expander Grid.Row="3"
-                  Grid.ColumnSpan="3"
-                  Margin="4"
-                  Background="#202020"
-                  BorderBrush="#404040"
-                  BorderThickness="1"
-                  ExpandDirection="Down"
-                  IsExpanded="False">
+        <Border Grid.Row="3"
+                Grid.ColumnSpan="3"
+                Background="#202020"
+                BorderBrush="#404040"
+                BorderThickness="1"
+                x:Name="FrameDrawer"
+                BoxShadow="0 0 12 #00000080"
+                Height="32"> <!-- starts collapsed -->
 
-            <Expander.Header>
-                <TextBlock Text="Frames"
-                           Foreground="White"
-                           FontWeight="Bold"
-                           Margin="4"/>
-            </Expander.Header>
+                <Border.Transitions>
+                    <Transitions>
+                        <DoubleTransition Property="Height"
+                                          Duration="0:0:0.25"
+                                          Easing="CubicEaseOut"/>
+                    </Transitions>
+                </Border.Transitions>
 
-            <Expander.Transitions>
-                <Transitions>
-                    <DoubleTransition Property="Height"
-                                      Duration="0:0:1.25"
-                                      Easing="CubicEaseOut"/>
-                </Transitions>
-            </Expander.Transitions>
+            <StackPanel Margin="8" Spacing="4">
+                <Border Background="#202020"
+                        Height="32"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Top"
+                        PointerPressed="OnToggleDrawer">
+                    <TextBlock Text="Frames"
+                               Foreground="White"
+                               FontWeight="Bold"
+                               Margin="4"/>
+                </Border>
 
-            <ScrollViewer HorizontalScrollBarVisibility="Visible"
-                          VerticalScrollBarVisibility="Disabled">
-                <ItemsControl x:CompileBindings="False"
-                              ItemsSource="{Binding SelectedLayer.Frames}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
+                <ScrollViewer HorizontalScrollBarVisibility="Visible"
+                              VerticalScrollBarVisibility="Disabled">
 
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Width="120"
-                                    Height="80"
-                                    Margin="4"
-                                    BorderBrush="#707070"
-                                    BorderThickness="1"
-                                    Background="{Binding #AnimationEditor1.SelectedFrame,
-                                    Converter={StaticResource FrameColorConverter},
-                                    ConverterParameter={Binding}}">
+                    <ItemsControl x:CompileBindings="False"
+                                  ItemsSource="{Binding SelectedLayer.Frames}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
 
-                                <Button Click="OnFrameClicked"
-                                        Tag="{Binding}"
-                                        Background="Transparent"
-                                        BorderThickness="0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Width="120"
+                                        Height="80"
+                                        Margin="4"
+                                        BorderBrush="#707070"
+                                        BorderThickness="1"
+                                        Background="{Binding #AnimationEditor1.SelectedFrame,
+                                        Converter={StaticResource FrameColorConverter},
+                                        ConverterParameter={Binding}}">
 
-                                    <StackPanel>
+                                    <Button Click="OnFrameClicked"
+                                            Tag="{Binding}"
+                                            Background="Transparent"
+                                            BorderThickness="0">
 
-                                        <!-- Thumbnail preview -->
-                                        <Border Background="White"
-                                                BorderBrush="#404040"
-                                                BorderThickness="1"
-                                                Height="60">
-                                            <TextBlock Text="[Thumbnail]"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center"
-                                                       Foreground="Black"/>
-                                        </Border>
+                                        <StackPanel>
 
-                                        <!-- Frame number -->
-                                        <TextBlock Text="{Binding}"
-                                                   Foreground="White"
-                                                   HorizontalAlignment="Right"
-                                                   Margin="0,4,4,0"/>
-                                    </StackPanel>
+                                            <!-- Thumbnail preview -->
+                                            <Border Background="White"
+                                                    BorderBrush="#404040"
+                                                    BorderThickness="1"
+                                                    Height="60">
+                                                <TextBlock Text="[Thumbnail]"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="Black"/>
+                                            </Border>
 
-                                </Button>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-        </Expander>
+                                            <!-- Frame number -->
+                                            <TextBlock Text="{Binding}"
+                                                       Foreground="White"
+                                                       HorizontalAlignment="Right"
+                                                       Margin="0,4,4,0"/>
+                                        </StackPanel>
 
+                                    </Button>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                </ScrollViewer>
+
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>
