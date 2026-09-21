@@ -5,10 +5,11 @@ using Toolbox.Display.Sprites;
 using System;
 using System.IO;
 using System.Linq;
+using Toolbox;
 
 namespace PaintPower.ProjectSystem.SpriteEditor
 {
-    public partial class SpritePropertiesView : UserControl
+    public partial class SpritePropertiesView : TranslatableControl
     {
         private PaintSprite? _sprite;
         private bool _suppressSelection = false;

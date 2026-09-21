@@ -5,7 +5,7 @@ using Toolbox;
 
 namespace PaintPower_VM.VMPanel
 {
-    public partial class LoadingBar : UserControl
+    public partial class LoadingBar : TranslatableControl
     {
         private int _pendingPercent = -1;
 

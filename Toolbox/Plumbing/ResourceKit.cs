@@ -137,9 +137,6 @@ public static class ResourceKit
 		}
 
 		throw new Exception($"Property or field not found: {propertyName} in {type.Name}");
-
-
-		prop.SetValue(null, value);
 	}
 
 	public static Bitmap AsBitmap(string path)
@@ -175,6 +172,7 @@ public static class ResourceKit
 			public static string Import = string.Empty;
 			public static string Export = string.Empty;
 		}
+
 		public static class UI
 		{
 			public static string Logo = string.Empty;
@@ -185,6 +183,20 @@ public static class ResourceKit
 				public static string NoAccess = string.Empty;
 				public static string Red = string.Empty;
 				public static string Blue = string.Empty;
+			}
+
+			public static class Paint_Animation_Editor
+			{
+				public static class BrushSizes
+				{
+					public static string BrushVerySmall = string.Empty;
+					public static string BrushSmall = string.Empty;
+					public static string BrushMedium = string.Empty;
+					public static string BrushNormal = string.Empty;
+					public static string BrushBig = string.Empty;
+					public static string BrushVeryBig = string.Empty;
+					public static string BrushHuge = string.Empty;
+				}
 			}
 		}
 	}
@@ -210,11 +222,12 @@ public static class ResourceKit
 
 	public static class Other
 	{
-		public static class Grammars {
+		public static class Grammars
+		{
 			public static string ActionScript = string.Empty;
 			public static string MXML = string.Empty;
 			public static string PaintScript = string.Empty;
-		 }
+		}
 
 		// For binary files, use paths instead.
 		public static class Paths

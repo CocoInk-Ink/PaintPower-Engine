@@ -18,10 +18,11 @@ using PaintPower.FileEditors.Tools.AnimationEditorTools;
 using PaintPower.ProjectSystem;
 using PaintPower.Tools.Converters;
 using Toolbox.Logging;
+using Toolbox.Plumbing;
 
 namespace PaintPower.FileEditors;
 
-public partial class AnimationEditor : FileEditor, INotifyPropertyChanged
+public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolbox.IControlWithImages
 {
     public event PropertyChangedEventHandler? PropertyChanged;
     private void Raise(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
@@ -69,7 +70,20 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged
         Brush
     }
 
-    private DrawMode _drawMode = DrawMode.Brush; // default for now
+    private DrawMode _drawMode = DrawMode.Brush;
+
+    private enum DrawBrushSize
+    {
+        VerySmall = 2,
+        Small = 3,
+        Medium = 4,
+        Normal = 5,
+        Big = 6,
+        VeryBig = 7,
+        Huge = 8
+    }
+
+    private DrawBrushSize _brushSize = DrawBrushSize.Normal;
 
     private bool _isDrawing = false;
     private List<Point> _currentStroke = new();
@@ -108,7 +122,19 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged
     }
 
     private bool _isPanning = false;
-    private Point _lastPanPoint;
+    private Avalonia.Point _lastPanPoint;
+
+    // Override
+    public void PipeAndLoadImages()
+    {
+        VerySmallBrushButton.Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushVerySmall);
+        SmallBrushButton.Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushSmall);
+        MediumBrushButton.Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushMedium);
+        NormalBrushButton.Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushNormal);
+        BigBrushButton.Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushBig);
+        VeryBigBrushButton.Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushVeryBig);
+        HugeBrushButton.Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushHuge);
+    }
 
     public AnimationEditor(string path, TempWorkspace workspace)
     {
@@ -155,6 +181,8 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged
 
     private void OnLoaded()
     {
+        PipeAndLoadImages();
+
         var group = AnimationCanvas.RenderTransform as TransformGroup;
 
         _scale = group.Children[0] as ScaleTransform;
@@ -266,6 +294,45 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged
         canvas.Children.Add(ellipse);
     }
 
+    private void DrawBrushDot(Canvas canvas, double x, double y)
+    {
+        Shape dot;
+
+        if (_brushSize > DrawBrushSize.Medium && _brushSize < (DrawBrushSize.Huge + 1))
+        {
+
+            dot = new Ellipse
+            {
+                Width = (int)_brushSize,
+                Height = (int)_brushSize,
+                Fill = Brushes.Black
+            };
+        }
+        else if (_brushSize > (DrawBrushSize.VerySmall - 1) && _brushSize < DrawBrushSize.Normal)
+        {
+            dot = new Rectangle
+            {
+                Width = (int)_brushSize,
+                Height = (int)_brushSize,
+                Fill = Brushes.Black
+            };
+        }
+        else
+        {
+            dot = new Ellipse
+            {
+                Width = (int)DrawBrushSize.Normal,
+                Height = (int)DrawBrushSize.Normal,
+                Fill = Brushes.Black
+            };
+        }
+
+        Canvas.SetLeft(dot, x - 3);
+        Canvas.SetTop(dot, y - 3);
+
+        canvas.Children.Add(dot);
+    }
+
     private Point GetLogicalCanvasPoint(PointerEventArgs e)
     {
         var rawPoint = e.GetPosition(CanvasArea);
@@ -288,21 +355,6 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged
         logicalY = Math.Clamp(logicalY, 0, CanvasHeight);
 
         return new Point(logicalX, logicalY);
-    }
-
-    private void DrawBrushDot(Canvas canvas, double x, double y)
-    {
-        var dot = new Ellipse
-        {
-            Width = 6,
-            Height = 6,
-            Fill = Brushes.Black
-        };
-
-        Canvas.SetLeft(dot, x - 3);
-        Canvas.SetTop(dot, y - 3);
-
-        canvas.Children.Add(dot);
     }
 
     public void OnFrameClicked(object? sender, RoutedEventArgs e)
@@ -437,7 +489,8 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged
 
                     var p = GetLogicalCanvasPoint(e);
                     _currentStroke.Add(p);
-                } break;
+                }
+                break;
         }
 
         RenderFrame(frameIndex);

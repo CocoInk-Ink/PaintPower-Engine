@@ -130,6 +130,20 @@
                 <TextBlock Text="Zoom" Foreground="White" Margin="0,8,0,0"/>
                 <Slider Minimum="0.1" Maximum="4.0" x:CompileBindings="False" Value="{Binding ZoomLevel}" Width="150"/>
 
+                <TextBlock Text="Tools:" />
+                <StackPanel></StackPanel>
+
+                <TextBlock Text="Brush Sizes:" />
+                <StackPanel>
+                    <Image Width="15" Height="15" x:Name="VerySmallBrushButton" />
+                    <Image Width="15" Height="15" x:Name="SmallBrushButton" />
+                    <Image Width="15" Height="15" x:Name="MediumBrushButton" />
+                    <Image Width="15" Height="15" x:Name="NormalBrushButton" />
+                    <Image Width="15" Height="15" x:Name="BigBrushButton" />
+                    <Image Width="15" Height="15" x:Name="VeryBigBrushButton" />
+                    <Image Width="15" Height="15" x:Name="HugeBrushButton" />
+                </StackPanel>
+
             </StackPanel>
         </Border>
 
@@ -182,7 +196,7 @@
                         </ItemsControl.ItemsPanel>
 
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate>
+                            <DataTemplate x:CompileBindings="False">
                                 <Border Width="120"
                                         Height="80"
                                         Margin="4"

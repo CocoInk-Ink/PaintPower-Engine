@@ -1,12 +1,13 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using System.Threading.Tasks;
+using Toolbox;
 using Toolbox.Accessibility.Translation;
 using Toolbox.Math.Formulas;
 
 namespace PaintPower_VM.VMPanel;
 
-public partial class ProcessingPanel : UserControl
+public partial class ProcessingPanel : TranslatableControl
 {
     public ProcessingPanel()
     {

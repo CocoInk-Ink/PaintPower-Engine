@@ -7,10 +7,11 @@ using System.Collections.ObjectModel;
 using System.IO;
 using PaintPower.Dialogs;
 using System.Threading.Tasks;
+using Toolbox;
 
 namespace PaintPower.ProjectSystem.SpriteEditor;
 
-public partial class SpriteManagerView : UserControl
+public partial class SpriteManagerView : TranslatableControl
 {
     public ObservableCollection<PaintSprite> Sprites { get; } = new();
 

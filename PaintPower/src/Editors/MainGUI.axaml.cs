@@ -3,10 +3,11 @@ using PaintPower.Editors;
 using PaintPower.Editors.Logic;
 using PaintPower.ProjectSystem;
 using System.Threading.Tasks;
+using Toolbox;
 
 namespace PaintPower.Editors;
 
-public partial class MainGUI : UserControl
+public partial class MainGUI : TranslatableControl
 {
     public Header Header { get; private set; }
     public ProjectEditor? projectEditor;

@@ -1,9 +1,10 @@
 using System;
 using Avalonia.Controls;
+using Toolbox;
 
 namespace PaintPower_VM.VMPanel;
 
-public partial class TopBarStagePart : UserControl
+public partial class TopBarStagePart : TranslatableControl
 {
     public event Action? PlayClicked;
     public event Action? StopClicked;

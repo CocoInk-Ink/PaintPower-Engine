@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Avalonia.Controls;
+using Toolbox;
 
 namespace PaintPower.Editors;
 
-public partial class Header : UserControl
+public partial class Header : TranslatableControl
 {
 
     public static Header? header;

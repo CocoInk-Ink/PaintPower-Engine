@@ -10,13 +10,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using Toolbox;
 
 namespace PaintPower.FileExplorer;
 
 #pragma warning disable IDE0047
 #pragma warning disable IDE0048
 
-public partial class ExplorerView : UserControl
+public partial class ExplorerView : TranslatableControl
 {
     public bool isReadOnly = false;
 

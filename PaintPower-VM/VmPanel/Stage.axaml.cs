@@ -6,7 +6,7 @@ using Toolbox;
 
 namespace PaintPower_VM.VMPanel;
 
-public partial class Stage : UserControl
+public partial class Stage : TranslatableControl
 {
     public DIPlay Diplay { get; private set; }
 

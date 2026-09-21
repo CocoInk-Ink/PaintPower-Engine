@@ -46,7 +46,17 @@ public static class ResourceManifest
         ["Images.Icons.Import"] = "Images/Icons/Import.png",
         ["Images.Icons.Export"] = "Images/Icons/Export.png",
 
+        // Animation/Paint Editor images
 
+        // Brush Sizes
+
+        ["Images.UI.Paint_Animation_Editor.BrushSizes.BrushVerySmall"] = "Images/UI/Paint and Animation Editor/Brush Sizes/BrushVerySmall.png",
+        ["Images.UI.Paint_Animation_Editor.BrushSizes.BrushSmall"] = "Images/UI/Paint and Animation Editor/Brush Sizes/BrushSmall.png",
+        ["Images.UI.Paint_Animation_Editor.BrushSizes.BrushMedium"] = "Images/UI/Paint and Animation Editor/Brush Sizes/BrushMedium.png",
+        ["Images.UI.Paint_Animation_Editor.BrushSizes.BrushNormal"] = "Images/UI/Paint and Animation Editor/Brush Sizes/BrushNormal.png",
+        ["Images.UI.Paint_Animation_Editor.BrushSizes.BrushBig"] = "Images/UI/Paint and Animation Editor/Brush Sizes/BrushBig.png",
+        ["Images.UI.Paint_Animation_Editor.BrushSizes.BrushVeryBig"] = "Images/UI/Paint and Animation Editor/Brush Sizes/BrushVeryBig.png",
+        ["Images.UI.Paint_Animation_Editor.BrushSizes.BrushHuge"] = "Images/UI/Paint and Animation Editor/Brush Sizes/BrushHuge.png"
     };
 
 	// Add your text files here.

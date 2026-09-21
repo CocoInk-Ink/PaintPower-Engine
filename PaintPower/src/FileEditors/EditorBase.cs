@@ -6,11 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Toolbox;
 
 namespace PaintPower.FileEditors;
 
 // Base class for editors like the Paint editor or the Script editor
-public partial class FileEditor : UserControl
+public partial class FileEditor : TranslatableControl
 {
 
     public virtual void Save() { }

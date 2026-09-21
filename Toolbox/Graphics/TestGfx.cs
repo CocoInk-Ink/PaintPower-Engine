@@ -3,7 +3,7 @@ using Avalonia.Controls;
 
 namespace Toolbox.Graphics;
 
-public partial class TestGfx : UserControl
+public partial class TestGfx : TranslatableControl
 {
     public TestGfx()
     {

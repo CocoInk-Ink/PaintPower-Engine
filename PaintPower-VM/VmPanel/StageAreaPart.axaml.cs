@@ -1,8 +1,9 @@
 using Avalonia.Controls;
+using Toolbox;
 
 namespace PaintPower_VM.VMPanel;
 
-public partial class StageAreaPart : UserControl
+public partial class StageAreaPart : TranslatableControl
 {
     public StageAreaPart()
     {

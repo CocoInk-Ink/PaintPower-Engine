@@ -8,7 +8,12 @@ using Toolbox.Logging;
 
 namespace Toolbox;
 
-public class TranslatableControl : UserControl
+public interface ITranslatable
+{
+	void Translate();
+}
+
+public class TranslatableControl : UserControl, ITranslatable
 {
 	public TranslatableControl() : base()
 	{
@@ -38,4 +43,9 @@ public class TranslatableControl : UserControl
 		Translate();
 		InvalidateVisual();
 	}
+}
+
+public interface IControlWithImages
+{
+	void PipeAndLoadImages();
 }
