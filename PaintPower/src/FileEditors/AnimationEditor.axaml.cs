@@ -65,11 +65,14 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged
     private enum DrawMode
     {
         None,
-        Circle
+        Circle,
+        Brush
     }
 
-    private DrawMode _drawMode = DrawMode.Circle; // default for now
+    private DrawMode _drawMode = DrawMode.Brush; // default for now
 
+    private bool _isDrawing = false;
+    private List<Point> _currentStroke = new();
 
     private LayerManagerTool _layers;
     public LayerManagerTool Layers => _layers;
@@ -263,6 +266,45 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged
         canvas.Children.Add(ellipse);
     }
 
+    private Point GetLogicalCanvasPoint(PointerEventArgs e)
+    {
+        var rawPoint = e.GetPosition(CanvasArea);
+
+        double scaleX = _scale?.ScaleX ?? 1;
+        double scaleY = _scale?.ScaleY ?? 1;
+        double transX = _translate?.X ?? 0;
+        double transY = _translate?.Y ?? 0;
+
+        double canvasLeft = CanvasArea.Bounds.Width / 2 - (CanvasWidth * scaleX) / 2 + transX;
+        double canvasTop = CanvasArea.Bounds.Height / 2 - (CanvasHeight * scaleY) / 2 + transY;
+
+        double px = rawPoint.X - canvasLeft;
+        double py = rawPoint.Y - canvasTop;
+
+        double logicalX = px / scaleX;
+        double logicalY = py / scaleY;
+
+        logicalX = Math.Clamp(logicalX, 0, CanvasWidth);
+        logicalY = Math.Clamp(logicalY, 0, CanvasHeight);
+
+        return new Point(logicalX, logicalY);
+    }
+
+    private void DrawBrushDot(Canvas canvas, double x, double y)
+    {
+        var dot = new Ellipse
+        {
+            Width = 6,
+            Height = 6,
+            Fill = Brushes.Black
+        };
+
+        Canvas.SetLeft(dot, x - 3);
+        Canvas.SetTop(dot, y - 3);
+
+        canvas.Children.Add(dot);
+    }
+
     public void OnFrameClicked(object? sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.Tag is int index)
@@ -293,6 +335,22 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged
 
     public void OnCanvasPointerMoved(object? sender, PointerEventArgs e)
     {
+
+        if (_isDrawing && _drawMode == DrawMode.Brush)
+        {
+            var p = GetLogicalCanvasPoint(e);
+            _currentStroke.Add(p);
+
+            int frameIndex = SelectedFrame;
+            var frame = SelectedLayer.Frames[frameIndex];
+
+            frame.DrawActions.Add(c => DrawBrushDot(c, p.X, p.Y));
+
+            RenderFrame(frameIndex);
+            return;
+        }
+
+        // Panning must be last!:
         if (!_isPanning || _translate == null)
             return;
 
@@ -308,6 +366,12 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged
     public void OnCanvasPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
         _isPanning = false;
+
+        if (_isDrawing && _drawMode == DrawMode.Brush)
+        {
+            _isDrawing = false;
+            _currentStroke.Clear();
+        }
     }
 
     public void OnCanvasPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -365,6 +429,15 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged
                 // Draw
                 frame.DrawActions.Add(c => DrawCircle(c, logicalX, logicalY));
                 break;
+
+            case DrawMode.Brush:
+                {
+                    _isDrawing = true;
+                    _currentStroke.Clear();
+
+                    var p = GetLogicalCanvasPoint(e);
+                    _currentStroke.Add(p);
+                } break;
         }
 
         RenderFrame(frameIndex);
