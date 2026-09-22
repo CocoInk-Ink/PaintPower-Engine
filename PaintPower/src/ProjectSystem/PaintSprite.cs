@@ -52,14 +52,14 @@ public class PaintSprite
 
             foreach (var elemNode in skinNode.Elements())
             {
-                SkinElement elem = null;
+                SkinElement? elem = null;
 
                 switch (elemNode.Name.LocalName)
                 {
                     case "Image":
                         elem = new SkinImageElement
                         {
-                            AssetPath = (string)elemNode.Attribute("asset") ?? ""
+                            AssetPath = (string?)elemNode.Attribute("asset") ?? ""
                         };
                         break;
 

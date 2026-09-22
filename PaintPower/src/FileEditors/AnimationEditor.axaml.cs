@@ -25,7 +25,7 @@ namespace PaintPower.FileEditors;
 
 public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolbox.IControlWithImages
 {
-    public event PropertyChangedEventHandler? PropertyChanged;
+    public new event PropertyChangedEventHandler? PropertyChanged;
     private void Raise(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
     private ScaleTransform? _scale;
@@ -186,8 +186,8 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
 
         var group = AnimationCanvas.RenderTransform as TransformGroup;
 
-        _scale = group.Children[0] as ScaleTransform;
-        _translate = group.Children[1] as TranslateTransform;
+        _scale = group?.Children[0] as ScaleTransform;
+        _translate = group?.Children[1] as TranslateTransform;
 
         PlayButton.Click += (_, _) => _playback.Play();
         StopButton.Click += (_, _) => _playback.Stop();
@@ -388,7 +388,7 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     {
         _drawerOpen = !_drawerOpen;
 
-        FrameDrawer.Height = _drawerOpen ? (SelectedLayer.Frames.Count < 1) ? 72 : 160 : 32;
+        FrameDrawer.Height = _drawerOpen ? (SelectedLayer?.Frames.Count < 1) ? 72 : 160 : 32;
     }
 
     public void OnCanvasPointerMoved(object? sender, PointerEventArgs e)
@@ -400,7 +400,7 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
             _currentStroke.Add(p);
 
             int frameIndex = SelectedFrame;
-            var frame = SelectedLayer.Frames[frameIndex];
+            var frame = SelectedLayer?.Frames[frameIndex];
 
             frame.DrawActions.Add(c => DrawBrushDot(c, p.X, p.Y));
 
