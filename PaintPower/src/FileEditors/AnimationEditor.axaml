@@ -76,7 +76,8 @@
                 BorderBrush="#404040"
                 BorderThickness="1">
 
-            <StackPanel Margin="8" Spacing="6">
+            <ScrollViewer>
+                <StackPanel Margin="8" Spacing="6">
 
                 <TextBlock Text="Canvas Size" Foreground="White" Margin="0,8,0,0"/>
 
@@ -130,21 +131,37 @@
                 <TextBlock Text="Zoom" Foreground="White" Margin="0,8,0,0"/>
                 <Slider Minimum="0.1" Maximum="4.0" x:CompileBindings="False" Value="{Binding ZoomLevel}" Width="150"/>
 
-                <TextBlock Text="Tools:" />
+                <TextBlock Text="Tools:" Foreground="White" Margin="0,8,0,0"/>
                 <StackPanel></StackPanel>
 
-                <TextBlock Text="Brush Sizes:" />
-                <StackPanel>
-                    <Image Width="15" Height="15" x:Name="VerySmallBrushButton" />
-                    <Image Width="15" Height="15" x:Name="SmallBrushButton" />
-                    <Image Width="15" Height="15" x:Name="MediumBrushButton" />
-                    <Image Width="15" Height="15" x:Name="NormalBrushButton" />
-                    <Image Width="15" Height="15" x:Name="BigBrushButton" />
-                    <Image Width="15" Height="15" x:Name="VeryBigBrushButton" />
-                    <Image Width="15" Height="15" x:Name="HugeBrushButton" />
-                </StackPanel>
-
+                <TextBlock Text="Brush Sizes:" Foreground="White" Margin="0,8,0,0"/>
+                <ScrollViewer>
+                    <StackPanel Orientation="Horizontal">
+                            <Button Width="15" Height="15" Padding="0" x:Name="VerySmallBrushButton" Click="VerySmallBrushButton_Click">
+                                <Image Stretch="Uniform" />
+                            </Button>
+                            <Button Width="15" Height="15" Padding="0" x:Name="SmallBrushButton" Click="SmallBrushButton_Click">
+                                <Image Stretch="Uniform" />
+                            </Button>
+                            <Button Width="15" Height="15" Padding="0" x:Name="MediumBrushButton" Click="MediumBrushButton_Click">
+                                <Image Stretch="Uniform" />
+                            </Button>
+                            <Button Width="15" Height="15" Padding="0" x:Name="NormalBrushButton" Click="NormalBrushButton_Click">
+                                <Image Stretch="Uniform" />
+                            </Button>
+                            <Button Width="15" Height="15" Padding="0" x:Name="BigBrushButton" Click="BigBrushButton_Click">
+                                <Image Stretch="Uniform" />
+                            </Button>
+                            <Button Width="15" Height="15" Padding="0" x:Name="VeryBigBrushButton" Click="VeryBigBrushButton_Click">
+                                <Image Stretch="Uniform" />
+                            </Button>
+                            <Button Width="15" Height="15" Padding="0" x:Name="HugeBrushButton" Click="HugeBrushButton_Click">
+                                <Image Stretch="Uniform" />
+                            </Button>
+                    </StackPanel>
+                </ScrollViewer>
             </StackPanel>
+            </ScrollViewer>
         </Border>
 
         <!-- Horizontal splitter -

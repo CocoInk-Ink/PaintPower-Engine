@@ -75,13 +75,13 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
 
     private enum DrawBrushSize
     {
-        VerySmall = 2,
-        Small = 3,
-        Medium = 4,
-        Normal = 5,
-        Big = 6,
-        VeryBig = 7,
-        Huge = 8
+        VerySmall = 1,
+        Small = 4,
+        Medium = 7,
+        Normal = 10,
+        Big = 16,
+        VeryBig = 20,
+        Huge = 30
     }
 
     private DrawBrushSize _brushSize = DrawBrushSize.Normal;
@@ -128,13 +128,13 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     // Override
     public void PipeAndLoadImages()
     {
-        VerySmallBrushButton.Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushVerySmall);
-        SmallBrushButton.Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushSmall);
-        MediumBrushButton.Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushMedium);
-        NormalBrushButton.Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushNormal);
-        BigBrushButton.Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushBig);
-        VeryBigBrushButton.Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushVeryBig);
-        HugeBrushButton.Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushHuge);
+        VerySmallBrushButton.Content = new Image { Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushVerySmall) };
+        SmallBrushButton.Content = new Image { Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushSmall) };
+        MediumBrushButton.Content = new Image { Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushMedium) };
+        NormalBrushButton.Content = new Image { Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushNormal) };
+        BigBrushButton.Content = new Image { Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushBig) };
+        VeryBigBrushButton.Content = new Image { Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushVeryBig) };
+        HugeBrushButton.Content = new Image { Source = ResourceKit.AsBitmap(ResourceKit.Images.UI.Paint_Animation_Editor.BrushSizes.BrushHuge) };
     }
 
     public AnimationEditor(string path, TempWorkspace workspace)
@@ -502,4 +502,38 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         RenderFrame(frameIndex);
     }
 
+    private void VerySmallBrushButton_Click(object? sender, RoutedEventArgs e)
+    {
+        _brushSize = DrawBrushSize.VerySmall;
+    }
+
+    private void SmallBrushButton_Click(object? sender, RoutedEventArgs e)
+    {
+        _brushSize = DrawBrushSize.Small;
+    }
+
+    private void MediumBrushButton_Click(object? sender, RoutedEventArgs e)
+    {
+        _brushSize = DrawBrushSize.Medium;
+    }
+
+    private void NormalBrushButton_Click(object? sender, RoutedEventArgs e)
+    {
+        _brushSize = DrawBrushSize.Normal;
+    }
+
+    private void BigBrushButton_Click(object? sender, RoutedEventArgs e)
+    {
+        _brushSize = DrawBrushSize.Big;
+    }
+
+    private void VeryBigBrushButton_Click(object? sender, RoutedEventArgs e)
+    {
+        _brushSize = DrawBrushSize.VeryBig;
+    }
+
+    private void HugeBrushButton_Click(object? sender, RoutedEventArgs e)
+    {
+        _brushSize = DrawBrushSize.Huge;
+    }
 }

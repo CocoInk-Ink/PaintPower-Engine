@@ -39,7 +39,7 @@ public partial class FileEditor : TranslatableControl, ITranslatable
 
     public virtual void Import() { }
     public virtual void Export() { }
-    public virtual void Refresh() { }
+    public new virtual void Refresh() { }
 
     public string RelativePath { get; private set; } = "";
 
