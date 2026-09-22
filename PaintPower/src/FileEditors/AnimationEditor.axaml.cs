@@ -17,6 +17,7 @@ using Avalonia.Threading;
 using PaintPower.FileEditors.Tools.AnimationEditorTools;
 using PaintPower.ProjectSystem;
 using PaintPower.Tools.Converters;
+using Toolbox.Accessibility.Translation;
 using Toolbox.Logging;
 using Toolbox.Plumbing;
 
@@ -245,7 +246,12 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
 
     public override void TranslateGUI()
     {
-        // TODO: hook into your localization system if needed
+        Translator.LanguageChanged += Refresh;
+    }
+
+    public override void Refresh()
+    {
+        //
     }
 
     public void OnFitCanvas(object? sender, RoutedEventArgs e)
@@ -260,7 +266,7 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     public override void Activate()
     {
         // Called when this editor becomes active
-        Console.WriteLine("[AnimationEditor] Activated");
+        Log.QuickLog(Translator.Translate("[AnimationEditor] Activated}"));
     }
 
     private void RenderFrame(int index)

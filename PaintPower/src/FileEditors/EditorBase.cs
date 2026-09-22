@@ -11,7 +11,7 @@ using Toolbox;
 namespace PaintPower.FileEditors;
 
 // Base class for editors like the Paint editor or the Script editor
-public partial class FileEditor : TranslatableControl
+public partial class FileEditor : TranslatableControl, ITranslatable
 {
 
     public virtual void Save() { }
@@ -39,7 +39,6 @@ public partial class FileEditor : TranslatableControl
 
     public virtual void Import() { }
     public virtual void Export() { }
-
     public virtual void Refresh() { }
 
     public string RelativePath { get; private set; } = "";

@@ -11,6 +11,7 @@ namespace Toolbox;
 public interface ITranslatable
 {
 	void Translate();
+	void Refresh();
 }
 
 public class TranslatableControl : UserControl, ITranslatable
