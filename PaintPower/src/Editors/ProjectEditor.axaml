@@ -1,4 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:local="using:PaintPower.Editors"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:PaintPower_VM.VMPanel;assembly=PaintPower_VM"
              xmlns:sprite="clr-namespace:PaintPower.ProjectSystem.SpriteEditor"
@@ -29,11 +30,7 @@
             <Grid Grid.Column="2" RowDefinitions="30,*">
 
                 <!-- Status Bar -->
-                <Border Grid.Row="0" Background="{DynamicResource StatusBarBackground}" Margin="3">
-                    <StackPanel Orientation="Horizontal" Margin="2">
-                        <TextBlock x:Name="StatusBarText" Text="Ready" Margin="3" Foreground="{DynamicResource StatusBarForeground}" />
-                    </StackPanel>
-                </Border>
+                <local:ActionBar Grid.Row="0" />
 
                 <ContentControl Grid.Row="1" x:Name="CenterHost" />
 

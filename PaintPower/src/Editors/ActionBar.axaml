@@ -1,0 +1,13 @@
+<UserControl
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:vm="clr-namespace:PaintPower_VM.VMPanel;assembly=PaintPower_VM"
+	xmlns:sprite="clr-namespace:PaintPower.ProjectSystem.SpriteEditor"
+	x:Class="PaintPower.Editors.ActionBar">
+	<Border Background="{DynamicResource StatusBarBackground}" Margin="3">
+		<StackPanel Orientation="Horizontal" Margin="2">
+			<TextBlock x:Name="StatusBarText" Text="Ready" Margin="3" Foreground="{DynamicResource StatusBarForeground}" />
+<!--<Button></Button>-->
+		</StackPanel>
+	</Border>
+</UserControl>

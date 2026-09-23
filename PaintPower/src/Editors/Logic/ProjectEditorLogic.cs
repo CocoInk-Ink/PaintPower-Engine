@@ -350,7 +350,7 @@ public class ProjectEditorLogic
     // ------------------------------------------------------------
     public void SetStatus(string text)
     {
-        _view.StatusBarText.Text = text;
+        //_view.StatusBarText.Text = text;
     }
 
     // ------------------------------------------------------------

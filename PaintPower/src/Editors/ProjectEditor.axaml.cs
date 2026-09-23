@@ -122,14 +122,7 @@ public partial class ProjectEditor : Editor
 
         InvalidateVisual();
     }
-
-    // Status bar click
-    public void StatusClicked(object sender, RoutedEventArgs e)
-    {
-        SoundEffects.Click.Play();
-        Logic.SaveProject();
-    }
-
+    
     public override HeaderDefinition GetHeaderDefinition()
     {
         return new HeaderDefinition
