@@ -15,6 +15,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
 using PaintPower.FileEditors.Tools.AnimationEditorTools;
+using PaintPower.FileEditors.Tools.AnimationEditorTools.Drawing;
 using PaintPower.ProjectSystem;
 using PaintPower.Tools.Converters;
 using Toolbox.Accessibility.Translation;
@@ -87,7 +88,7 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     private DrawBrushSize _brushSize = DrawBrushSize.Normal;
 
     private bool _isDrawing = false;
-    private List<Point> _currentStroke = new();
+    private VectorStroke? _currentStroke = new();
 
     private LayerManagerTool _layers;
     public LayerManagerTool Layers => _layers;
@@ -124,6 +125,9 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
 
     private bool _isPanning = false;
     private Avalonia.Point _lastPanPoint;
+
+    public Stack<VectorStroke> UndoStack = new();
+    public Stack<VectorStroke> RedoStack = new();
 
     // Override
     public void PipeAndLoadImages()
@@ -175,6 +179,11 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
             int frame = index % SelectedLayer.Frames.Count;
             RenderFrame(frame);
 
+        };
+
+        _playback.PlaybackStopped += () =>
+        {
+            RenderFrame(SelectedFrame);
         };
 
         this.AttachedToVisualTree += (_, _) => OnLoaded();
@@ -236,14 +245,6 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         MarkDirty();
     }
 
-    private void BuildInitialFrames()
-    {
-        // Placeholder timeline: later bind to real keyframes from WXA
-        Frames.Clear();
-        for (int i = 0; i < 12; i++)
-            Frames.Add($"F{i}");
-    }
-
     public override void TranslateGUI()
     {
         Translator.LanguageChanged += Refresh;
@@ -253,6 +254,18 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     {
         //
     }
+
+	public override void Undo()
+	{
+        RedoStack.Push(UndoStack.Pop());
+		base.Undo();
+	}
+
+	public override void Redo()
+	{
+        UndoStack.Push(RedoStack.Pop());
+		base.Redo();
+	}
 
     public void OnFitCanvas(object? sender, RoutedEventArgs e)
     {
@@ -267,6 +280,14 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     {
         // Called when this editor becomes active
         Log.QuickLog(Translator.Translate("[AnimationEditor] Activated}"));
+    }
+
+        private void BuildInitialFrames()
+    {
+        // Placeholder timeline: later bind to real keyframes from WXA
+        Frames.Clear();
+        for (int i = 0; i < 12; i++)
+            Frames.Add($"F{i}");
     }
 
     private void RenderFrame(int index)
@@ -397,14 +418,9 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         if (_isDrawing && _drawMode == DrawMode.Brush)
         {
             var p = GetLogicalCanvasPoint(e);
-            _currentStroke.Add(p);
+            _currentStroke?.Points.Add(p);
 
-            int frameIndex = SelectedFrame;
-            var frame = SelectedLayer?.Frames[frameIndex];
-
-            frame.DrawActions.Add(c => DrawBrushDot(c, p.X, p.Y));
-
-            RenderFrame(frameIndex);
+            RenderFrame(SelectedFrame);
             return;
         }
 
@@ -428,7 +444,13 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         if (_isDrawing && _drawMode == DrawMode.Brush)
         {
             _isDrawing = false;
-            _currentStroke.Clear();
+
+            if (_currentStroke != null) {
+                RedoStack = new();
+                UndoStack.Push(_currentStroke);
+
+                _currentStroke = null;
+            }
         }
     }
 
@@ -491,10 +513,17 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
             case DrawMode.Brush:
                 {
                     _isDrawing = true;
-                    _currentStroke.Clear();
+
+                    _currentStroke = new VectorStroke
+                    {
+                        Thickness = (int)_brushSize,
+                        Brush = Brushes.Black
+                    };
 
                     var p = GetLogicalCanvasPoint(e);
-                    _currentStroke.Add(p);
+                    _currentStroke.Points.Add(p);
+
+                    SelectedLayer.Frames[SelectedFrame].Strokes.Add(_currentStroke);
                 }
                 break;
         }

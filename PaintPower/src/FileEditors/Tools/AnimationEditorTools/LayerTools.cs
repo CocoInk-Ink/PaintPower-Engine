@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Avalonia.Controls;
+using PaintPower.FileEditors.Tools.AnimationEditorTools.Drawing;
 
 namespace PaintPower.FileEditors.Tools.AnimationEditorTools;
 
@@ -22,6 +23,7 @@ public class LayerTool
 public class LayerFrameTool
 {
     public List<Action<Canvas>> DrawActions { get; } = new();
+    public List<VectorStroke> Strokes { get; } = new();
 
     public void AddShape(Action<Canvas> shape)
     {
@@ -30,6 +32,9 @@ public class LayerFrameTool
 
     public void Render(Canvas canvas)
     {
+        foreach (var stroke in Strokes)
+            stroke.Render(canvas);
+
         foreach (var shape in DrawActions)
             shape(canvas);
     }

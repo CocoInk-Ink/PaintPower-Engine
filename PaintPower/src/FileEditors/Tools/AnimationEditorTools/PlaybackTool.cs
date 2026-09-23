@@ -9,6 +9,7 @@ public class PlaybackTool
     private int _currentFrame;
 
     public event Action<int>? FrameChanged;
+    public event Action? PlaybackStopped;
 
     public PlaybackTool()
     {
@@ -32,6 +33,7 @@ public class PlaybackTool
 
     public void Stop()
     {
+        PlaybackStopped?.Invoke();
         _timer.Stop();
     }
 }
