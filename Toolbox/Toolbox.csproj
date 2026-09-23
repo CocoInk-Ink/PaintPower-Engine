@@ -18,6 +18,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <NoWarn>CS0168;CS0165;CA1416;CA1822;CA1822</NoWarn>
   </PropertyGroup>
 
   <!-- Include the assets. -->

@@ -12,8 +12,10 @@ public partial class VmPanel : TranslatableControl
         InitializeComponent();
     }
 
-    public override void Translate()
+    public override void TranslateGUI()
     {
-        if (VMPanelText != null) VMPanelText.Text = Translator.Map("VM Panel");
+        Translator.LanguageChanged += () => { 
+            if (VMPanelText != null) VMPanelText.Text = Translator.Map("VM Panel");
+        };
     }
 }

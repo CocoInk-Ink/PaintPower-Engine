@@ -10,7 +10,7 @@ namespace Toolbox;
 
 public interface ITranslatable
 {
-	void Translate();
+	void TranslateGUI();
 	void Refresh();
 }
 
@@ -31,7 +31,7 @@ public class TranslatableControl : UserControl, ITranslatable
 		};
 	}
 
-	public virtual void Translate()
+	public virtual void TranslateGUI()
 	{
 		Translator.LanguageChanged += () =>
 		{
@@ -41,7 +41,7 @@ public class TranslatableControl : UserControl, ITranslatable
 
 	public void Refresh()
 	{
-		Translate();
+		TranslateGUI();
 		InvalidateVisual();
 	}
 }
@@ -49,4 +49,12 @@ public class TranslatableControl : UserControl, ITranslatable
 public interface IControlWithImages
 {
 	void PipeAndLoadImages();
+}
+
+public partial class TranslatableButton : Button
+{
+	public void AddTranslateHandler(Action? action)
+	{
+		Translator.LanguageChanged += action;
+	}
 }

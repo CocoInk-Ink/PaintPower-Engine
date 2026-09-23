@@ -12,6 +12,8 @@
       linux-x64;linux-arm64;
       osx-x64;osx-arm64
     </RuntimeIdentifiers>
+    
+    <NoWarn>CS0168;CS0165;CA1416;CA1822</NoWarn>
 
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
