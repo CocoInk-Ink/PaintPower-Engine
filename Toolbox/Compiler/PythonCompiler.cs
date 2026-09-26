@@ -12,7 +12,7 @@ public static class WasmCompilerHost
         string scriptText,
         string sessionId)
     {
-		ResourceKit.AssetsPath.
+		//ResourceKit.AssetsPath;
         using var engine = new Engine();
         using var module = Module.FromFile(engine, "compiler.wasm");
         using var store = new Store(engine);
@@ -31,7 +31,7 @@ public static class WasmCompilerHost
 
         // For now, assume compile(...) takes no args and returns an int or something simple.
         // Later, when we know the exact signature, we’ll wire spriteName, instanceName, etc.
-        var result = compileFunc.Invoke(store);
+        var result = compileFunc.Invoke();
 
         return result?.ToString() ?? "";
     }

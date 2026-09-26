@@ -73,7 +73,7 @@ public static class ResourceManifest
 	// Add raw binary files here.
     public static readonly Dictionary<string, string> BinaryFiles = new()
     {
-        ["Media.Audio.Click"] = "Binary/Sounds/Click.wav"
+        ["Media.Audio.Click"] = "Binary/Sounds/Click.wav",
 
 
         /*==== Compilers ==== { */
