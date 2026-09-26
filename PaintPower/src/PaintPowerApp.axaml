@@ -1,6 +1,7 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="PaintPower.PaintPowerApp"
+			 xmlns:toolbox="clr-namespace:Toolbox;assembly=Toolbox"
              RequestedThemeVariant="Default">
 
 			<Application.Resources>
@@ -100,6 +101,35 @@
 		</Style>
 
 		<Style Selector="Button.gray:pressed">
+			<Setter Property="Background" Value="#D0D0D0"/>
+		</Style>
+
+		<Style Selector="toolbox|TranslatableButton">
+			<Setter Property="Template" Value="{StaticResource ThreeDButtonTemplate}"/>
+			<Setter Property="Foreground" Value="Black"/>
+			<Setter Property="FontSize" Value="14"/>
+			<Setter Property="FontWeight" Value="Normal"/>
+			<Setter Property="Padding" Value="6"/>
+			<Setter Property="MinWidth" Value="20"/>
+			<Setter Property="MinHeight" Value="28"/>
+			<Setter Property="MaxHeight" Value="28" />
+		</Style>
+
+		<Style Selector="toolbox|TranslatableButton.white">
+			<Setter Property="Background" Value="#E0E0E0"/>
+			<Setter Property="Foreground" Value="Black"/>
+		</Style>
+
+		<Style Selector="toolbox|TranslatableButton.white:pressed">
+			<Setter Property="Background" Value="#3A7BD5"/>
+			<Setter Property="Foreground" Value="White"/>
+		</Style>
+
+		<Style Selector="toolbox|TranslatableButton.gray">
+			<Setter Property="Background" Value="#949385"/>
+		</Style>
+
+		<Style Selector="toolbox|TranslatableButton.gray:pressed">
 			<Setter Property="Background" Value="#D0D0D0"/>
 		</Style>
 

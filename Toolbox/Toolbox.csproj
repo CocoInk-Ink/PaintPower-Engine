@@ -40,8 +40,10 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NAudio" Version="2.3.0" />
+    <PackageReference Include="Python.Runtime" Version="2.7.9" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
     <PackageReference Include="Svg.Skia" Version="1.0.0" />
+    <PackageReference Include="Wasmtime" Version="48.0.2" />
   </ItemGroup>
 
   <Target Name="GenerateBuildInfo" BeforeTargets="BeforeBuild">

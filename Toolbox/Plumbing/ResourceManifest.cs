@@ -74,6 +74,13 @@ public static class ResourceManifest
     public static readonly Dictionary<string, string> BinaryFiles = new()
     {
         ["Media.Audio.Click"] = "Binary/Sounds/Click.wav"
+
+
+        /*==== Compilers ==== { */
+            // Compiler 0.1.x {
+                ["Other.Paths.Compilers.Compiler0_1.c0_1_0"] = "compiler0.1.0.wasm"
+            // }
+        // }
     };
 
 	// Add default projects here.

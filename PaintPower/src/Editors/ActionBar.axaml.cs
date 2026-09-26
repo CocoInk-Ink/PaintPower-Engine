@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using PaintPower.Templates.FileTemplates;
@@ -34,42 +35,19 @@ public partial class ActionBar : TranslatableControl
 
 	private void AddDefaultOptions()
 	{
-		var buildButton = DefaultParts.BuildButton;
-		var runButton = DefaultParts.RunButton;
-		var buildAndRunButton = DefaultParts.BuildAndRunButton;
+		string[] classes = {"white", "blue"};
 
-		buildButton.Classes.Add("white");
+		DefaultParts.BuildButton = ControlCreator.CreateTranslatableButton("Build", true, (_, _) => { Log.QuickLog("Build clicked"); }, classes);
+		DefaultParts.RunButton = ControlCreator.CreateTranslatableButton("Run last successful build", true, (_, _) => { Log.QuickLog("Run clicked"); }, classes);
+		DefaultParts.BuildAndRunButton = ControlCreator.CreateTranslatableButton("Build and Run", true, (_, _) => { Log.QuickLog("Build and run"); });
 
-		buildButton.Content = Translator.Map("Build");
-		runButton.Content = Translator.Map("Run last successful build");
-		buildAndRunButton.Content = Translator.Map("Build and Run");
+		DefaultParts.BuildButton.Margin = new Thickness(2, 1);
+		DefaultParts.RunButton.Margin = new Thickness(2, 1);
+		DefaultParts.BuildAndRunButton.Margin = new Thickness(2, 1);
 
-		buildButton.Click += (_, _) => { Log.QuickLog("Build clicked"); };
-		runButton.Click += (_, _) => { Log.QuickLog("Run clicked"); };
-		buildAndRunButton.Click += (_, _) => { Log.QuickLog("Build and run"); };
-
-		buildButton.Margin = new Thickness(2, 1);
-		runButton.Margin = new Thickness(2, 1);
-		buildAndRunButton.Margin = new Thickness(2, 1);
-
-		buildButton.AddTranslateHandler(() =>
-		{
-			buildButton.Content = Translator.Map("Build");
-		});
-
-		runButton.AddTranslateHandler(() =>
-		{
-			runButton.Content = Translator.Map("Run last successful build");
-		});
-
-		buildAndRunButton.AddTranslateHandler(() =>
-		{
-			buildAndRunButton.Content = Translator.Map("Build and Run");
-		});
-
-		ActionArea.Children.Add(buildAndRunButton);
-		ActionArea.Children.Add(buildButton);
-		ActionArea.Children.Add(runButton);
+		ActionArea.Children.Add(DefaultParts.BuildButton);
+		ActionArea.Children.Add(DefaultParts.RunButton);
+		ActionArea.Children.Add(DefaultParts.BuildAndRunButton);
 	}
 
 	public void AddControl(Control control)
