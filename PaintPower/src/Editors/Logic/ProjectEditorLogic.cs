@@ -122,7 +122,7 @@ public class ProjectEditorLogic
             {
                 await Project.Load(path, (processed, total) =>
                 {
-                    if (processed % 10 == 0) Dispatcher.UIThread.InvokeAsync(async () =>
+                    Dispatcher.UIThread.InvokeAsync(async () =>
                     {
                         await _view.UpdateLoadingProgress(processed, total);
                     });
@@ -177,7 +177,7 @@ public class ProjectEditorLogic
                 {
                     Dispatcher.UIThread.InvokeAsync(async () =>
                     {
-                        if (processed % 10 == 0) await _view.UpdateBuildingProgress(message, processed, total);
+                        await _view.UpdateBuildingProgress(message, processed, total);
                     });
                 });
             });
@@ -229,10 +229,11 @@ public class ProjectEditorLogic
 
             await ProjectSaver.Save(Project, CurrentEditor, (processed, total) =>
             {
-                Dispatcher.UIThread.InvokeAsync(async () =>
+                Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    if (processed % 10 == 0) await _view.UpdateSavingProgress(processed, total);
-                    Thread.Sleep(1); // allow UI thread to breathe
+                    Log.QuickLog("Updating...");
+                    if (processed % 10 == 0) _view.UpdateSavingProgress(processed, total);
+                    //await Task.Yield(); // allow UI thread to breathe
                 });
             });
 

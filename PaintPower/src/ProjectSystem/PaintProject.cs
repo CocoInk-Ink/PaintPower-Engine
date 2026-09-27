@@ -8,6 +8,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Toolbox.Logging;
 
 namespace PaintPower.ProjectSystem;
 
@@ -117,6 +118,8 @@ public class PaintProject
             int total = files.Length;
             int processed = 0;
 
+            Log.QuickLog($"Found {total} files");
+
             using (var zip = ZipFile.Open(target, ZipArchiveMode.Create))
             {
                 foreach (var file in files)
@@ -125,7 +128,7 @@ public class PaintProject
                     zip.CreateEntryFromFile(file, entryName);
 
                     processed++;
-                    onProgress?.Invoke(processed, total);
+                    if (processed % 10 == 0) onProgress?.Invoke(processed, total);
                 }
             }
         });
