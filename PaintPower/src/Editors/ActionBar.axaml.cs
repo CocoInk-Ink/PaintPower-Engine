@@ -37,7 +37,7 @@ public partial class ActionBar : TranslatableControl
 	{
 		string[] classes = {"white", "blue"};
 
-		DefaultParts.BuildButton = ControlCreator.CreateTranslatableButton("Build", true, (_, _) => { Log.QuickLog("Build clicked"); }, classes);
+		DefaultParts.BuildButton = ControlCreator.CreateTranslatableButton("Build", true, (_, _) => { Log.QuickLog("Build clicked!"); PaintPower_Engine.App.BuildProject(); }, classes);
 		DefaultParts.RunButton = ControlCreator.CreateTranslatableButton("Run last successful build", true, (_, _) => { Log.QuickLog("Run clicked"); }, classes);
 		DefaultParts.BuildAndRunButton = ControlCreator.CreateTranslatableButton("Build and Run", true, (_, _) => { Log.QuickLog("Build and run"); });
 

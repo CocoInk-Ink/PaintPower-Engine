@@ -12,6 +12,9 @@ using Toolbox.Networking;
 using PaintPower.ProjectSystem;
 using PaintPower.ProjectSystem.SpriteEditor;
 using Toolbox.SoundEffects;
+using PaintPower.Building;
+using Toolbox.Sessions;
+using System.Threading;
 
 namespace PaintPower.Editors.Logic;
 
@@ -20,9 +23,8 @@ public class ProjectEditorLogic
     private readonly ProjectEditor _view;
     private readonly MainWindow _window;
 
-    public Server server;
-
     public PaintProject? Project { get; private set; }
+    public Builder? builder;
     public TempWorkspace Workspace;
     public FileEditorManager? EditorManager { get; private set; }
     public FileEditor? CurrentEditor { get; private set; }
@@ -120,7 +122,7 @@ public class ProjectEditorLogic
             {
                 await Project.Load(path, (processed, total) =>
                 {
-                    Dispatcher.UIThread.Post(async () =>
+                    if (processed % 10 == 0) Dispatcher.UIThread.InvokeAsync(async () =>
                     {
                         await _view.UpdateLoadingProgress(processed, total);
                     });
@@ -150,6 +152,42 @@ public class ProjectEditorLogic
                 // The project has failed to load, create a new one
                 await NewProject();
             }
+        }
+        finally
+        {
+            RefreshUI();
+            await _view.SetProjectLoading(false);
+        }
+    }
+
+    public async Task BuildProject()
+    {
+        if (builder == null || builder.IsOld) builder = new Builder();
+        
+        try
+        {
+            await _view.SetProjectLoading(true);
+
+            Log.QuickLog("Ready to build.");
+
+            // Run heavy loading on background thread
+            await Task.Run(async () =>
+            {
+                await builder.BuildProject(Project, (message, processed, total) =>
+                {
+                    Dispatcher.UIThread.InvokeAsync(async () =>
+                    {
+                        if (processed % 10 == 0) await _view.UpdateBuildingProgress(message, processed, total);
+                    });
+                });
+            });
+
+            _view.SetUIMode(EditorUIMode.ProjectEditor);
+        }
+        catch (Exception ex)
+        {
+            Log.QuickLog($"Failed to build project: {ex}");
+            await ErrorDialog.ShowAsync(_window, $"Failed to build project project: {ex}");
         }
         finally
         {
@@ -191,9 +229,10 @@ public class ProjectEditorLogic
 
             await ProjectSaver.Save(Project, CurrentEditor, (processed, total) =>
             {
-                Dispatcher.UIThread.Post(async () =>
+                Dispatcher.UIThread.InvokeAsync(async () =>
                 {
-                    await _view.UpdateSavingProgress(processed, total);
+                    if (processed % 10 == 0) await _view.UpdateSavingProgress(processed, total);
+                    Thread.Sleep(1); // allow UI thread to breathe
                 });
             });
 
@@ -360,8 +399,8 @@ public class ProjectEditorLogic
     {
         SoundEffects.Click.Play();
 
-        var dialog = new SignInDialog(server);
-        await dialog.ShowDialog<bool>(_window);
+        //var dialog = new SignInDialog(server);
+        //await dialog.ShowDialog<bool>(_window);
     }
 
 
@@ -374,5 +413,4 @@ public class ProjectEditorLogic
         CloseCurrentEditor();
         _view.CenterHost.Content = editor;
     }
-
 }

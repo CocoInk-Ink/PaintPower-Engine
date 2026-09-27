@@ -60,6 +60,35 @@ public partial class PaintPower_Engine : FileEditor
         App = this;
     }
 
+    public void BuildProject()
+    {
+        var main = MainWindow.window.mainGui;
+
+        if (main == null)
+        {
+            Log.QuickLog("MainGUI does not exist here!");
+            return;
+        }
+
+        var editor = main.projectEditor;
+
+        if (editor == null)
+        {
+            Log.QuickLog("Editor does not exist here!");
+            return;
+        }
+
+        var logic = editor.Logic;
+
+        if (logic == null)
+        {
+            Log.QuickLog("Logic is null.");
+            return;
+        }
+
+        _ = logic.BuildProject();
+    }
+
     // --------------------------------------------------------------------
     // Key handling (still useful)
     /* --------------------------------------------------------------------

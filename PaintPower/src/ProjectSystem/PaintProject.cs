@@ -107,7 +107,7 @@ public class PaintProject
         if (string.IsNullOrWhiteSpace(target))
             throw new InvalidOperationException("ProjectPath is empty. UI must provide a save path.");
 
-        await Task.Run(() =>
+        await Task.Run(async () =>
         {
             if (File.Exists(target))
                 File.Delete(target);

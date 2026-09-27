@@ -9,6 +9,8 @@ namespace PaintPower.Editors;
 
 public partial class MainGUI : TranslatableControl
 {
+    public static MainGUI mainGUI = null!;
+
     public Header Header { get; private set; }
     public ProjectEditor? projectEditor;
     public Editor? CurrentEditor { get; private set; }
@@ -16,6 +18,8 @@ public partial class MainGUI : TranslatableControl
     public MainGUI()
     {
         InitializeComponent();
+
+        mainGUI = this;
 
         Header = new Header();
         ShowHeader();
@@ -61,6 +65,7 @@ public partial class MainGUI : TranslatableControl
     public async Task NewProject()
     {
         var editor = new ProjectEditor();
+        projectEditor = editor;
         SetEditor(editor);
 
         await editor.Logic.NewProject();

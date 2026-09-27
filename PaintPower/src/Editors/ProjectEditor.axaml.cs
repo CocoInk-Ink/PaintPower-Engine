@@ -59,6 +59,8 @@ public partial class ProjectEditor : Editor
             VmOnlyArea.InvalidateMeasure();
             VmOnlyArea.InvalidateArrange();
             VmOnlyArea.InvalidateVisual();
+
+            VmPanelControl?.InvalidateVisual();
         });
     }
 
@@ -78,6 +80,8 @@ public partial class ProjectEditor : Editor
             VmOnlyArea.InvalidateMeasure();
             VmOnlyArea.InvalidateArrange();
             VmOnlyArea.InvalidateVisual();
+
+            VmPanelControl?.InvalidateVisual();
         });
     }
 
@@ -97,6 +101,29 @@ public partial class ProjectEditor : Editor
             VmOnlyArea.InvalidateMeasure();
             VmOnlyArea.InvalidateArrange();
             VmOnlyArea.InvalidateVisual();
+
+            VmPanelControl?.InvalidateVisual();
+        });
+    }
+
+    public async Task UpdateBuildingProgress(string message, int processed, int total)
+    {
+        if (VmPanelControl?.FindControl<ProcessingPanel>("LoadingPart") is ProcessingPanel loader)
+        {
+            int percent = (int)((processed / (double)total) * 100);
+
+            loader.SetPercent(percent);
+            loader.SetText($"{Translator.Map("Building Project")}...", $"Project {percent}% built. {message}... ");
+        }
+
+        // Force Avalonia to refresh layout
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            VmOnlyArea.InvalidateMeasure();
+            VmOnlyArea.InvalidateArrange();
+            VmOnlyArea.InvalidateVisual();
+
+            VmPanelControl?.InvalidateVisual();
         });
     }
 

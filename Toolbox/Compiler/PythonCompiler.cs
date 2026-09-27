@@ -1,38 +1,56 @@
 using System;
 using Toolbox.Plumbing;
+using Toolbox.Sessions;
 using Wasmtime;
 
 namespace Toolbox.Compiler;
 
 public static class WasmCompilerHost
 {
-    public static string Compile(
-        string spriteName,
-        string instanceName,
-        string scriptText,
-        string sessionId)
-    {
-		//ResourceKit.AssetsPath;
-        using var engine = new Engine();
-        using var module = Module.FromFile(engine, "compiler.wasm");
-        using var store = new Store(engine);
-        using var linker = new Linker(engine);
+	private static Dictionary<string, Dictionary<string, string>> Compilers = null!;
+	public static string Compile(
+		string spriteName,
+		string instanceName,
+		string scriptPath,
+		string sessionId)
+	{
 
-        // If your WASM uses WASI, you’d define it here:
-        // linker.DefineWasi();
-        // store.SetWasiConfiguration(new WasiConfiguration());
+		Compilers = new() {
+			["0.1"] = new () {
+				// Latest of this minor version
+				["latest"] = "1",
+				["1"] = ResourceKit.Other.Paths.Compilers.Compiler0_1.c0_1_0
+			}
+		};
 
-        var instance = linker.Instantiate(store, module);
+		string compilerVersion = "0.1";
 
-        // Get the exported compile function
-        var compileFunc = instance.GetFunction("compile");
-        if (compileFunc is null)
-            throw new Exception("WASM module does not export a 'compile' function.");
+		string SelectedVersionPath = Compilers[compilerVersion][Compilers[compilerVersion]["latest"]];
 
-        // For now, assume compile(...) takes no args and returns an int or something simple.
-        // Later, when we know the exact signature, we’ll wire spriteName, instanceName, etc.
-        var result = compileFunc.Invoke();
+		var engine = new Engine();
+		var module = Module.FromFile(engine, SelectedVersionPath);
+		var store = new Store(engine);
+		var linker = new Linker(engine);
 
-        return result?.ToString() ?? "";
-    }
+		linker.DefineWasi();
+
+		store.SetWasiConfiguration(new WasiConfiguration()
+			.WithPreopenedDirectory(Session.CurrentBuildSession.BuildPath, "/sessions", true)
+			.WithInheritedStandardOutput()
+			.WithInheritedStandardError()
+		);
+
+		var instance = linker.Instantiate(store, module);
+
+		var compileFunc = instance.GetFunction("compile_script");
+
+		if (compileFunc is null)
+			throw new Exception("WASM module does not export a 'compile_script' function.");
+
+		// For now, assume compile(...) takes no args and returns an int or something simple.
+		// Later, when we know the exact signature, we’ll wire spriteName, instanceName, etc.
+		var result = compileFunc.Invoke(spriteName, instanceName, scriptPath, sessionId);
+
+		return result?.ToString() ?? "";
+	}
 }

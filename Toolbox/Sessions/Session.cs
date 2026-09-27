@@ -8,6 +8,7 @@ namespace Toolbox.Sessions;
 public class Session
 {
 	public static Session Current { get; private set; } = null!;
+	public static BuildSession CurrentBuildSession { get; private set; } = null!;
 
 	public Session(string version, string Core = "PaintPower-Engine")
 	{
@@ -23,6 +24,7 @@ public class Session
 	public string UserHome => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 	public string AppDir => Path.Join(UserHome, "xPaint", Core, Version);
 	public string SessionDir => Path.Join(AppDir, "Sessions", SessionId);
+	public string BuildsDir => Path.Join(SessionDir, "Builds");
 
 	public void Heartbeat()
 	{
@@ -31,6 +33,11 @@ public class Session
 
 		var heartbeatFile = Path.Join(SessionDir, "heartbeat.txt");
 		File.WriteAllText(heartbeatFile, DateTime.Now.ToString());
+	}
+
+	public BuildSession NewBuildSession()
+	{
+		return new BuildSession(this);
 	}
 
 	public static void ClearAllSessions(string version, string Core = "PaintPower-Engine")
@@ -86,6 +93,7 @@ public class Session
 		ClearAllDeadSessions(version, core);
 		
 		Current = new Session(version, core);
+		CurrentBuildSession = new BuildSession(Current);
 
 		// New background thread to periodically update heartbeat
 		var heartbeatThread = new System.Threading.Thread(() =>
@@ -115,4 +123,18 @@ public class Session
             .LogToTrace()
 			.StartWithClassicDesktopLifetime(args);
     }
+}
+
+public class BuildSession
+{
+	public Session parent;
+
+	public BuildSession(Session session)
+	{
+		parent = session;
+	}
+
+	public string BuildPath => Path.Join(parent.BuildsDir, SessionKey);
+
+	public string SessionKey = Guid.NewGuid().ToString();
 }
