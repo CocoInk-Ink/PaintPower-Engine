@@ -25,10 +25,13 @@ public partial class ProcessingPanel : TranslatableControl
         Loader.SetPercent(percent);
     }
 
-    public void SetText(string? header = null, string? subheader = null)
+    public void SetText(string? header = null, string? subheader = null, string? subheader2 = null)
     {
         if (header != null) SetHeaderText(header);
         if (subheader != null) SetSubheaderText(subheader);
+        
+        SetSubheader2Text(""); // Set blank at first.
+        if (subheader2 != null) SetSubheader2Text(subheader2);
     }
 
     public void SetHeaderText(string? text)
@@ -41,6 +44,12 @@ public partial class ProcessingPanel : TranslatableControl
     {
         SubHeaderText.Text = text;
         SubHeaderText.InvalidateVisual();
+    }
+
+    public void SetSubheader2Text(string? text)
+    {
+        SubheaderText2.Text = text;
+        SubheaderText2.InvalidateVisual();
     }
 
 }
