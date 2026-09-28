@@ -43,7 +43,7 @@
 		<FluentTheme />
 		<StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
 		<!--<ClassicTheme />-->
-		<SimpleTheme />
+		<!--<SimpleTheme />-->
 
 		<Style Selector="Control">
 			<Setter Property="Transitions" Value="{x:Null}"/>
