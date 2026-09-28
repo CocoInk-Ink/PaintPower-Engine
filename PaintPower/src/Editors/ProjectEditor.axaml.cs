@@ -118,7 +118,7 @@ public partial class ProjectEditor : Editor
             int percent = (int)((processed / (double)total) * 100);
 
             loader.SetPercent(percent);
-            loader.SetText($"{Translator.Map("Building Project")}...", $"Project {percent}% built.", "{message}... ");
+            loader.SetText($"{Translator.Map("Building Project")}...", $"Project {percent}% built.", $"{message}... ");
         }
 
         Log.QuickLog($"{Translator.Map("Building Project")}... Project {(int)((processed / (double)total) * 100)}% built. {message}... ");

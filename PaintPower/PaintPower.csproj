@@ -61,6 +61,7 @@
     <PackageReference Include="AvaloniaEdit.TextMate" Version="11.4.1" />
     <PackageReference Include="Classic.Avalonia.Theme.ColorPicker" Version="11.3.0.3" />
     <PackageReference Include="Classic.CommonControls.Avalonia" Version="11.3.0.3" />
+    <PackageReference Include="Neumorphism.Avalonia" Version="0.11.2" />
     <PackageReference Include="TextMateSharp" Version="2.0.4" />
     <PackageReference Include="TextMateSharp.Grammars" Version="2.0.4" />
 

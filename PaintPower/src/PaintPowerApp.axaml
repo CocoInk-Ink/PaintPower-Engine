@@ -1,5 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:neumorphism.avalonia="https://github.com/flarive/Neumorphism.Avalonia"
              x:Class="PaintPower.PaintPowerApp"
 			 xmlns:toolbox="clr-namespace:Toolbox;assembly=Toolbox"
              RequestedThemeVariant="Default">
@@ -40,8 +41,9 @@
 
 	<Application.Styles>
 		<FluentTheme />
-		<ClassicTheme />
 		<StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
+		<!--<ClassicTheme />-->
+		<SimpleTheme />
 
 		<Style Selector="Control">
 			<Setter Property="Transitions" Value="{x:Null}"/>

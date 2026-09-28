@@ -49,6 +49,9 @@ public partial class MainGUI : TranslatableControl
         CurrentEditor = editorInstance;
         MainPart.Content = editorInstance;
 
+        if (editorInstance is ProjectEditor projectEditor1)
+            projectEditor = projectEditor1;
+
         Header.LoadDefinition(editorInstance.GetHeaderDefinition());
     }
 
@@ -56,6 +59,7 @@ public partial class MainGUI : TranslatableControl
     {
         CurrentEditor = null;
         MainPart.Content = null;
+        projectEditor = null;
         SetEditor(new HomeView());
     }
 

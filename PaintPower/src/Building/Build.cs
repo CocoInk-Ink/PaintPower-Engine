@@ -71,15 +71,18 @@ public class Builder
 		private void CompileSprite(PaintSprite sprite, Action<string, int, int>? onProgress)
 	{
 		string[] scripts = Directory.GetFiles(sprite.SpriteFolder, "*.pxs", SearchOption.AllDirectories);
-		message += $" Sprite({sprite.Name}|{sprite.InstanceName ?? "{No instance name set!}"})";
+		message += " " + ((sprite.InstanceName == null || string.IsNullOrWhiteSpace(sprite.InstanceName)) ? sprite.Name : sprite.InstanceName);
 
 		Log.QuickLog($"Compiling: {sprite}");
+
+		string oldMessage = message;
 
 		foreach (var script in scripts)
 		{
 			processed++;
-			message += $" Compiling script: {StringTools.GetFilenameFromPath(script)}";
+			message += $" Compiling: {StringTools.GetFilenameFromPath(script)}";
 			CompileScript(script, sprite, onProgress);
+			message = oldMessage;
 		}
 	}
 
@@ -98,7 +101,8 @@ public class Builder
 		Log.QuickLog(StringTools.GetFilenameFromPath(path));
 		Log.QuickLog($"{Translator.Map("Building Project")}... Project {(int)processed / total * 100}% built. {message}... ");
 
-		if (processed % 10 == 0) onProgress?.Invoke(message, processed, total);
+		/** if (processed % 10 == 0) /**/
+		onProgress?.Invoke(message, processed, total);
 	}
 
 	private void LinkProgram() { }
