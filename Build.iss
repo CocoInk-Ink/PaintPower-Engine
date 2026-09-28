@@ -6,7 +6,7 @@
 ; Non-commercial use only
 
 #define MyAppName "PaintPower Engine"
-#define MyAppVersion "Pre-Alpha 2.1.0.0 build 20260909205147"
+#define MyAppVersion "Pre-Alpha 2.1.1.0 build 20260927235119"
 #define MyAppPublisher "CocoInk Software, Inc."
 #define MyAppURL "https://xpaint.cocoink.ink/"
 #define MyAppExeName "PaintPower-Engine.exe"
