@@ -30,7 +30,8 @@
 
             <Button Content="Add Layer" Click="OnAddLayer" Margin="16,0,0,0"/>
             <Button Content="Remove Layer" Click="OnRemoveLayer"/>
-            <Button Content="Frames" Click="OnToggleDrawer"/>
+            <Button Content="Undo" Click="Undo" />
+            <Button Content="Redo" Click="Redo" />
         </StackPanel>
 
         <!-- Canvas -->

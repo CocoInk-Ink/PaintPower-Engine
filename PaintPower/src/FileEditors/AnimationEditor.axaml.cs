@@ -255,17 +255,20 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         //
     }
 
-	public override void Undo()
-	{
-        RedoStack.Push(UndoStack.Pop());
-		base.Undo();
-	}
+    public override void Undo()
+    {
+        if (UndoStack.Count > 0) RedoStack.Push(UndoStack.Pop());
+        base.Undo();
+    }
 
-	public override void Redo()
-	{
-        UndoStack.Push(RedoStack.Pop());
-		base.Redo();
-	}
+    public override void Redo()
+    {
+        if (RedoStack.Count > 0) UndoStack.Push(RedoStack.Pop());
+        base.Redo();
+    }
+
+    public void Undo(object? a, RoutedEventArgs? b) => Undo();
+    public void Redo(object? a, RoutedEventArgs? b) => Redo();
 
     public void OnFitCanvas(object? sender, RoutedEventArgs e)
     {
@@ -282,7 +285,7 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         Log.QuickLog(Translator.Translate("[AnimationEditor] Activated}"));
     }
 
-        private void BuildInitialFrames()
+    private void BuildInitialFrames()
     {
         // Placeholder timeline: later bind to real keyframes from WXA
         Frames.Clear();
@@ -445,7 +448,8 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         {
             _isDrawing = false;
 
-            if (_currentStroke != null) {
+            if (_currentStroke != null)
+            {
                 RedoStack = new();
                 UndoStack.Push(_currentStroke);
 
