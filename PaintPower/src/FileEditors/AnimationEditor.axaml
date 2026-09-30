@@ -79,6 +79,10 @@
 
             <ScrollViewer>
                 <StackPanel Margin="8" Spacing="6">
+                <CheckBox Content="Onion Skin"
+                          x:CompileBindings="False"
+                          IsChecked="{Binding OnionSkinEnabled, Mode=TwoWay}"
+                          Foreground="White"/>
 
                 <TextBlock Text="Canvas Size" Foreground="White" Margin="0,8,0,0"/>
 

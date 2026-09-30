@@ -13,7 +13,7 @@ public class VectorStroke
     public double Thickness { get; set; } = 2;
     public IBrush Brush { get; set; } = Brushes.Black;
 
-    public void Render(Canvas canvas)
+    public void Render(Canvas canvas, double opacity)
     {
         var geometry = new StreamGeometry();
 
@@ -28,15 +28,18 @@ public class VectorStroke
             }
         }
 
+        var brush = Brush is SolidColorBrush solidColorBrush
+            ? new SolidColorBrush(solidColorBrush.Color, solidColorBrush.Opacity * opacity)
+            : Brush;
+
         var path = new Path
         {
             Data = geometry,
-            Stroke = Brush,
+            Stroke = brush,
             StrokeThickness = Thickness,
             StrokeJoin = PenLineJoin.Round,
             StrokeLineCap = PenLineCap.Round
         };
-
 
         canvas.Children.Add(path);
     }

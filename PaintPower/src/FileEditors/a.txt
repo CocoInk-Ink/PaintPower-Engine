@@ -1,4 +1,268 @@
-﻿// AnimationEditor.axaml.cs
+<!-- AnimationEditor.axaml -->
+
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PaintPower.FileEditors.AnimationEditor"
+             x:Name="AnimationEditor1"
+             xmlns:conv="clr-namespace:PaintPower.Tools.Converters">
+
+    <UserControl.Resources>
+        <conv:FrameSelectedToColorConverter x:Key="FrameColorConverter"/>
+    </UserControl.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto,Auto"
+          ColumnDefinitions="3*,Auto,2*">
+
+        <!-- Top bar -->
+        <StackPanel Grid.Row="0"
+                    Grid.ColumnSpan="3"
+                    Orientation="Horizontal"
+                    Margin="4"
+                    Spacing="8">
+
+            <TextBlock Text="Animation Editor"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"/>
+
+            <Button x:Name="PlayButton" Content="Play" Margin="8,0,0,0"/>
+            <Button x:Name="StopButton" Content="Stop"/>
+            <NumericUpDown x:Name="FpsBox" Width="60" Minimum="1" Maximum="60" Value="12"/>
+
+            <Button Content="Add Layer" Click="OnAddLayer" Margin="16,0,0,0"/>
+            <Button Content="Remove Layer" Click="OnRemoveLayer"/>
+            <Button Content="Undo" Click="Undo" />
+            <Button Content="Redo" Click="Redo" />
+        </StackPanel>
+
+        <!-- Canvas -->
+        <Border x:Name="CanvasArea"
+                Grid.Row="1"
+                Grid.Column="0"
+                Margin="4"
+                Background="#202020"
+                BorderBrush="#404040"
+                BorderThickness="1"
+                HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Canvas x:Name="AnimationCanvas"
+                    Background="#ECECEC"
+                    PointerPressed="OnCanvasPointerPressed"
+                    PointerMoved="OnCanvasPointerMoved"
+                    PointerReleased="OnCanvasPointerReleased"
+                    Width="{Binding CanvasWidth}"
+                    Height="{Binding CanvasHeight}"
+                    x:CompileBindings="False"
+                    MinWidth="50"
+                    MinHeight="50">
+                <Canvas.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform ScaleX="1" ScaleY="1"/>
+                        <TranslateTransform X="0" Y="0"/>
+                    </TransformGroup>
+                </Canvas.RenderTransform>
+            </Canvas>
+        </Border>
+
+        <!-- Vertical splitter -->
+        <GridSplitter Grid.Row="1"
+                      Grid.Column="1"
+                      ResizeDirection="Columns"
+                      Background="#505050"
+                      Width="4"/>
+
+        <!-- Properties panel -->
+        <Border Grid.Row="1"
+                Grid.Column="2"
+                Margin="4"
+                Background="#252525"
+                BorderBrush="#404040"
+                BorderThickness="1">
+
+            <ScrollViewer>
+                <StackPanel Margin="8" Spacing="6">
+
+                <TextBlock Text="Canvas Size" Foreground="White" Margin="0,8,0,0"/>
+
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <TextBlock Text="W:" Foreground="White"/>
+                    <NumericUpDown Minimum="50" Maximum="1920"
+                                   x:CompileBindings="False"
+                                   Value="{Binding CanvasWidth}" Width="80"/>
+
+                    <TextBlock Text="H:" Foreground="White" Margin="8,0,0,0"/>
+                    <NumericUpDown Minimum="50" Maximum="1080"
+                                   x:CompileBindings="False"
+                                   Value="{Binding CanvasHeight}" Width="80"/>
+
+                    <Button Content="Fit Canvas" Click="OnFitCanvas"/>
+                </StackPanel>
+
+
+                <TextBlock Text="Layers"
+                           FontWeight="Bold"
+                           Foreground="White"/>
+
+                <!-- Layers list -->
+                <ListBox x:CompileBindings="False"
+                         ItemsSource="{Binding Layers.Layers}"
+                         SelectedItem="{Binding SelectedLayer}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <CheckBox IsChecked="{Binding Visible}" Content="{Binding Name}"/>
+                                <CheckBox IsChecked="{Binding Locked}" Content="Lock"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <TextBlock Text="Selected Symbol:" Foreground="White" Margin="0,8,0,0"/>
+                <ComboBox/>
+
+                <TextBlock Text="Position" Foreground="White" Margin="0,8,0,0"/>
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <TextBlock Text="X:" Foreground="White"/>
+                    <NumericUpDown Width="60"/>
+                    <TextBlock Text="Y:" Foreground="White" Margin="8,0,0,0"/>
+                    <NumericUpDown Width="60"/>
+                </StackPanel>
+
+                <TextBlock Text="Opacity" Foreground="White" Margin="0,8,0,0"/>
+                <Slider Minimum="0" Maximum="1" Value="1"/>
+
+                <TextBlock Text="Zoom" Foreground="White" Margin="0,8,0,0"/>
+                <Slider Minimum="0.1" Maximum="4.0" x:CompileBindings="False" Value="{Binding ZoomLevel}" Width="150"/>
+
+                <TextBlock Text="Tools:" Foreground="White" Margin="0,8,0,0"/>
+                <StackPanel></StackPanel>
+
+                <TextBlock Text="Brush Sizes:" Foreground="White" Margin="0,8,0,0"/>
+                <ScrollViewer>
+                    <StackPanel Orientation="Horizontal">
+                            <Button Width="15" Height="15" Padding="0" x:Name="VerySmallBrushButton" Click="VerySmallBrushButton_Click">
+                                <Image Stretch="Uniform" />
+                            </Button>
+                            <Button Width="15" Height="15" Padding="0" x:Name="SmallBrushButton" Click="SmallBrushButton_Click">
+                                <Image Stretch="Uniform" />
+                            </Button>
+                            <Button Width="15" Height="15" Padding="0" x:Name="MediumBrushButton" Click="MediumBrushButton_Click">
+                                <Image Stretch="Uniform" />
+                            </Button>
+                            <Button Width="15" Height="15" Padding="0" x:Name="NormalBrushButton" Click="NormalBrushButton_Click">
+                                <Image Stretch="Uniform" />
+                            </Button>
+                            <Button Width="15" Height="15" Padding="0" x:Name="BigBrushButton" Click="BigBrushButton_Click">
+                                <Image Stretch="Uniform" />
+                            </Button>
+                            <Button Width="15" Height="15" Padding="0" x:Name="VeryBigBrushButton" Click="VeryBigBrushButton_Click">
+                                <Image Stretch="Uniform" />
+                            </Button>
+                            <Button Width="15" Height="15" Padding="0" x:Name="HugeBrushButton" Click="HugeBrushButton_Click">
+                                <Image Stretch="Uniform" />
+                            </Button>
+                    </StackPanel>
+                </ScrollViewer>
+            </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Horizontal splitter -
+        <GridSplitter Grid.Row="2"
+        Grid.ColumnSpan="3"
+        ResizeDirection="Rows"
+        Background="#505050"
+        Height="4"/>-->
+
+        <!-- Drawer: Frame previews -->
+        <Border Grid.Row="3"
+                Grid.ColumnSpan="3"
+                Background="#202020"
+                BorderBrush="#404040"
+                BorderThickness="1"
+                x:Name="FrameDrawer"
+                BoxShadow="0 0 12 #00000080"
+                Height="32"> <!-- starts collapsed -->
+
+                <Border.Transitions>
+                    <Transitions>
+                        <DoubleTransition Property="Height"
+                                          Duration="0:0:0.25"
+                                          Easing="CubicEaseOut"/>
+                    </Transitions>
+                </Border.Transitions>
+
+            <StackPanel Margin="8" Spacing="4">
+                <Border Background="#202020"
+                        Height="32"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Top"
+                        PointerPressed="OnToggleDrawer">
+                    <TextBlock Text="Frames"
+                               Foreground="White"
+                               FontWeight="Bold"
+                               Margin="4"/>
+                </Border>
+
+                <ScrollViewer HorizontalScrollBarVisibility="Visible"
+                              VerticalScrollBarVisibility="Disabled">
+
+                    <ItemsControl x:CompileBindings="False"
+                                  ItemsSource="{Binding SelectedLayer.Frames}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:CompileBindings="False">
+                                <Border Width="120"
+                                        Height="80"
+                                        Margin="4"
+                                        BorderBrush="#707070"
+                                        BorderThickness="1"
+                                        Background="{Binding #AnimationEditor1.SelectedFrame,
+                                        Converter={StaticResource FrameColorConverter},
+                                        ConverterParameter={Binding}}">
+
+                                    <Button Click="OnFrameClicked"
+                                            Tag="{Binding}"
+                                            Background="Transparent"
+                                            BorderThickness="0">
+
+                                        <StackPanel>
+
+                                            <!-- Thumbnail preview -->
+                                            <Border Background="White"
+                                                    BorderBrush="#404040"
+                                                    BorderThickness="1"
+                                                    Height="60">
+                                                <TextBlock Text="[Thumbnail]"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="Black"/>
+                                            </Border>
+
+                                            <!-- Frame number -->
+                                            <TextBlock Text="{Binding}"
+                                                       Foreground="White"
+                                                       HorizontalAlignment="Right"
+                                                       Margin="0,4,4,0"/>
+                                        </StackPanel>
+
+                                    </Button>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                </ScrollViewer>
+
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
+
+// AnimationEditor.axaml.cs
 
 using System;
 using System.Collections.Generic;
@@ -63,11 +327,8 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
 
     private TimelineTool _timeline;
     private PlaybackTool _playback;
-
-    // Frame tools
     private List<FrameTool> _frameTools = new();
 
-    // Drawing
     private enum DrawMode
     {
         None,
@@ -93,7 +354,6 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     private bool _isDrawing = false;
     private VectorStroke? _currentStroke = new();
 
-    // Layer frames
     private LayerManagerTool _layers;
     public LayerManagerTool Layers => _layers;
 
@@ -109,8 +369,6 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
             Raise(nameof(SelectedLayer));
         }
     }
-
-    // Zoom
 
     private double _zoomLevel = 1.0;
     public double ZoomLevel
@@ -129,26 +387,9 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         }
     }
 
-    // Panning
     private bool _isPanning = false;
     private Avalonia.Point _lastPanPoint;
 
-    // Onion skinning
-    private bool _onionSkinEnabled = true;
-    private double _onionOpacity = 0.35;
-
-    public bool OnionSkinEnabled
-    {
-        get => _onionSkinEnabled;
-        set
-        {
-            _onionSkinEnabled = value;
-            Raise(nameof(OnionSkinEnabled));
-            RenderFrame(SelectedFrame);
-        }
-    }
-
-    // Undo redo
     public Stack<VectorStroke> UndoStack = new();
     public Stack<VectorStroke> RedoStack = new();
 
@@ -325,25 +566,10 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
             if (!layer.Visible)
                 continue;
 
-            // --- Onion skin: previous frame ---
-            if (_onionSkinEnabled && index > 0)
-            {
-                var prev = layer.Frames[index - 1];
-                prev.Render(AnimationCanvas, _onionOpacity);
-            }
+            if (index < 0 || index >= layer.Frames.Count)
+                continue;
 
-            // --- Onion skin: next frame ---
-            if (_onionSkinEnabled && index < layer.Frames.Count - 1)
-            {
-                var next = layer.Frames[index + 1];
-                next.Render(AnimationCanvas, _onionOpacity);
-            }
-
-            // --- Current frame ---
-            if (index >= 0 && index < layer.Frames.Count)
-            {
-                layer.Frames[index].Render(AnimationCanvas, 1.0);
-            }
+            layer.Frames[index].Render(AnimationCanvas);
         }
     }
 
@@ -516,11 +742,6 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
             return;
         }
 
-        // Draw attempt.
-
-        // Stop playback on draw.
-        _playback.Stop();
-
         // Convert pointer position to unscaled/untranslated canvas space
         var rawPoint = e.GetPosition(CanvasArea); // IMPORTANT: Border, not Canvas
 
@@ -611,5 +832,170 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     private void HugeBrushButton_Click(object? sender, RoutedEventArgs e)
     {
         _brushSize = DrawBrushSize.Huge;
+    }
+}
+
+using System;
+using Avalonia.Controls;
+
+namespace PaintPower.FileEditors.Tools.AnimationEditorTools;
+
+public class FrameTool
+{
+    public Action<Canvas> DrawAction { get; set; }
+
+    public FrameTool(Action<Canvas> drawAction)
+    {
+        DrawAction = drawAction;
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using Avalonia.Controls;
+using PaintPower.FileEditors.Tools.AnimationEditorTools.Drawing;
+
+namespace PaintPower.FileEditors.Tools.AnimationEditorTools;
+
+public class LayerTool
+{
+    public string Name { get; set; }
+    public bool Visible { get; set; } = true;
+    public bool Locked { get; set; } = false;
+
+    public List<LayerFrameTool> Frames { get; } = new();
+
+    public LayerTool(string name)
+    {
+        Name = name;
+    }
+}
+
+public class LayerFrameTool
+{
+    public List<Action<Canvas>> DrawActions { get; } = new();
+    public List<VectorStroke> Strokes { get; } = new();
+
+    public void AddShape(Action<Canvas> shape)
+    {
+        DrawActions.Add(shape);
+    }
+
+    public void Render(Canvas canvas)
+    {
+        foreach (var stroke in Strokes)
+            stroke.Render(canvas);
+
+        foreach (var shape in DrawActions)
+            shape(canvas);
+    }
+}
+
+public class LayerManagerTool
+{
+    public ObservableCollection<LayerTool> Layers { get; } = new();
+
+    public void AddLayer(string name)
+    {
+        Layers.Add(new LayerTool(name));
+    }
+
+    public void RemoveLayer(LayerTool layer)
+    {
+        Layers.Remove(layer);
+    }
+
+    public void MoveLayerUp(LayerTool layer)
+    {
+        int index = Layers.IndexOf(layer);
+        if (index > 0)
+            Layers.Move(index, index - 1);
+    }
+
+    public void MoveLayerDown(LayerTool layer)
+    {
+        int index = Layers.IndexOf(layer);
+        if (index < Layers.Count - 1)
+            Layers.Move(index, index + 1);
+    }
+}
+
+using System;
+using Avalonia.Threading;
+
+namespace PaintPower.FileEditors.Tools.AnimationEditorTools;
+
+public class PlaybackTool
+{
+    private readonly DispatcherTimer _timer = new();
+    private int _currentFrame;
+
+    public event Action<int>? FrameChanged;
+    public event Action? PlaybackStopped;
+
+    public PlaybackTool()
+    {
+        _timer.Tick += (_, _) =>
+        {
+            _currentFrame++;
+            FrameChanged?.Invoke(_currentFrame);
+        };
+    }
+
+    public void SetFPS(int fps)
+    {
+        _timer.Interval = TimeSpan.FromMilliseconds(1000.0 / fps);
+    }
+
+    public void Play()
+    {
+        _currentFrame = 0;
+        _timer.Start();
+    }
+
+    public void Stop()
+    {
+        PlaybackStopped?.Invoke();
+        _timer.Stop();
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using Avalonia.Controls;
+
+namespace PaintPower.FileEditors.Tools.AnimationEditorTools;
+
+public class TimelineTool
+{
+    public int SelectedFrame { get; private set; }
+    public int FrameCount { get; private set; }
+
+    public event Action<int>? FrameSelected;
+
+    public void SetFrameCount(int count)
+    {
+        FrameCount = count;
+    }
+
+    public void SelectFrame(int index)
+    {
+        if (index < 0 || index >= FrameCount)
+            return;
+
+        SelectedFrame = index;
+        FrameSelected?.Invoke(index);
+    }
+
+    public void AddFrame()
+    {
+        FrameCount++;
+    }
+
+    public void RemoveFrame()
+    {
+        if (FrameCount > 0)
+            FrameCount--;
     }
 }

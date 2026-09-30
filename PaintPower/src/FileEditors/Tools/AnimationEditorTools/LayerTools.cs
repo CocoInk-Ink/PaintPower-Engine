@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
 using PaintPower.FileEditors.Tools.AnimationEditorTools.Drawing;
 
 namespace PaintPower.FileEditors.Tools.AnimationEditorTools;
@@ -30,13 +31,27 @@ public class LayerFrameTool
         DrawActions.Add(shape);
     }
 
-    public void Render(Canvas canvas)
+    public void Render(Canvas canvas, double opacity)
     {
+        // Render vector strokes
         foreach (var stroke in Strokes)
-            stroke.Render(canvas);
+            stroke.Render(canvas, opacity);
 
+        // Render shapes (circles, rectangles)
         foreach (var shape in DrawActions)
+        {
+            // Shapes don't have opacity built-in, so we wrap them
             shape(canvas);
+
+            if (opacity < 1.0)
+            {
+                if (canvas.Children.Count > 0 &&
+                    canvas.Children[^1] is Shape s)
+                {
+                    s.Opacity = opacity;
+                }
+            }
+        }
     }
 }
 

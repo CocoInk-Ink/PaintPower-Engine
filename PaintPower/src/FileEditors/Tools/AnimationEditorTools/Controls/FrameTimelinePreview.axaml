@@ -1,0 +1,36 @@
+<!-- FrameTimelinePreview.axaml -->
+<UserControl
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	x:Class="PaintPower.FileEditors.Tools.AnimationEditorTools.Controls.FrameTimelinePreview"
+	x:Name="AnimationEditor1"
+	xmlns:conv="clr-namespace:PaintPower.Tools.Converters">
+
+	<Button
+			x:CompileBindings="False"
+			Tag="{Binding index, x:CompileBindings=False}"
+			Background="Transparent"
+			BorderThickness="0">
+
+		<StackPanel>
+
+			<!-- Thumbnail preview -->
+			<Border Background="White"
+					BorderBrush="#404040"
+					BorderThickness="1"
+					Height="60">
+				<TextBlock Text="[Thumbnail]"
+						   HorizontalAlignment="Center"
+						   VerticalAlignment="Center"
+						   Foreground="Black"/>
+			</Border>
+
+			<!-- Frame number -->
+			<TextBlock Text="{Binding}"
+					   Foreground="White"
+					   HorizontalAlignment="Right"
+					   Margin="0,4,4,0"/>
+		</StackPanel>
+
+	</Button>
+</UserControl>
