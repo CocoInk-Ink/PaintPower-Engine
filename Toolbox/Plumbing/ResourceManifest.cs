@@ -60,7 +60,14 @@ public static class ResourceManifest
     };
 
 	// Add your text files here.
-	public static readonly Dictionary<string, string> TextFiles = new() {};
+	public static readonly Dictionary<string, string> TextFiles = new()
+    {
+        // Languages are automatically selected, don't do here.
+
+        // Load themes
+        ["Documents.Themes.PaintPowerTheme"] = "Text/Themes/PaintPowerTheme.axamlt",
+        ["Documents.Themes.xPaintTheme"] = "Text/Themes/xPaintTheme.axamlt"
+    };
 
 	// Not grammar like languages, grammar like for programming languages.
     public static readonly Dictionary<string, string> Grammars = new()

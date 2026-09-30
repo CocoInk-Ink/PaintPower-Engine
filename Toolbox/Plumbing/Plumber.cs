@@ -61,13 +61,13 @@ public class Plumber
 		pipes.Add("NetworkPipe", new Pipe("NetworkPipe", Path.Combine(PipesPath, "NetworkPipe")));
 	}
 
-	AssetPipe makeAssetPipe()
+	private AssetPipe makeAssetPipe()
 	{
 		var p = new AssetPipe("AssetPipe", Path.Combine(PipesPath, "Assets"));
 		pipes.Add("AssetPipe", p); return p;
 	}
 
-	PluginPipe makePluginPipe()
+	private PluginPipe makePluginPipe()
 	{
 		var p = new PluginPipe("PluginPipe", Path.Combine(PipesPath, "PluginPipe"));
 		pipes.Add("PluginPipe", p);

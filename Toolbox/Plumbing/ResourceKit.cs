@@ -201,7 +201,14 @@ public static class ResourceKit
 		}
 	}
 
-	public static class Documents { }
+	public static class Documents
+	{
+		public static class Themes
+		{
+			public static string PaintPowerTheme = string.Empty;
+			public static string xPaintTheme = string.Empty;
+		}
+	}
 	public static class Archives { }
 	public static class Media
 	{
