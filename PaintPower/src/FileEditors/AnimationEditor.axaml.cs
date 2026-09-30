@@ -15,6 +15,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
 using PaintPower.FileEditors.Tools.AnimationEditorTools;
+using PaintPower.FileEditors.Tools.AnimationEditorTools.Controls;
 using PaintPower.FileEditors.Tools.AnimationEditorTools.Drawing;
 using PaintPower.ProjectSystem;
 using PaintPower.Tools.Converters;
@@ -190,6 +191,7 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         // When user selects a frame in the timeline
         _timeline.FrameSelected += index =>
         {
+            Raise(nameof(SelectedFrame));
             RenderFrame(index);
         };
 
@@ -200,13 +202,12 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
                 return;
 
             int frame = index % SelectedLayer.Frames.Count;
-            RenderFrame(frame);
-
+            _timeline.SelectFrame(frame); // Will redraw
         };
 
         _playback.PlaybackStopped += () =>
         {
-            RenderFrame(SelectedFrame);
+            _timeline.SelectFrame(_playback._currentFrame % SelectedLayer.Frames.Count); // Will redraw
         };
 
         this.AttachedToVisualTree += (_, _) => OnLoaded();
@@ -221,7 +222,7 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         _scale = group?.Children[0] as ScaleTransform;
         _translate = group?.Children[1] as TranslateTransform;
 
-        PlayButton.Click += (_, _) => _playback.Play();
+        PlayButton.Click += (_, _) => _playback.Play(SelectedFrame);
         StopButton.Click += (_, _) => _playback.Stop();
 
         FpsBox.PropertyChanged += (_, _) =>
@@ -241,7 +242,11 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
 
             // Create 12 frames for each layer
             for (int i = 0; i < 12; i++)
-                layer.Frames.Add(new LayerFrameTool());
+            {
+                var frame = new LayerFrameTool();
+                frame.SetFrame(i);
+                layer.Frames.Add(frame);
+            }
         }
 
         _timeline.SetFrameCount(_layers.Layers[0].Frames.Count);
@@ -313,7 +318,7 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         // Placeholder timeline: later bind to real keyframes from WXA
         Frames.Clear();
         for (int i = 0; i < 12; i++)
-            Frames.Add($"F{i}");
+            Frames.Add($"Frame {i}");
     }
 
     private void RenderFrame(int index)
@@ -427,9 +432,12 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
 
     public void OnFrameClicked(object? sender, RoutedEventArgs e)
     {
-        if (sender is Button btn && btn.Tag is int index)
+        if (sender is FrameTimelinePreview btn && btn.Index is int index)
         {
+            var wasPlaying = _playback.isPlaying;
+            if (wasPlaying) _playback.Stop();
             _timeline.SelectFrame(index);
+            if (wasPlaying) _playback.Play();
         }
     }
 

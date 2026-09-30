@@ -6,7 +6,9 @@ namespace PaintPower.FileEditors.Tools.AnimationEditorTools;
 public class PlaybackTool
 {
     private readonly DispatcherTimer _timer = new();
-    private int _currentFrame;
+    public int _currentFrame;
+
+    public bool isPlaying = false;
 
     public event Action<int>? FrameChanged;
     public event Action? PlaybackStopped;
@@ -15,6 +17,7 @@ public class PlaybackTool
     {
         _timer.Tick += (_, _) =>
         {
+            isPlaying = true;
             _currentFrame++;
             FrameChanged?.Invoke(_currentFrame);
         };
@@ -25,15 +28,16 @@ public class PlaybackTool
         _timer.Interval = TimeSpan.FromMilliseconds(1000.0 / fps);
     }
 
-    public void Play()
+    public void Play(int startFrame = 0)
     {
-        _currentFrame = 0;
+        _currentFrame = startFrame;
         _timer.Start();
     }
 
     public void Stop()
     {
-        PlaybackStopped?.Invoke();
         _timer.Stop();
+        PlaybackStopped?.Invoke();
+        isPlaying = false;
     }
 }
