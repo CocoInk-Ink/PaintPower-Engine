@@ -516,8 +516,6 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
             return;
         }
 
-        Log.QuickLog("Mouse down on canvas.");
-
         if (SelectedLayer == null)
         {
             Log.QuickLog("No layer selected.");
@@ -527,7 +525,7 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         // Draw attempt.
 
         // Stop playback on draw.
-        _playback.Stop();
+        if (_playback.isPlaying) _playback.Stop();
 
         // Convert pointer position to unscaled/untranslated canvas space
         var rawPoint = e.GetPosition(CanvasArea); // IMPORTANT: Border, not Canvas
