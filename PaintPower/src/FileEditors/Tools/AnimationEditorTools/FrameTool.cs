@@ -1,14 +1,12 @@
-using System;
-using Avalonia.Controls;
-
 namespace PaintPower.FileEditors.Tools.AnimationEditorTools;
 
 public class FrameTool
 {
-    public Action<Canvas> DrawAction { get; set; }
+    public LayerManagerTool Layers { get; } = new();
+    public int Index { get; private set; }
 
-    public FrameTool(Action<Canvas> drawAction)
+    public void SetFrame(int index)
     {
-        DrawAction = drawAction;
+        Index = index;
     }
 }

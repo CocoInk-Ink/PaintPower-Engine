@@ -17,6 +17,7 @@ using Avalonia.Threading;
 using PaintPower.FileEditors.Tools.AnimationEditorTools;
 using PaintPower.FileEditors.Tools.AnimationEditorTools.Controls;
 using PaintPower.FileEditors.Tools.AnimationEditorTools.Drawing;
+using PaintPower.FileEditors.Tools.PaintEditorTools;
 using PaintPower.ProjectSystem;
 using PaintPower.Tools.Converters;
 using Toolbox.Accessibility.Translation;
@@ -60,14 +61,12 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     private readonly TempWorkspace _workspace;
 
     // Simple placeholder model: later replace with real WXA data
-    public ObservableCollection<string> Frames { get; } = new();
+    public ObservableCollection<FrameTool> Frames { get; } = new();
 
     private TimelineTool _timeline;
     private PlaybackTool _playback;
 
     // Frame tools
-    private List<FrameTool> _frameTools = new();
-
     // Drawing
     private enum DrawMode
     {
@@ -95,8 +94,11 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     private VectorStroke? _currentStroke = new();
 
     // Layer frames
-    private LayerManagerTool _layers;
-    public LayerManagerTool Layers => _layers;
+    private readonly LayerManagerTool _emptyLayers = new();
+    private int _selectedLayerIndex = -1;
+    public LayerManagerTool Layers => SelectedFrame >= 0 && SelectedFrame < Frames.Count
+        ? Frames[SelectedFrame].Layers
+        : _emptyLayers;
 
     public int SelectedFrame => _timeline.SelectedFrame;
 
@@ -107,7 +109,73 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         set
         {
             _selectedLayer = value;
+            _selectedLayerIndex = value == null ? -1 : Layers.Layers.IndexOf(value);
             Raise(nameof(SelectedLayer));
+        }
+    }
+
+    // Color brush
+    private Color _brushColor = Colors.Black;
+    public Color BrushColor
+    {
+        get => _brushColor;
+        set
+        {
+            _brushColor = value;
+            Raise(nameof(BrushColor));
+        }
+    }
+
+    private double _hue;
+    public double Hue
+    {
+        get => _hue;
+        set
+        {
+            _hue = value;
+            UpdateBrushColor();
+            Raise(nameof(Hue));
+        }
+    }
+
+    private double _saturation;
+    public double Saturation
+    {
+        get => _saturation;
+        set
+        {
+            _saturation = value;
+            UpdateBrushColor();
+            Raise(nameof(Saturation));
+        }
+    }
+
+    private double _value;
+    public double Value
+    {
+        get => _value;
+        set
+        {
+            _value = value;
+            UpdateBrushColor();
+            Raise(nameof(Value));
+        }
+    }
+    private void UpdateBrushColor()
+    {
+        BrushColor = SVPicker.ColorFromHSV(Hue, Saturation, Value);
+        Raise(nameof(BrushColor));
+    }
+
+    // Brush opacity
+    private double _brushOpacity = 1.0;
+    public double BrushOpacity
+    {
+        get => _brushOpacity;
+        set
+        {
+            _brushOpacity = Math.Clamp(value, 0.0, 1.0);
+            Raise(nameof(BrushOpacity));
         }
     }
 
@@ -137,6 +205,31 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     // Onion skinning
     private bool _onionSkinEnabled = true;
     private double _onionOpacity = 0.35;
+
+    private int _onionPastCount = 1;
+    private int _onionFutureCount = 1;
+
+    public int OnionPastCount
+    {
+        get => _onionPastCount;
+        set
+        {
+            _onionPastCount = Math.Max(1, value);
+            Raise(nameof(OnionPastCount));
+            RenderFrame(SelectedFrame);
+        }
+    }
+
+    public int OnionFutureCount
+    {
+        get => _onionFutureCount;
+        set
+        {
+            _onionFutureCount = Math.Max(1, value);
+            Raise(nameof(OnionFutureCount));
+            RenderFrame(SelectedFrame);
+        }
+    }
 
     public bool OnionSkinEnabled
     {
@@ -172,42 +265,41 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         SetRelativePath(path);
         SetFullPath(System.IO.Path.Combine(_workspace.ItemsDir, path));
 
-        _layers = new LayerManagerTool();
-        _layers.AddLayer("Layer 1");
-        _layers.AddLayer("Layer 2");
-        _layers.AddLayer("Layer 3");
-
-        SelectedLayer = _layers.Layers[0];
-
         InitializeComponent();
+        _timeline = new TimelineTool();
+        _playback = new PlaybackTool();
         DataContext = this;
 
         Load();
         BuildInitialFrames();
-
-        _timeline = new TimelineTool();
-        _playback = new PlaybackTool();
+        SelectedLayer = Layers.Layers[0];
 
         // When user selects a frame in the timeline
         _timeline.FrameSelected += index =>
         {
             Raise(nameof(SelectedFrame));
+            Raise(nameof(Layers));
+            var layers = Layers.Layers;
+            SelectedLayer = layers.Count == 0
+                ? null
+                : layers[Math.Clamp(_selectedLayerIndex, 0, layers.Count - 1)];
             RenderFrame(index);
         };
 
         // When playback advances frames
         _playback.FrameChanged += index =>
         {
-            if (SelectedLayer == null || SelectedLayer.Frames.Count == 0)
+            if (Frames.Count == 0)
                 return;
 
-            int frame = index % SelectedLayer.Frames.Count;
+            int frame = index % Frames.Count;
             _timeline.SelectFrame(frame); // Will redraw
         };
 
         _playback.PlaybackStopped += () =>
         {
-            _timeline.SelectFrame(_playback._currentFrame % SelectedLayer.Frames.Count); // Will redraw
+            if (Frames.Count > 0)
+                _timeline.SelectFrame(_playback._currentFrame % Frames.Count); // Will redraw
         };
 
         this.AttachedToVisualTree += (_, _) => OnLoaded();
@@ -231,25 +323,6 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
                 _playback.SetFPS((int)FpsBox.Value.Value);
         };
 
-        BuildInitialFrameTools();
-    }
-
-    private void BuildInitialFrameTools()
-    {
-        foreach (var layer in _layers.Layers)
-        {
-            layer.Frames.Clear();
-
-            // Create 12 frames for each layer
-            for (int i = 0; i < 12; i++)
-            {
-                var frame = new LayerFrameTool();
-                frame.SetFrame(i);
-                layer.Frames.Add(frame);
-            }
-        }
-
-        _timeline.SetFrameCount(_layers.Layers[0].Frames.Count);
     }
 
     public override void Load()
@@ -315,40 +388,56 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
 
     private void BuildInitialFrames()
     {
-        // Placeholder timeline: later bind to real keyframes from WXA
         Frames.Clear();
         for (int i = 0; i < 12; i++)
-            Frames.Add($"Frame {i}");
+        {
+            var frame = new FrameTool();
+            frame.SetFrame(i);
+            frame.Layers.AddLayer("Layer 1");
+            frame.Layers.AddLayer("Layer 2");
+            frame.Layers.AddLayer("Layer 3");
+            Frames.Add(frame);
+        }
+
+        _timeline.SetFrameCount(Frames.Count);
     }
 
     private void RenderFrame(int index)
     {
         AnimationCanvas.Children.Clear();
+        if (index < 0 || index >= Frames.Count)
+            return;
 
-        foreach (var layer in _layers.Layers)
+        if (_onionSkinEnabled)
         {
-            if (!layer.Visible)
-                continue;
-
-            // --- Onion skin: previous frame ---
-            if (_onionSkinEnabled && index > 0)
+            for (int i = 1; i <= _onionPastCount; i++)
             {
-                var prev = layer.Frames[index - 1];
-                prev.Render(AnimationCanvas, _onionOpacity);
+                int pastIndex = index - i;
+                if (pastIndex >= 0)
+                {
+                    RenderLayers(Frames[pastIndex], _onionOpacity / i);
+                }
             }
 
-            // --- Onion skin: next frame ---
-            if (_onionSkinEnabled && index < layer.Frames.Count - 1)
+            for (int i = 1; i <= _onionFutureCount; i++)
             {
-                var next = layer.Frames[index + 1];
-                next.Render(AnimationCanvas, _onionOpacity);
+                int futureIndex = index + i;
+                if (futureIndex < Frames.Count)
+                {
+                    RenderLayers(Frames[futureIndex], _onionOpacity / i);
+                }
             }
+        }
 
-            // --- Current frame ---
-            if (index >= 0 && index < layer.Frames.Count)
-            {
-                layer.Frames[index].Render(AnimationCanvas, 1.0);
-            }
+        RenderLayers(Frames[index], 1.0);
+    }
+
+    private void RenderLayers(FrameTool frame, double opacity)
+    {
+        foreach (var layer in frame.Layers.Layers)
+        {
+            if (layer.Visible)
+                layer.Render(AnimationCanvas, opacity);
         }
     }
 
@@ -443,13 +532,31 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
 
     public void OnAddLayer(object? sender, RoutedEventArgs e)
     {
-        _layers.AddLayer($"Layer {_layers.Layers.Count + 1}");
+        int layerNumber = Frames.Count == 0 ? 1 : Frames[0].Layers.Layers.Count + 1;
+        foreach (var frame in Frames)
+            frame.Layers.AddLayer($"Layer {layerNumber}");
     }
 
     public void OnRemoveLayer(object? sender, RoutedEventArgs e)
     {
-        if (SelectedLayer != null)
-            _layers.RemoveLayer(SelectedLayer);
+        if (SelectedLayer == null)
+            return;
+
+        int layerIndex = Layers.Layers.IndexOf(SelectedLayer);
+        if (layerIndex < 0)
+            return;
+
+        foreach (var frame in Frames)
+        {
+            if (layerIndex < frame.Layers.Layers.Count)
+                frame.Layers.RemoveLayer(frame.Layers.Layers[layerIndex]);
+        }
+
+        var remainingLayers = Layers.Layers;
+        SelectedLayer = remainingLayers.Count == 0
+            ? null
+            : remainingLayers[Math.Min(layerIndex, remainingLayers.Count - 1)];
+        RenderFrame(SelectedFrame);
     }
 
     private bool _drawerOpen = false;
@@ -458,7 +565,7 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     {
         _drawerOpen = !_drawerOpen;
 
-        FrameDrawer.Height = _drawerOpen ? (SelectedLayer?.Frames.Count < 1) ? 72 : 160 : 32;
+        FrameDrawer.Height = _drawerOpen ? (Frames.Count < 1) ? 72 : 160 : 32;
     }
 
     public void OnCanvasPointerMoved(object? sender, PointerEventArgs e)
@@ -551,16 +658,16 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
 
 
         int frameIndex = SelectedFrame;
-        if (frameIndex < 0 || frameIndex >= SelectedLayer.Frames.Count)
+        if (frameIndex < 0 || frameIndex >= Frames.Count)
             return;
 
-        var frame = SelectedLayer.Frames[frameIndex];
+        var layer = SelectedLayer;
 
         switch (_drawMode)
         {
             case DrawMode.Circle:
                 // Draw
-                frame.DrawActions.Add(c => DrawCircle(c, logicalX, logicalY));
+                layer.DrawActions.Add(c => DrawCircle(c, logicalX, logicalY));
                 break;
 
             case DrawMode.Brush:
@@ -570,13 +677,13 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
                     _currentStroke = new VectorStroke
                     {
                         Thickness = (int)_brushSize,
-                        Brush = Brushes.Black
+                        Brush = new SolidColorBrush(BrushColor, BrushOpacity)
                     };
 
                     var p = GetLogicalCanvasPoint(e);
                     _currentStroke.Points.Add(p);
 
-                    SelectedLayer.Frames[SelectedFrame].Strokes.Add(_currentStroke);
+                    layer.Strokes.Add(_currentStroke);
                 }
                 break;
         }

@@ -28,9 +28,8 @@ public class VectorStroke
             }
         }
 
-        var brush = Brush is SolidColorBrush solidColorBrush
-            ? new SolidColorBrush(solidColorBrush.Color, solidColorBrush.Opacity * opacity)
-            : Brush;
+        var baseBrush = Brush as SolidColorBrush ?? new SolidColorBrush(Colors.Black);
+        var brush = new SolidColorBrush(baseBrush.Color, baseBrush.Opacity * opacity);
 
         var path = new Path
         {

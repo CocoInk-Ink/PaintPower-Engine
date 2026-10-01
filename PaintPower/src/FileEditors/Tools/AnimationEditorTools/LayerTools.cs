@@ -13,20 +13,13 @@ public class LayerTool
     public bool Visible { get; set; } = true;
     public bool Locked { get; set; } = false;
 
-    public List<LayerFrameTool> Frames { get; } = new();
+    public List<Action<Canvas>> DrawActions { get; } = new();
+    public List<VectorStroke> Strokes { get; } = new();
 
     public LayerTool(string name)
     {
         Name = name;
     }
-}
-
-public class LayerFrameTool
-{
-    public List<Action<Canvas>> DrawActions { get; } = new();
-    public List<VectorStroke> Strokes { get; } = new();
-
-    public int Index { get; private set; }
 
     public void AddShape(Action<Canvas> shape)
     {
@@ -56,10 +49,6 @@ public class LayerFrameTool
         }
     }
 
-    public void SetFrame(int index)
-    {
-        Index = index;
-    }
 }
 
 public class LayerManagerTool
