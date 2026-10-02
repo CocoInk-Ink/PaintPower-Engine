@@ -439,7 +439,7 @@ public partial class PaintEditor : FileEditor
 
     private void OnScrollPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        var scroll = (ScrollViewer)sender;
+        var scroll = (ScrollViewer?)sender;
 
         if (e.GetCurrentPoint(scroll).Properties.IsMiddleButtonPressed || _isPanning)
         {
@@ -454,14 +454,14 @@ public partial class PaintEditor : FileEditor
 
     private void OnScrollPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        var scroll = (ScrollViewer)sender;
-        scroll.Cursor = Cursor.Default;
+        var scroll = (ScrollViewer?)sender;
+        if (scroll != null) scroll.Cursor = Cursor.Default;
         e.Pointer.Capture(null);
     }
 
     private void OnScrollPointerMoved(object? sender, PointerEventArgs e)
     {
-        var scroll = (ScrollViewer)sender;
+        var scroll = (ScrollViewer?)sender;
 
         if (e.Pointer.Captured == scroll)
         {

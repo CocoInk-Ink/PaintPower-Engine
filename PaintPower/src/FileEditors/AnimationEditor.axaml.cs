@@ -163,7 +163,8 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     }
     private void UpdateBrushColor()
     {
-        BrushColor = SVPicker.ColorFromHSV(Hue, Saturation, Value);
+        var rgb = SVPicker.ColorFromHSV(Hue, Saturation, Value);
+        BrushColor = Color.FromRgb(rgb.R, rgb.G, rgb.B);
         Raise(nameof(BrushColor));
     }
 

@@ -28,8 +28,17 @@ public class VectorStroke
             }
         }
 
-        var baseBrush = Brush as SolidColorBrush ?? new SolidColorBrush(Colors.Black);
-        var brush = new SolidColorBrush(baseBrush.Color, baseBrush.Opacity * opacity);
+        // Brush is ALWAYS a SolidColorBrush because you create it that way.
+        var solid = Brush as SolidColorBrush;
+
+        // If something weird happens, fall back to black.
+        if (solid == null)
+            solid = new SolidColorBrush(Colors.Black, 1.0);
+
+        // Multiply user opacity by onion opacity.
+        double finalOpacity = solid.Opacity * opacity;
+
+        var brush = new SolidColorBrush(solid.Color, finalOpacity);
 
         var path = new Path
         {
@@ -42,4 +51,5 @@ public class VectorStroke
 
         canvas.Children.Add(path);
     }
+
 }
