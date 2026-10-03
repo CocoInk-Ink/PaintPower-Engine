@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.IO.Compression;
 using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls;
@@ -13,10 +14,12 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using PaintPower.FileEditors.Tools.AnimationEditorTools;
 using PaintPower.FileEditors.Tools.AnimationEditorTools.Controls;
 using PaintPower.FileEditors.Tools.AnimationEditorTools.Drawing;
+using PaintPower.FileEditors.Tools.AnimationEditorTools.Saving;
 using PaintPower.FileEditors.Tools.PaintEditorTools;
 using PaintPower.ProjectSystem;
 using PaintPower.Tools.Converters;
@@ -272,7 +275,6 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         DataContext = this;
 
         Load();
-        BuildInitialFrames();
         SelectedLayer = Layers.Layers[0];
 
         // When user selects a frame in the timeline
@@ -324,27 +326,211 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
                 _playback.SetFPS((int)FpsBox.Value.Value);
         };
 
+        sv.PropertyChanged += (_, e) =>
+        {
+            if (e.Property == SVPicker.SaturationProperty ||
+                e.Property == SVPicker.ValueProperty ||
+                e.Property == SVPicker.HueProperty)
+            {
+                Hue = sv.Hue;
+                Saturation = sv.Saturation;
+                Value = sv.Value;
+            }
+        };
+
+    }
+
+    public override void Activate()
+    {
+        Log.QuickLog("Animation Editor Activated!");
+
+        Translator.LanguageChanged += () => { };
     }
 
     public override void Load()
     {
-        // TODO: load WXA zip, parse animation.json, shapes.json, symbols.json, etc.
-        // For now, just log and keep placeholder behavior.
-        Console.WriteLine($"[AnimationEditor] Load: {FullPath}");
-
         if (!File.Exists(FullPath))
             return;
 
-        // Later: open ZIP and read JSON files.
+        if (!ZipValidator.IsZipValid(FullPath))
+        {
+            Log.QuickLog("File invalid, creating default frames.");
+            BuildInitialFrames();
+            return;
+        }
+
+        Log.QuickLog("File valid, opening.");
+
+        using (var zipStream = File.OpenRead(FullPath))
+        using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Read))
+        {
+            // 1. Read animation.json
+            var animEntry = archive.GetEntry("animation.json");
+            if (animEntry == null)
+                return;
+
+            SavedAnimation anim;
+            using (var reader = new StreamReader(animEntry.Open()))
+            {
+                var json = reader.ReadToEnd();
+                anim = JsonSerializer.Deserialize<SavedAnimation>(json)!;
+            }
+
+            Frames.Clear();
+
+            // 2. Load frames
+            foreach (var savedFrame in anim.Frames)
+            {
+                var frame = new FrameTool();
+                frame.SetFrame(savedFrame.Index);
+
+                foreach (var savedLayer in savedFrame.Layers)
+                {
+                    var layer = new LayerTool(savedLayer.Name)
+                    {
+                        Visible = savedLayer.Visible,
+                        Locked = savedLayer.Locked
+                    };
+
+                    // Load strokes
+                    foreach (var savedStroke in savedLayer.Strokes)
+                    {
+                        var stroke = new VectorStroke
+                        {
+                            Thickness = savedStroke.Thickness,
+                            Brush = new SolidColorBrush(Color.Parse(savedStroke.Color), savedStroke.Opacity)
+                        };
+
+                        foreach (var p in savedStroke.Points)
+                            stroke.Points.Add(new Point(p.X, p.Y));
+
+                        layer.Strokes.Add(stroke);
+                    }
+
+                    frame.Layers.Layers.Add(layer);
+                }
+
+                // 3. Load thumbnail if present
+                var thumbEntry = archive.GetEntry($"thumbnails/frame_{savedFrame.Index:D3}.png");
+                if (thumbEntry != null)
+                {
+                    using (var stream = thumbEntry.Open())
+                    {
+                        frame.UpdateThumbnail(new Bitmap(stream), 120, 60); // Thumbnail size is fixed at 120x60
+                    }
+                }
+
+                Frames.Add(frame);
+            }
+
+            _timeline.SetFrameCount(Frames.Count);
+        }
     }
 
     public override void Save()
     {
-        Console.WriteLine($"[AnimationEditor] Save: {FullPath}");
+        var anim = BuildSaveData();
 
-        // TODO: write WXA zip with animation.json, shapes.json, symbols.json, assets/
-        // For now, just mark as dirty and do nothing.
+        // Ensure directory exists
+        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(FullPath)!);
+
+        using (var zipStream = File.Open(FullPath, FileMode.Create))
+        using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create))
+        {
+            // 1. Write animation.json
+            var animEntry = archive.CreateEntry("animation.json");
+            using (var writer = new StreamWriter(animEntry.Open()))
+            {
+                var json = JsonSerializer.Serialize(anim, new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+                writer.Write(json);
+            }
+
+            // 2. Write each frame JSON
+            for (int i = 0; i < anim.Frames.Count; i++)
+            {
+                var frameEntry = archive.CreateEntry($"frames/frame_{i:D3}.json");
+                using (var writer = new StreamWriter(frameEntry.Open()))
+                {
+                    var json = JsonSerializer.Serialize(anim.Frames[i], new JsonSerializerOptions
+                    {
+                        WriteIndented = true
+                    });
+                    writer.Write(json);
+                }
+            }
+
+            // 3. Write thumbnails (optional)
+            for (int i = 0; i < Frames.Count; i++)
+            {
+                var thumb = Frames[i].Thumbnail;
+                if (thumb == null)
+                    continue;
+
+                var thumbEntry = archive.CreateEntry($"thumbnails/frame_{i:D3}.png");
+                using (var stream = thumbEntry.Open())
+                {
+                    thumb.Save(stream);
+                }
+            }
+        }
+
         MarkDirty();
+    }
+
+    private SavedAnimation BuildSaveData()
+    {
+        var anim = new SavedAnimation();
+
+        foreach (var frame in Frames)
+        {
+            var savedFrame = new SavedFrame
+            {
+                Index = frame.Index
+            };
+
+            foreach (var layer in frame.Layers.Layers)
+            {
+                var savedLayer = new SavedLayer
+                {
+                    Name = layer.Name,
+                    Visible = layer.Visible,
+                    Locked = layer.Locked
+                };
+
+                // Strokes
+                foreach (var stroke in layer.Strokes)
+                {
+                    var solid = stroke.Brush as SolidColorBrush ?? new SolidColorBrush(Colors.Black);
+
+                    var savedStroke = new SavedStroke
+                    {
+                        Thickness = stroke.Thickness,
+                        Color = solid.Color.ToString(),
+                        Opacity = solid.Opacity
+                    };
+
+                    foreach (var p in stroke.Points)
+                        savedStroke.Points.Add(new SavedPoint { X = p.X, Y = p.Y });
+
+                    savedLayer.Strokes.Add(savedStroke);
+                }
+
+                // Shapes (only circles for now)
+                foreach (var shape in layer.DrawActions)
+                {
+                    // You will expand this later
+                }
+
+                savedFrame.Layers.Add(savedLayer);
+            }
+
+            anim.Frames.Add(savedFrame);
+        }
+
+        return anim;
     }
 
     public override void TranslateGUI()
@@ -381,12 +567,6 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         }
     }
 
-    public override void Activate()
-    {
-        // Called when this editor becomes active
-        Log.QuickLog(Translator.Translate("[AnimationEditor] Activated}"));
-    }
-
     private void BuildInitialFrames()
     {
         Frames.Clear();
@@ -401,6 +581,8 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         }
 
         _timeline.SetFrameCount(Frames.Count);
+        foreach (var frame in Frames)
+            UpdateFrameThumbnail(frame);
     }
 
     private void RenderFrame(int index)
@@ -431,6 +613,8 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         }
 
         RenderLayers(Frames[index], 1.0);
+
+        UpdateFrameThumbnail(Frames[index]);
     }
 
     private void RenderLayers(FrameTool frame, double opacity)
@@ -496,6 +680,58 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         canvas.Children.Add(dot);
     }
 
+    private Bitmap RenderThumbnail(FrameTool frame)
+    {
+        const int thumbWidth = 120;
+        const int thumbHeight = 60;
+
+        // Create a temporary canvas
+        var canvas = new Canvas
+        {
+            Width = CanvasWidth,
+            Height = CanvasHeight,
+            Background = Brushes.Transparent
+        };
+
+        // Render layers into the canvas
+        foreach (var layer in frame.Layers.Layers)
+        {
+            if (layer.Visible)
+                layer.Render(canvas, 1.0);
+        }
+
+        var canvasSize = new Size(CanvasWidth, CanvasHeight);
+        canvas.Measure(canvasSize);
+        canvas.Arrange(new Rect(canvasSize));
+
+        // Render canvas into bitmap
+        var bmp = new RenderTargetBitmap(new PixelSize((int)CanvasWidth, (int)CanvasHeight));
+        bmp.Render(canvas);
+
+        // Scale down to thumbnail
+        var thumb = new RenderTargetBitmap(new PixelSize(thumbWidth, thumbHeight));
+        using (var ctx = thumb.CreateDrawingContext(true))
+        {
+            double scale = Math.Min(thumbWidth / CanvasWidth, thumbHeight / CanvasHeight);
+            double width = CanvasWidth * scale;
+            double height = CanvasHeight * scale;
+            var destination = new Rect(
+                (thumbWidth - width) / 2,
+                (thumbHeight - height) / 2,
+                width,
+                height);
+            ctx.DrawImage(bmp, destination);
+        }
+
+        return thumb;
+    }
+
+    private void UpdateFrameThumbnail(FrameTool frame)
+    {
+        if (!frame.HasCurrentThumbnail(CanvasWidth, CanvasHeight))
+            frame.UpdateThumbnail(RenderThumbnail(frame), CanvasWidth, CanvasHeight);
+    }
+
     private Point GetLogicalCanvasPoint(PointerEventArgs e)
     {
         var rawPoint = e.GetPosition(CanvasArea);
@@ -535,7 +771,11 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     {
         int layerNumber = Frames.Count == 0 ? 1 : Frames[0].Layers.Layers.Count + 1;
         foreach (var frame in Frames)
+        {
             frame.Layers.AddLayer($"Layer {layerNumber}");
+            frame.InvalidateThumbnail();
+        }
+        RenderFrame(SelectedFrame);
     }
 
     public void OnRemoveLayer(object? sender, RoutedEventArgs e)
@@ -551,6 +791,7 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         {
             if (layerIndex < frame.Layers.Layers.Count)
                 frame.Layers.RemoveLayer(frame.Layers.Layers[layerIndex]);
+            frame.InvalidateThumbnail();
         }
 
         var remainingLayers = Layers.Layers;
@@ -577,6 +818,8 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
             var p = GetLogicalCanvasPoint(e);
             _currentStroke?.Points.Add(p);
 
+            if (SelectedFrame >= 0 && SelectedFrame < Frames.Count)
+                Frames[SelectedFrame].InvalidateThumbnail();
             RenderFrame(SelectedFrame);
             return;
         }
@@ -689,6 +932,7 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
                 break;
         }
 
+        Frames[frameIndex].InvalidateThumbnail();
         RenderFrame(frameIndex);
     }
 
@@ -725,5 +969,10 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     private void HugeBrushButton_Click(object? sender, RoutedEventArgs e)
     {
         _brushSize = DrawBrushSize.Huge;
+    }
+
+    private void SaveButton_Click(object? sender, RoutedEventArgs e)
+    {
+        Save();
     }
 }
