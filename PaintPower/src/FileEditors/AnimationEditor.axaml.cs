@@ -1047,8 +1047,4 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     {
         Save();
     }
-
-    private void Button_Click(object? sender, RoutedEventArgs e)
-    {
-    }
 }
