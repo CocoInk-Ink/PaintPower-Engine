@@ -274,9 +274,6 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
         _playback = new PlaybackTool();
         DataContext = this;
 
-        Load();
-        SelectedLayer = Layers.Layers[0];
-
         // When user selects a frame in the timeline
         _timeline.FrameSelected += index =>
         {
@@ -304,6 +301,9 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
             if (Frames.Count > 0)
                 _timeline.SelectFrame(_playback._currentFrame % Frames.Count); // Will redraw
         };
+
+        Load();
+        SelectedLayer = Layers.Layers[0];
 
         this.AttachedToVisualTree += (_, _) => OnLoaded();
     }
@@ -414,10 +414,14 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
                 var thumbEntry = archive.GetEntry($"thumbnails/frame_{savedFrame.Index:D3}.png");
                 if (thumbEntry != null)
                 {
-                    using (var stream = thumbEntry.Open())
+                    try
                     {
-                        frame.UpdateThumbnail(new Bitmap(stream), 120, 60); // Thumbnail size is fixed at 120x60
+                        using (var stream = thumbEntry.Open())
+                        {
+                            UpdateFrameThumbnail(frame); // Thumbnail size is fixed at 120x60
+                        }
                     }
+                    catch { }
                 }
 
                 Frames.Add(frame);
@@ -425,6 +429,8 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
 
             _timeline.SetFrameCount(Frames.Count);
         }
+
+        _timeline.SelectFrame(0);
     }
 
     public override void Save()
@@ -465,7 +471,7 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
             // 3. Write thumbnails (optional)
             for (int i = 0; i < Frames.Count; i++)
             {
-                var thumb = Frames[i].Thumbnail;
+                var thumb = RenderThumbnail(Frames[i]);
                 if (thumb == null)
                     continue;
 

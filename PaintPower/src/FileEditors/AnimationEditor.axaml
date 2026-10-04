@@ -203,9 +203,6 @@
                         <NumericUpDown Width="60"/>
                     </StackPanel>
 
-                    <TextBlock Text="Opacity" Foreground="White" Margin="0,8,0,0"/>
-                    <Slider Minimum="0" Maximum="1" Value="1"/>
-
                     <TextBlock Text="Zoom" Foreground="White" Margin="0,8,0,0"/>
                     <Slider Minimum="0.1" Maximum="4.0" x:CompileBindings="False" Value="{Binding ZoomLevel}" Width="150"/>
                 </StackPanel>
