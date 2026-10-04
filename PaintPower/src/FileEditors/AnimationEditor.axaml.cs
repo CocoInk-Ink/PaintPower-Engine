@@ -75,7 +75,8 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     {
         None,
         Circle,
-        Brush
+        Brush,
+        Eraser
     }
 
     private DrawMode _drawMode = DrawMode.Brush;
@@ -95,6 +96,7 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
 
     private bool _isDrawing = false;
     private VectorStroke? _currentStroke = new();
+    private Point? _lastEraserPoint;
 
     // Layer frames
     private readonly LayerManagerTool _emptyLayers = new();
@@ -819,14 +821,30 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     public void OnCanvasPointerMoved(object? sender, PointerEventArgs e)
     {
 
-        if (_isDrawing && _drawMode == DrawMode.Brush)
+        if (_isDrawing)
         {
-            var p = GetLogicalCanvasPoint(e);
-            _currentStroke?.Points.Add(p);
+            if (_drawMode == DrawMode.Brush)
+            {
+                var p = GetLogicalCanvasPoint(e);
+                _currentStroke?.Points.Add(p);
 
-            if (SelectedFrame >= 0 && SelectedFrame < Frames.Count)
-                Frames[SelectedFrame].InvalidateThumbnail();
-            RenderFrame(SelectedFrame);
+                if (SelectedFrame >= 0 && SelectedFrame < Frames.Count)
+                    Frames[SelectedFrame].InvalidateThumbnail();
+                RenderFrame(SelectedFrame);
+                return;
+            }
+
+            if (_drawMode == DrawMode.Eraser)
+            {
+                var p = GetLogicalCanvasPoint(e);
+                if (_lastEraserPoint is Point previousPoint)
+                    EraseStrokesAlong(previousPoint, p);
+                else
+                    EraseStrokesAlong(p, p);
+                _lastEraserPoint = p;
+                return;
+            }
+
             return;
         }
 
@@ -845,12 +863,14 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
 
     public void OnCanvasPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
+        bool wasDrawing = _isDrawing;
         _isPanning = false;
+        _isDrawing = false;
+        _lastEraserPoint = null;
+        e.Pointer.Capture(null);
 
-        if (_isDrawing && _drawMode == DrawMode.Brush)
+        if (wasDrawing && _drawMode == DrawMode.Brush)
         {
-            _isDrawing = false;
-
             if (_currentStroke != null)
             {
                 RedoStack = new();
@@ -923,6 +943,7 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
             case DrawMode.Brush:
                 {
                     _isDrawing = true;
+                    e.Pointer.Capture(AnimationCanvas);
 
                     _currentStroke = new VectorStroke
                     {
@@ -936,11 +957,56 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
                     layer.Strokes.Add(_currentStroke);
                 }
                 break;
+
+            case DrawMode.Eraser:
+                {
+                    _isDrawing = true;
+                    e.Pointer.Capture(AnimationCanvas);
+                    var p = GetLogicalCanvasPoint(e);
+                    _lastEraserPoint = p;
+                    EraseStrokesAlong(p, p);
+                    return;
+                }
+
         }
 
         Frames[frameIndex].InvalidateThumbnail();
         RenderFrame(frameIndex);
     }
+
+    private void EraseStrokesAlong(Point start, Point end)
+    {
+        var layer = SelectedLayer;
+        int frameIndex = SelectedFrame;
+        if (layer == null || frameIndex < 0 || frameIndex >= Frames.Count)
+            return;
+
+        double radius = (double)_brushSize / 2;
+        bool changed = false;
+
+        for (int i = layer.Strokes.Count - 1; i >= 0; i--)
+        {
+            if (!layer.Strokes[i].EraseAlong(start, end, radius, out var remaining))
+                continue;
+
+            layer.Strokes.RemoveAt(i);
+            layer.Strokes.InsertRange(i, remaining);
+            changed = true;
+        }
+
+        if (!changed)
+            return;
+
+        Frames[frameIndex].InvalidateThumbnail();
+        RenderFrame(frameIndex);
+    }
+
+    /* ----- UI Buttons ----- */
+
+    private void OnBrushClicked(object? sender, RoutedEventArgs e) => _drawMode = DrawMode.Brush;
+    private void OnEraserClicked(object? sender, RoutedEventArgs e) => _drawMode = DrawMode.Eraser;
+
+    // Brush clicks
 
     private void VerySmallBrushButton_Click(object? sender, RoutedEventArgs e)
     {
@@ -980,5 +1046,9 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     private void SaveButton_Click(object? sender, RoutedEventArgs e)
     {
         Save();
+    }
+
+    private void Button_Click(object? sender, RoutedEventArgs e)
+    {
     }
 }

@@ -105,7 +105,12 @@
 
                     <TextBlock x:CompileBindings="False" Text="Tools:" Foreground="White" Margin="0,8,0,0"/>
                     <StackPanel>
+                        <Button Content="Brush" Click="OnBrushClicked" />
+                        <Button Content="Eraser" Click="OnEraserClicked"/>
+                    </StackPanel>
 
+                    <TextBlock Text="Brushes and Colors" />
+                    <StackPanel>
                         <TextBlock x:CompileBindings="False" Text="Brush Sizes:" Foreground="White" Margin="0,8,0,0"/>
                         <ScrollViewer>
                             <StackPanel Orientation="Horizontal">
