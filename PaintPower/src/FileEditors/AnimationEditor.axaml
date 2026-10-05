@@ -71,6 +71,8 @@
                       Background="#505050"
                       Width="4"/>
 
+                      <Button Content="Import SVG" Click="OnImportSvgClicked" Margin="0,8,0,0"/>
+
         <!-- Properties panel -->
         <Border Grid.Row="1"
                 Grid.Column="2"
