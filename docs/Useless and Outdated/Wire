@@ -5,10 +5,10 @@ We may still be in Pre-Alpha, but we are getting far!
 
 ## Goals for PA2.*
 
-[ ] Make VM work in browser.
+- [ ! ] Make VM work in browser.
 
-[ ] Define compiled project format.
+- [ ! ] Define compiled project format.
 
-[ ] Implement extendability
+- [ ! ] Implement extendability
 
 <!-- End Wire -->

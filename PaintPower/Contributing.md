@@ -5,7 +5,7 @@ This project is still in early development, so every contribution helps shape it
 
 This document explains how to set up the project, how to contribute, and what to expect when submitting pull requests.
 
-### Remember that the PaintPower Engine uses C# 10.0!
+**Remember that the PaintPower Engine uses C# 10.0, .NET 6.0 and Avalonia 11.3!**
 
 ---
 
@@ -24,12 +24,12 @@ PaintPower is written in **C# 10.0**.
 
 You can use either:
 
-#### **Visual Studio 2022**
+#### **Visual Studio 2022 (or later)**
 - Open the solution file  
 - Select the *PaintPower* project  
 - Build and run
 
-#### **Visual Studio Code**
+#### **Visual Studio Code (perferred)**
 - Install the **C# Dev Kit** extension  
 - Open the folder  
 - VS Code will load the project automatically  
