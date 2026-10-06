@@ -1050,99 +1050,99 @@ public partial class AnimationEditor : FileEditor, INotifyPropertyChanged, Toolb
     }
 
     public async void OnImportSvgClicked(object? sender, RoutedEventArgs e)
-{
-    var dialog = new OpenFileDialog
     {
-        Filters =
+        var dialog = new OpenFileDialog
+        {
+            Filters =
         {
             new FileDialogFilter { Name = "SVG Files", Extensions = { "svg" } }
         }
-    };
+        };
 
-    var result = await dialog.ShowAsync(MainWindow.window);
-    if (result == null || result.Length == 0)
-        return;
+        var result = await dialog.ShowAsync(MainWindow.window);
+        if (result == null || result.Length == 0)
+            return;
 
-    string path = result[0];
-    if (!File.Exists(path))
-        return;
+        string path = result[0];
+        if (!File.Exists(path))
+            return;
 
-    ImportSvg(path);
-}
-
-private void ImportSvg(string path)
-{
-    string svg = File.ReadAllText(path);
-
-    // Extract all <path d="..."> commands
-    var matches = System.Text.RegularExpressions.Regex.Matches(
-        svg,
-        "<path[^>]*d=\"([^\"]+)\"[^>]*>",
-        System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-
-    foreach (System.Text.RegularExpressions.Match match in matches)
-    {
-        string d = match.Groups[1].Value;
-        ImportSvgPath(d);
+        ImportSvg(path);
     }
 
-    RenderFrame(SelectedFrame);
-}
-private void ImportSvgPath(string d)
-{
-    var stroke = new VectorStroke
+    private void ImportSvg(string path)
     {
-        Thickness = 2,
-        Brush = new SolidColorBrush(BrushColor, BrushOpacity)
-    };
+        string svg = File.ReadAllText(path);
 
-    var tokens = d.Split(new[] { ' ', ',', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+        // Extract all <path d="..."> commands
+        var matches = System.Text.RegularExpressions.Regex.Matches(
+            svg,
+            "<path[^>]*d=\"([^\"]+)\"[^>]*>",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
-    int i = 0;
-    double lastX = 0, lastY = 0;
-
-    while (i < tokens.Length)
-    {
-        string cmd = tokens[i++];
-
-        switch (cmd)
+        foreach (System.Text.RegularExpressions.Match match in matches)
         {
-            case "M":
-            case "m":
-                lastX = double.Parse(tokens[i++]);
-                lastY = double.Parse(tokens[i++]);
-                stroke.Points.Add(new Point(lastX, lastY));
-                break;
-
-            case "L":
-            case "l":
-                lastX = double.Parse(tokens[i++]);
-                lastY = double.Parse(tokens[i++]);
-                stroke.Points.Add(new Point(lastX, lastY));
-                break;
-
-            case "Z":
-            case "z":
-                // Close path: connect last point to first
-                if (stroke.Points.Count > 1)
-                    stroke.Points.Add(stroke.Points[0]);
-                break;
-
-            default:
-                // Some SVGs omit repeated commands (e.g., "M 10 10 20 20")
-                if (double.TryParse(cmd, out double x))
-                {
-                    double y = double.Parse(tokens[i++]);
-                    lastX = x;
-                    lastY = y;
-                    stroke.Points.Add(new Point(lastX, lastY));
-                }
-                break;
+            string d = match.Groups[1].Value;
+            ImportSvgPath(d);
         }
-    }
 
-    if (stroke.Points.Count > 1)
-        SelectedLayer?.Strokes.Add(stroke);
-}
+        RenderFrame(SelectedFrame);
+    }
+    private void ImportSvgPath(string d)
+    {
+        var stroke = new VectorStroke
+        {
+            Thickness = 2,
+            Brush = new SolidColorBrush(BrushColor, BrushOpacity)
+        };
+
+        var tokens = d.Split(new[] { ' ', ',', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+
+        int i = 0;
+        double lastX = 0, lastY = 0;
+
+        while (i < tokens.Length)
+        {
+            string cmd = tokens[i++];
+
+            switch (cmd)
+            {
+                case "M":
+                case "m":
+                    lastX = double.Parse(tokens[i++]);
+                    lastY = double.Parse(tokens[i++]);
+                    stroke.Points.Add(new Point(lastX, lastY));
+                    break;
+
+                case "L":
+                case "l":
+                    lastX = double.Parse(tokens[i++]);
+                    lastY = double.Parse(tokens[i++]);
+                    stroke.Points.Add(new Point(lastX, lastY));
+                    break;
+
+                case "Z":
+                case "z":
+                    // Close path: connect last point to first
+                    if (stroke.Points.Count > 1)
+                        stroke.Points.Add(stroke.Points[0]);
+                    break;
+
+                default:
+                    // Some SVGs omit repeated commands (e.g., "M 10 10 20 20")
+                    if (double.TryParse(cmd, out double x))
+                    {
+                        double y = double.Parse(tokens[i++]);
+                        lastX = x;
+                        lastY = y;
+                        stroke.Points.Add(new Point(lastX, lastY));
+                    }
+                    break;
+            }
+        }
+
+        if (stroke.Points.Count > 1)
+            SelectedLayer?.Strokes.Add(stroke);
+    }
 
 }
