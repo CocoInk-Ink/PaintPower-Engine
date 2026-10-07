@@ -27,7 +27,7 @@ public partial class ScriptEditor : FileEditor
     private CodeFoldingStrategy _foldingStrategy;
 
     // For custom languages that need to be added directly.
-    private string[] types = { ".as" };
+    private string[] types = { ".as", ".mxml", ".jsfl", ".pxml", ".pss", ".psf", ".pxs" };
 
     public ScriptEditor(string relativePath, TempWorkspace workspace)
     {

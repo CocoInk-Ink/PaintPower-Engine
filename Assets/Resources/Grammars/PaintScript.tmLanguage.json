@@ -1,4 +1,6 @@
 {
+	"fileTypes": ["pxs"],
+	"name": "PaintScript",
 	"scopeName": "source.paintscript",
 	"patterns": [
 		{ "include": "#comments" },
