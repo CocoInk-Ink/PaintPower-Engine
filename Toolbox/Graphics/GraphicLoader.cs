@@ -7,6 +7,7 @@ using SixLabors.ImageSharp.Formats.Gif;
 
 using Svg.Skia;
 using SkiaSharp;
+using Toolbox.Plumbing;
 
 namespace Toolbox.Graphics;
 
@@ -25,7 +26,14 @@ public static class GraphicLoader
                 return cached;
         }
 
-        object loaded = LoadByExtension(path);
+        object loaded;
+
+        try {
+            loaded = LoadByExtension(path);
+        } catch
+        {
+            loaded = LoadRaster(ResourceKit.Images.Placeholder);
+        }
 
         lock (_lock)
         {
