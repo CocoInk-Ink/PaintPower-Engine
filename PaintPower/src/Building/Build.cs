@@ -92,7 +92,7 @@ public class Builder
 		string? result = null;
 		try
 		{
-			result = PaintScriptCompiler.Compile(sprite.Name, sprite.InstanceName, path, key);
+			result = PaintScriptCompiler.Compile(sprite.Name, sprite.InstanceName, path, key, session);
 			Log.QuickLog($"Successfully compiled {path}");
 		}
 		catch (Exception e)
@@ -100,19 +100,8 @@ public class Builder
 			Log.QuickLog($"Build failed!: {e}");
 		}
 
-		if (result?[0] == '!')
-		{
-			Log.QuickLog(result.Remove(0, 1)); // This is an error
-		} else
-		{
-			Log.QuickLog("Source:");
-			Log.QuickLog(File.ReadAllText(path));
-			Log.QuickLog("Output:");
-			Log.QuickLog(result);
-		}
-
 		Log.QuickLog(StringTools.GetFilenameFromPath(path));
-		Log.QuickLog($"{Translator.Map("Building Project")}... Project {(int)processed / total * 100}% built. {message}... ");
+		// Log.QuickLog($"{Translator.Map("Building Project")}... Project {(int)processed / total * 100}% built. {message}... ");
 
 		/** if (processed % 10 == 0) /**/
 		onProgress?.Invoke(message, processed, total);

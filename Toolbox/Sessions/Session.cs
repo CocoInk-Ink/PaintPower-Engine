@@ -30,6 +30,9 @@ public class Session
 	{
 		if (!Directory.Exists(SessionDir))
 			Directory.CreateDirectory(SessionDir);
+		
+		if (!Directory.Exists(BuildsDir))
+			Directory.CreateDirectory(BuildsDir);
 
 		var heartbeatFile = Path.Join(SessionDir, "heartbeat.txt");
 		File.WriteAllText(heartbeatFile, DateTime.Now.ToString());
