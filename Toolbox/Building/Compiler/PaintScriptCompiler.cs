@@ -6,6 +6,7 @@ using Jint;
 using Toolbox.Logging;
 using Toolbox.Plumbing;
 using Toolbox.Sessions;
+using Toolbox.Time;
 
 namespace Toolbox.Building.Compiler.PaintScriptCompiler;
 
@@ -62,31 +63,31 @@ public class PaintScriptCompiler
             StringTools.GetFilenameFromPath(scriptPath)
         );
 
-        VerifyOutput(result?.ToString() ?? "!Unknown build failure! Compiler returned null.", scriptPath, sessionId, session.BuildPath);
+        VerifyOutput(result?.ToString() ?? "!Unknown build failure! Compiler returned null.", instanceName, sessionId, session.BuildPath);
 
         return "";
 
         //return result.AsString();
     }
 
-    public static void VerifyOutput(string result, string path, string sessionKey, string buildPath)
+    public static void VerifyOutput(string result, string instance, string sessionKey, string buildPath)
     {
         if (result?[0] == '!')
         {
-            Log.QuickLog(result.Remove(0, 1)); // This is an error
+            throw new Exception(result.Remove(0, 1)); // This is an error
         }
         else
         {
             // Write to disk
-           string output = Path.Combine(buildPath, sessionKey, $"{Guid.NewGuid()}{StringTools.GetFilenameFromPath(path)}.json");
-
+           string output = Path.Combine(buildPath, "scripts", $"{instance}{Guid.NewGuid()}.json");
+           Log.QuickLog(output);
            File.WriteAllText(output, result);
         }
     }
 
     public static void Link(string sessionKey, string buildPath)
     {
-        string path = Path.Combine(buildPath, sessionKey);
+        string path = Path.Combine(buildPath, "scripts");
         string output = Path.Combine(path, "linked.json");
 
         if (!Directory.Exists(path))

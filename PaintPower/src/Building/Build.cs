@@ -46,6 +46,15 @@ public class Builder
 		if (IsOld) throw new Exception("Build session is expired!");
 		IsOld = true;
 
+		// Preparation for build.
+		if (!Directory.Exists(session.BuildPath))
+			Directory.CreateDirectory(session.BuildPath);
+
+		if (!Directory.Exists(Path.Combine(session.BuildPath, "scripts")))
+			Directory.CreateDirectory(Path.Combine(session.BuildPath, "scripts"));
+
+		// Preparation for compilation.
+
 		string path = Path.Join(session.BuildPath, DateTime.Now.ToString());
 		string outputPath = $"{path}build.xpe";
 
@@ -65,6 +74,16 @@ public class Builder
 			message = "Compiling...";
 			CompileSprite(Sprite, onProgress);
 		}
+
+		// Link program
+
+		Log.QuickLog("Compile complete! Linking...");
+
+		LinkProgram();
+
+		Log.QuickLog("Linked successfully!");
+
+		Log.QuickLog("Build was a success!");
 
 		return path;
 	}
@@ -89,23 +108,23 @@ public class Builder
 
 	private void CompileScript(string path, PaintSprite sprite, Action<string, int, int>? onProgress)
 	{
-		string? result = null;
 		try
 		{
-			result = PaintScriptCompiler.Compile(sprite.Name, sprite.InstanceName, path, key, session);
+			PaintScriptCompiler.Compile(sprite.Name, sprite.InstanceName, path, key, session);
 			Log.QuickLog($"Successfully compiled {path}");
 		}
 		catch (Exception e)
 		{
-			Log.QuickLog($"Build failed!: {e}");
+			Log.QuickLog($"Build failed!: {e.Message}");
 		}
 
 		Log.QuickLog(StringTools.GetFilenameFromPath(path));
-		// Log.QuickLog($"{Translator.Map("Building Project")}... Project {(int)processed / total * 100}% built. {message}... ");
-
-		/** if (processed % 10 == 0) /**/
+		
 		onProgress?.Invoke(message, processed, total);
 	}
 
-	private void LinkProgram() { }
+	private void LinkProgram()
+	{
+		PaintScriptCompiler.Link(session.SessionKey, session.BuildPath);
+	}
 }
