@@ -245,6 +245,7 @@ public static class ResourceKit
 				public static class PaintScriptCompiler
 				{
 					public static string p0_1_0 = string.Empty;
+					public static string p0_1_1 = string.Empty;
 				}
 			}
 		}
