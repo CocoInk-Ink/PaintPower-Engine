@@ -5,7 +5,8 @@ using PaintPower.ProjectSystem;
 using PaintPower.Templates.FileTemplates;
 using Toolbox;
 using Toolbox.Accessibility.Translation;
-using Toolbox.Compiler;
+using Toolbox.Building.Compiler;
+using Toolbox.Building.Compiler.PaintScriptCompiler;
 using Toolbox.Logging;
 using Toolbox.Sessions;
 
@@ -19,7 +20,7 @@ public class Builder
 
 	public bool IsOld { get; private set; } = false;
 
-	private Action<int, int> OnProgress;
+	private Action<int, int>? OnProgress;
 
 	public Builder()
 	{
@@ -90,7 +91,7 @@ public class Builder
 	{
 		try
 		{
-			WasmCompilerHost.Compile(sprite.Name, sprite.InstanceName, path, key);
+			PaintScriptCompiler.Compile(sprite.Name, sprite.InstanceName, path, key);
 		}
 		catch
 		{

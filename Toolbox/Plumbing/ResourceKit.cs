@@ -242,8 +242,9 @@ public static class ResourceKit
 			public static string DefaultProject_1 = string.Empty;
 
 			public static class Compilers {
-				public static class Compiler0_1 {
-					public static string c0_1_0 = string.Empty;
+				public static class PaintScriptCompiler
+				{
+					public static string p0_1_0 = string.Empty;
 				}
 			}
 		}

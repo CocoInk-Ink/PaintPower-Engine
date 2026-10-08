@@ -3,7 +3,7 @@ using Toolbox.Plumbing;
 using Toolbox.Sessions;
 using Wasmtime;
 
-namespace Toolbox.Compiler;
+namespace Toolbox.Building.Compiler;
 
 public static class WasmCompilerHost
 {
@@ -19,7 +19,7 @@ public static class WasmCompilerHost
 			["0.1"] = new () {
 				// Latest of this minor version
 				["latest"] = "1",
-				["1"] = ResourceKit.Other.Paths.Compilers.Compiler0_1.c0_1_0
+				//["1"] = ResourceKit.Other.Paths.Compilers.Compiler0_1.c0_1_0
 			}
 		};
 
