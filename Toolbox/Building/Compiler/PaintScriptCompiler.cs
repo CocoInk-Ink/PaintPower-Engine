@@ -40,7 +40,7 @@ public class PaintScriptCompiler
             ["0.1"] = new()
             {
                 // Latest of this minor version
-                ["latest"] = "0",
+                ["latest"] = "1",
                 ["0"] = ResourceKit.Other.Paths.Compilers.PaintScriptCompiler.p0_1_0,
                 ["1"] = ResourceKit.Other.Paths.Compilers.PaintScriptCompiler.p0_1_1,
             }
