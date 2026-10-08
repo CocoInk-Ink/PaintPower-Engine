@@ -92,10 +92,11 @@ public class Builder
 		try
 		{
 			PaintScriptCompiler.Compile(sprite.Name, sprite.InstanceName, path, key);
+			Log.QuickLog($"Successfully compiled {path}");
 		}
-		catch
+		catch (Exception e)
 		{
-			Log.QuickLog("It worked.");
+			Log.QuickLog($"Build failed!: {e}");
 			Log.QuickLog(File.ReadAllText(path));
 		}
 
