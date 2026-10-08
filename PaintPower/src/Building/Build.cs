@@ -89,15 +89,26 @@ public class Builder
 
 	private void CompileScript(string path, PaintSprite sprite, Action<string, int, int>? onProgress)
 	{
+		string? result = null;
 		try
 		{
-			PaintScriptCompiler.Compile(sprite.Name, sprite.InstanceName, path, key);
+			result = PaintScriptCompiler.Compile(sprite.Name, sprite.InstanceName, path, key);
 			Log.QuickLog($"Successfully compiled {path}");
 		}
 		catch (Exception e)
 		{
 			Log.QuickLog($"Build failed!: {e}");
+		}
+
+		if (result?[0] == '!')
+		{
+			Log.QuickLog(result.Remove(0, 1)); // This is an error
+		} else
+		{
+			Log.QuickLog("Source:");
 			Log.QuickLog(File.ReadAllText(path));
+			Log.QuickLog("Output:");
+			Log.QuickLog(result);
 		}
 
 		Log.QuickLog(StringTools.GetFilenameFromPath(path));

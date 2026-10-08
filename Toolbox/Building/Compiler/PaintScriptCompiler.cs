@@ -34,13 +34,14 @@ public class PaintScriptCompiler
         var compilerJs = File.ReadAllText(SelectedVersionPath);
         engine.Execute(compilerJs);
 
-        // Call compileScript(...)
+        // compilePaintScript accepts source text, not a file path.
+        var scriptSource = File.ReadAllText(scriptPath);
         var result = engine.Invoke(
-            "compileScript",
+            "compilePaintScript",
+            scriptSource,
             spriteName,
             instanceName,
-            scriptPath,
-            sessionId
+            StringTools.GetFilenameFromPath(scriptPath)
         );
 
         return result.AsString();
