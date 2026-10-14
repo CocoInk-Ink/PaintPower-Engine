@@ -2,8 +2,7 @@
     <Border Background="#252525" Padding="10">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="10">
-                <TextBlock Text="Sprite Properties" Foreground="White" Margin="8" />
-                <Separator />
+                <TextBlock FontSize="20" Text="Sprite Properties" Foreground="White" Margin="8" />
                 <!-- Sprite Name -->
                 <TextBlock Text="Sprite Name" Foreground="White" FontSize="14" />
                 <TextBox x:Name="NameBox" Background="#7c8083" Foreground="White" BorderBrush="#707070" />

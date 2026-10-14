@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:local="using:PaintPower.Editors"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PaintPower.Editors.Views.ProjectSettingsView">
+
+             <Grid>
+                <StackPanel>
+                    <TabControl>
+                        <TabItem Header="General">
+                            <StackPanel>
+                                <TextBlock Text="General Settings" />
+                            </StackPanel>
+                        </TabItem>
+                        <TabItem Header="Advanced">
+                            <StackPanel>
+                                <TextBlock Text="Advanced Settings" />
+                            </StackPanel>
+                        </TabItem>
+                        <TabItem Header="Plugins and Extensions">
+                            <StackPanel>
+                                <TextBlock Text="Plugins Settings" />
+                            </StackPanel>
+                        </TabItem>
+                        <TabItem Header="Help">
+                            <StackPanel>
+                                <TextBlock Text="Help Settings" />
+                            </StackPanel>
+                        </TabItem>
+                    </TabControl>
+                </StackPanel>
+             </Grid>
+
+</UserControl>
