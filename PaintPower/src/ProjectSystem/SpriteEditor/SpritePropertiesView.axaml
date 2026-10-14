@@ -13,7 +13,7 @@
                 <TextBox x:Name="InstanceNameBox" Background="#404040" Foreground="White" BorderBrush="#7c8083" />
                 <Separator />
                 <!-- Skins List -->
-                <TextBlock Text="Skins" Foreground="White" FontSize="14" />
+                <TextBlock Text="Skins:" Foreground="White" FontSize="14" />
                 <ListBox x:Name="SkinsList" Background="#202020" Foreground="White" BorderBrush="#404040" BorderThickness="1" Height="150" />
                 <!-- Skin Buttons -->
                 <StackPanel Orientation="Horizontal" Spacing="6">
