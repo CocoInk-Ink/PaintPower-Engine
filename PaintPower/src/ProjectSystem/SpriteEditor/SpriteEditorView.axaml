@@ -27,7 +27,7 @@
                     <TabStripItem x:Name="PaintTab">Paint</TabStripItem>
                     <TabStripItem x:Name="ScriptTab">Script/Text</TabStripItem>
                     <TabStripItem x:Name="AnimationTab">AnimationTab</TabStripItem>
-                    <TabStripItem x:Name="Settings">Settings</TabStripItem>
+                    <TabStripItem x:Name="SoundTab">Audio</TabStripItem>
                 </TabStrip>
             </Border>
 

@@ -1,12 +1,24 @@
-﻿using Avalonia.Controls;
-using Toolbox.Accessibility.Translation;
+﻿using System.IO;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using PaintPower.FileEditors;
-using Toolbox.Logging;
 using PaintPower.ProjectSystem;
+using Toolbox.Accessibility.Translation;
+using Toolbox.Logging;
 using Toolbox.SoundEffects;
-using System.IO;
 
 namespace PaintPower.ProjectSystem.SpriteEditor;
+
+public enum SpriteEditorTab
+{
+    Paint,
+    Script,
+    Animation,
+    Sound,
+    VideoPlayer,
+    VideoEditor,
+    ObjectEditor
+}
 
 public partial class SpriteEditorView : SpriteEditor
 {
@@ -14,6 +26,7 @@ public partial class SpriteEditorView : SpriteEditor
     private readonly TempWorkspace _workspace;
     private readonly FileEditorManager _editorManager;
     private FileEditor? Editor;
+    private string? path = null;
 
     public SpriteEditorView(PaintSprite sprite, TempWorkspace workspace, FileEditorManager editorManager)
     {
@@ -41,13 +54,13 @@ public partial class SpriteEditorView : SpriteEditor
         };
 
         Explorer.FileMoved += (oldPath, newPath) =>
-{
-    if (Editor != null && Editor.FullPath == oldPath)
-    {
-        Editor.SetFullPath(newPath);
-        Editor.SetRelativePath(MakeSpriteRelative(newPath));
-    }
-};
+        {
+            if (Editor != null && Editor.FullPath == oldPath)
+            {
+                Editor.SetFullPath(newPath);
+                Editor.SetRelativePath(MakeSpriteRelative(newPath));
+            }
+        };
 
 
         Translator.LanguageChanged += () => TranslateGUI();
@@ -80,12 +93,15 @@ public partial class SpriteEditorView : SpriteEditor
 
         editor.Activate();
 
+        path = fullPath;
+
         EditorHost.Content = editor;
     }
 
     public void CloseEditor()
     {
         EditorHost.Content = null;
+        path = null;
     }
 
     public string MakeSpriteRelative(string fullPath)
@@ -100,6 +116,32 @@ public partial class SpriteEditorView : SpriteEditor
 
     private void TabStrip_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        Log.QuickLog(sender);
+        if (path == null)
+            return;
+
+        string relative = Path.GetRelativePath(_workspace.ItemsDir, path);
+
+        Log.QuickLog($"Relative Path: {relative}");
+
+        if (sender is TabStrip tabStrip)
+        {
+            FileEditor? getEditor (int i)
+            {
+                return i switch
+                {
+                    (int)SpriteEditorTab.Paint => new PaintEditor(relative, _workspace),
+                    (int)SpriteEditorTab.Script => new ScriptEditor(relative, _workspace),
+                    (int)SpriteEditorTab.Animation => new AnimationEditor(relative, _workspace),
+                    //"Video" => new VideoEditor(relative, _workspace),
+                    (int)SpriteEditorTab.Sound => new SoundPlayer(relative, _workspace),
+                    _ => null
+                };
+            };
+
+            var selectedIndex = tabStrip.SelectedIndex;
+            var editor = getEditor(selectedIndex);
+
+            if (editor is FileEditor) OpenEditor(editor, path);
+        }
     }
 }

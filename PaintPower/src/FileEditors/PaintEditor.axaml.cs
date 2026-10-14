@@ -46,6 +46,9 @@ public partial class PaintEditor : FileEditor
 
         InitializeComponent();
 
+        _bitmap = new WriteableBitmap(new PixelSize(800, 600), new Vector(96, 96),
+                                          PixelFormat.Bgra8888, AlphaFormat.Premul);
+
         HueSlider.PropertyChanged += (_, __) =>
         {
             SVPicker.Hue = HueSlider.Value;

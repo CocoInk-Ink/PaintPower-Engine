@@ -52,9 +52,7 @@ public class TempWorkspace
 
     public void SaveFile(string relativePath, string content)
     {
-        string dest = MapToTemp(relativePath);
-        Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
-        File.WriteAllText(dest, content);
+        SaveBinary(relativePath, System.Text.Encoding.UTF8.GetBytes(content));
     }
 
     public void SaveBinary(string relativePath, byte[] data)
