@@ -18,27 +18,26 @@
 
 
         <!-- INNER RIGHT: Editor Host -->
-        <StackPanel Grid.Column="2"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch" >
-                    <TabControl x:Name="EditorTabs" >
-            <TabItem Header="PaintTab">
-                <TextBlock Text="Paint" />
-            </TabItem>
-            <TabItem Header="ScriptTab">
-                <TextBlock Text="Text/Script" />
-            </TabItem>
-            <TabItem Header="AnimationTab">
-                <TextBlock Text="Animation" />
-            </TabItem>
-            <TabItem Header="Settings">
-                <TextBlock Text="Settings content" />
-            </TabItem>
-        </TabControl>
-        <ContentControl x:Name="EditorHost"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch"/>
-                        </StackPanel>
+        <Grid RowDefinitions="50,*" Grid.Column="2"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch" >
+
+            <Border Grid.Row="0" Background = "#7E8B96">
+                <TabStrip x:Name="EditorTabs" x:CompileBindings="False" SelectionChanged="TabStrip_SelectionChanged" >
+                    <TabStripItem x:Name="PaintTab">Paint</TabStripItem>
+                    <TabStripItem x:Name="ScriptTab">Script/Text</TabStripItem>
+                    <TabStripItem x:Name="AnimationTab">AnimationTab</TabStripItem>
+                    <TabStripItem x:Name="Settings">Settings</TabStripItem>
+                </TabStrip>
+            </Border>
+
+            <ContentControl x:Name="EditorHost"
+                            Grid.Row = "1"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            x:CompileBindings="False"
+                            Content="{Binding CurrentPage}"/>
+        </Grid>
 
     </Grid>
 </UserControl>
