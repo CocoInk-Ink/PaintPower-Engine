@@ -14,7 +14,7 @@ public partial class SpriteEditorView : SpriteEditor
     private readonly PaintSprite _sprite;
     private readonly TempWorkspace _workspace;
     private readonly FileEditorManager _editorManager;
-    private FileEditor? Editor;
+    private FileEditor? Editor => CurrentPage;
     private string? filepath;
 
     public SpriteEditorView(PaintSprite sprite, TempWorkspace workspace, FileEditorManager editorManager)
@@ -37,19 +37,19 @@ public partial class SpriteEditorView : SpriteEditor
         {
             if (Editor != null && Editor.FullPath == path)
             {
-                Editor = null;
+                CurrentPage = null;
                 CloseEditor();
             }
         };
 
         Explorer.FileMoved += (oldPath, newPath) =>
-{
-    if (Editor != null && Editor.FullPath == oldPath)
-    {
-        Editor.SetFullPath(newPath);
-        Editor.SetRelativePath(MakeSpriteRelative(newPath));
-    }
-};
+        {
+            if (Editor != null && Editor.FullPath == oldPath)
+            {
+                Editor.SetFullPath(newPath);
+                Editor.SetRelativePath(MakeSpriteRelative(newPath));
+            }
+        };
 
 
         Translator.LanguageChanged += () => TranslateGUI();
@@ -60,7 +60,7 @@ public partial class SpriteEditorView : SpriteEditor
         if (!File.Exists(fullPath))
             return;
 
-        Editor = _editorManager.GetEditorFromFileType(fullPath);
+        CurrentPage = _editorManager.GetEditorFromFileType(fullPath);
 
         if (Editor != null)
             OpenEditor(Editor, fullPath);
@@ -105,7 +105,7 @@ public partial class SpriteEditorView : SpriteEditor
     /*---- Editor Tabs ---*/
 
     private int _selectedIndex;
-    private object? _currentPage;
+    private FileEditor? _currentPage;
 
     public int SelectedIndex
     {
@@ -120,7 +120,7 @@ public partial class SpriteEditorView : SpriteEditor
         }
     }
 
-    public object? CurrentPage
+    public FileEditor? CurrentPage
     {
         get => _currentPage;
         set
