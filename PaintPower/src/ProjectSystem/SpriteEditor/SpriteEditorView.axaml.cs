@@ -32,22 +32,22 @@ public partial class SpriteEditorView : SpriteEditor
         Explorer.FileOpened += OnFileOpened;
 
         Explorer.FileRemoved += path =>
-{
-    if (Editor != null && Editor.FullPath == path)
-    {
-        Editor = null;
-        CloseEditor();
-    }
-};
+        {
+            if (Editor != null && Editor.FullPath == path)
+            {
+                Editor = null;
+                CloseEditor();
+            }
+        };
 
-        Explorer.FileMoved += (oldPath, newPath) =>
-{
-    if (Editor != null && Editor.FullPath == oldPath)
-    {
-        Editor.SetFullPath(newPath);
-        Editor.SetRelativePath(MakeSpriteRelative(newPath));
-    }
-};
+                Explorer.FileMoved += (oldPath, newPath) =>
+        {
+            if (Editor != null && Editor.FullPath == oldPath)
+            {
+                Editor.SetFullPath(newPath);
+                Editor.SetRelativePath(MakeSpriteRelative(newPath));
+            }
+        };
 
 
         Translator.LanguageChanged += () => TranslateGUI();
@@ -93,7 +93,7 @@ public partial class SpriteEditorView : SpriteEditor
         return fullPath.Replace(_sprite.ItemsFolder + Path.DirectorySeparatorChar, "");
     }
 
-    public void TranslateGUI()
+    public override void TranslateGUI()
     {
         Explorer.TranslateGUI();
     }

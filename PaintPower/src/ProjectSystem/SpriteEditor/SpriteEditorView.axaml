@@ -23,7 +23,7 @@
                     VerticalAlignment="Stretch" >
 
             <Border Grid.Row="0" Background = "#7E8B96">
-                <TabStrip x:Name="EditorTabs" x:CompileBindings="False" SelectionChanged="TabStrip_SelectionChanged" >
+                <TabStrip x:Name="EditorTabs" x:CompileBindings="False" >
                     <TabStripItem x:Name="PaintTab">Paint</TabStripItem>
                     <TabStripItem x:Name="ScriptTab">Script/Text</TabStripItem>
                     <TabStripItem x:Name="AnimationTab">AnimationTab</TabStripItem>
@@ -36,7 +36,7 @@
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch"
                             x:CompileBindings="False"
-                            Content="{Binding CurrentPage}"/>
+                            />
         </Grid>
 
     </Grid>
