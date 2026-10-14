@@ -16,7 +16,7 @@
 
 				<!-- Sprite List -->
 				<ListBox x:Name="SpriteList"
-						 Grid.Row="1"
+						 Grid.Row="0"
 						 Background="#202020"
 						 BorderBrush="#404040"
 						 BorderThickness="1"
@@ -26,6 +26,7 @@
 
 				<!-- Buttons -->
 				<StackPanel
+				Grid.Row="1"
 					Orientation="Vertical"
 					Spacing="6">
 
