@@ -1,11 +1,10 @@
-﻿using System.IO;
-using Avalonia.Controls;
-using PaintPower.FileEditors;
-using PaintPower.ProjectSystem;
-using PaintPower.Templates.FileTemplates;
+﻿using Avalonia.Controls;
 using Toolbox.Accessibility.Translation;
+using PaintPower.FileEditors;
 using Toolbox.Logging;
+using PaintPower.ProjectSystem;
 using Toolbox.SoundEffects;
+using System.IO;
 
 namespace PaintPower.ProjectSystem.SpriteEditor;
 
@@ -14,8 +13,7 @@ public partial class SpriteEditorView : SpriteEditor
     private readonly PaintSprite _sprite;
     private readonly TempWorkspace _workspace;
     private readonly FileEditorManager _editorManager;
-    private FileEditor? Editor => CurrentPage;
-    private string? filepath;
+    private FileEditor? Editor;
 
     public SpriteEditorView(PaintSprite sprite, TempWorkspace workspace, FileEditorManager editorManager)
     {
@@ -34,22 +32,22 @@ public partial class SpriteEditorView : SpriteEditor
         Explorer.FileOpened += OnFileOpened;
 
         Explorer.FileRemoved += path =>
-        {
-            if (Editor != null && Editor.FullPath == path)
-            {
-                CurrentPage = null;
-                CloseEditor();
-            }
-        };
+{
+    if (Editor != null && Editor.FullPath == path)
+    {
+        Editor = null;
+        CloseEditor();
+    }
+};
 
         Explorer.FileMoved += (oldPath, newPath) =>
-        {
-            if (Editor != null && Editor.FullPath == oldPath)
-            {
-                Editor.SetFullPath(newPath);
-                Editor.SetRelativePath(MakeSpriteRelative(newPath));
-            }
-        };
+{
+    if (Editor != null && Editor.FullPath == oldPath)
+    {
+        Editor.SetFullPath(newPath);
+        Editor.SetRelativePath(MakeSpriteRelative(newPath));
+    }
+};
 
 
         Translator.LanguageChanged += () => TranslateGUI();
@@ -60,7 +58,7 @@ public partial class SpriteEditorView : SpriteEditor
         if (!File.Exists(fullPath))
             return;
 
-        CurrentPage = _editorManager.GetEditorFromFileType(fullPath);
+        Editor = _editorManager.GetEditorFromFileType(fullPath);
 
         if (Editor != null)
             OpenEditor(Editor, fullPath);
@@ -82,14 +80,12 @@ public partial class SpriteEditorView : SpriteEditor
 
         editor.Activate();
 
-        filepath = fullPath;
-        _currentPage = editor;
+        EditorHost.Content = editor;
     }
 
     public void CloseEditor()
     {
-        filepath = null;
-        _currentPage = null;
+        EditorHost.Content = null;
     }
 
     public string MakeSpriteRelative(string fullPath)
@@ -97,58 +93,8 @@ public partial class SpriteEditorView : SpriteEditor
         return fullPath.Replace(_sprite.ItemsFolder + Path.DirectorySeparatorChar, "");
     }
 
-    public override void TranslateGUI()
+    public void TranslateGUI()
     {
         Explorer.TranslateGUI();
     }
-
-    /*---- Editor Tabs ---*/
-
-    private int _selectedIndex;
-    private FileEditor? _currentPage;
-
-    public int SelectedIndex
-    {
-        get => _selectedIndex;
-        set
-        {
-            if (_selectedIndex != value)
-            {
-                _selectedIndex = value;
-                UpdateCurrentPage();
-            }
-        }
-    }
-
-    public FileEditor? CurrentPage
-    {
-        get => _currentPage;
-        set
-        {
-            _currentPage = value;
-        }
-    }
-
-    private void UpdateCurrentPage()
-    {
-        if (filepath == null)
-        {
-            _currentPage = null;
-            return;
-        }
-
-        string relative = Path.GetRelativePath(_workspace.ItemsDir, filepath);
-
-        CurrentPage = SelectedIndex switch
-        {
-            0 => new PaintEditor(relative, _workspace),
-            1 => new ScriptEditor(relative, _workspace),
-            2 => new AnimationEditor(relative, _workspace),
-            _ => null
-        };
-
-        if (CurrentPage == null) filepath = null;
-    }
-
-    private void TabStrip_SelectionChanged(object? sender, SelectionChangedEventArgs e) => UpdateCurrentPage();
 }
