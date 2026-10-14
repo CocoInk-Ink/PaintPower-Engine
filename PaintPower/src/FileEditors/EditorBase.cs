@@ -71,6 +71,4 @@ public partial class FileEditor : TranslatableControl, ITranslatable
     }
 
     public string type = "";
-
-    public virtual void TranslateGUI() { }
 }
