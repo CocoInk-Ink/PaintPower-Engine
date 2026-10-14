@@ -15,13 +15,17 @@
             </Grid.Background>
 
             <!-- LEFT PANEL -->
-            <Grid Grid.Column="0" RowDefinitions="*,5,*">
-                <sprite:SpriteManagerView Grid.Row="0" x:Name="SpriteManager" Margin="0,0,0,5" />
-                <GridSplitter Grid.Row="1" Height="5" Background="{DynamicResource SplitterColor}" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext" />
-                <Border Grid.Row="2" Background="{DynamicResource LeftPanelBackground}">
-                    <sprite:SpritePropertiesView x:Name="SpriteProperties" />
-                </Border>
-            </Grid>
+            <TabControl Grid.Column="0">
+                <TabItem Header="Sprite Manager">
+                    <Grid RowDefinitions="*,5,*">
+                        <sprite:SpriteManagerView Grid.Row="0" x:Name="SpriteManager" Margin="0,0,0,5" />
+                        <GridSplitter Grid.Row="1" Height="5" Background="{DynamicResource SplitterColor}" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext" />
+                        <Border Grid.Row="2" Background="{DynamicResource LeftPanelBackground}">
+                            <sprite:SpritePropertiesView x:Name="SpriteProperties" />
+                        </Border>
+                    </Grid>
+                </TabItem>
+            </TabControl>
 
             <!-- SPLITTER -->
             <GridSplitter Grid.Column="1" Width="5" Background="{DynamicResource SplitterColor}" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" />
