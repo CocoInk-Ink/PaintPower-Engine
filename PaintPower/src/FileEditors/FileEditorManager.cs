@@ -32,7 +32,7 @@ public class FileEditorManager
             "Animation" => new AnimationEditor(relative, _workspace),
             "Video" => new VideoEditor(relative, _workspace),
             "Sound" => new SoundPlayer(relative, _workspace),
-            _ => new FileEditor().addText(new TextBlock { Text = $"Unsupported file: {ext}" })
+            _ => new ScriptEditor(relative, _workspace)
         };
     }
 
