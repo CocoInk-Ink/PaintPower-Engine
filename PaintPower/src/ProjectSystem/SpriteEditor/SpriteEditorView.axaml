@@ -23,7 +23,7 @@
                     VerticalAlignment="Stretch" >
 
             <Border Grid.Row="0" Background = "#7E8B96">
-                <TabStrip x:Name="EditorTabs" x:CompileBindings="False" >
+                <TabStrip x:Name="EditorTabs" x:CompileBindings="False" SelectionChanged="TabStrip_SelectionChanged" >
                     <TabStripItem x:Name="PaintTab">Paint</TabStripItem>
                     <TabStripItem x:Name="ScriptTab">Script/Text</TabStripItem>
                     <TabStripItem x:Name="AnimationTab">AnimationTab</TabStripItem>

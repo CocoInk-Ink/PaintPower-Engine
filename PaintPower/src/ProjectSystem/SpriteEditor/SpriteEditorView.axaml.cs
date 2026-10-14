@@ -40,14 +40,14 @@ public partial class SpriteEditorView : SpriteEditor
             }
         };
 
-                Explorer.FileMoved += (oldPath, newPath) =>
-        {
-            if (Editor != null && Editor.FullPath == oldPath)
-            {
-                Editor.SetFullPath(newPath);
-                Editor.SetRelativePath(MakeSpriteRelative(newPath));
-            }
-        };
+        Explorer.FileMoved += (oldPath, newPath) =>
+{
+    if (Editor != null && Editor.FullPath == oldPath)
+    {
+        Editor.SetFullPath(newPath);
+        Editor.SetRelativePath(MakeSpriteRelative(newPath));
+    }
+};
 
 
         Translator.LanguageChanged += () => TranslateGUI();
@@ -96,5 +96,10 @@ public partial class SpriteEditorView : SpriteEditor
     public override void TranslateGUI()
     {
         Explorer.TranslateGUI();
+    }
+
+    private void TabStrip_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        Log.QuickLog(sender);
     }
 }
