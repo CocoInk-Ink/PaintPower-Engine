@@ -51,8 +51,22 @@ public interface IControlWithImages
 	void PipeAndLoadImages();
 }
 
-public class TranslatableButton : Button
+public class TranslatableButton : Button, ITranslatable
 {
+	public void TranslateGUI()
+	{
+		Translator.LanguageChanged += () =>
+		{
+			Log.Info("Language changed, updating translations.");
+		};
+	}
+
+	public void Refresh()
+	{
+		TranslateGUI();
+		InvalidateVisual();
+	}
+
 	public void AddTranslateHandler(Action? action)
 	{
 		Translator.LanguageChanged += action;

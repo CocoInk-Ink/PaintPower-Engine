@@ -15,6 +15,8 @@ using Toolbox.SoundEffects;
 using PaintPower.Building;
 using Toolbox.Sessions;
 using System.Threading;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 
 namespace PaintPower.Editors.Logic;
 
@@ -61,6 +63,7 @@ public class ProjectEditorLogic
 
             _view.SpriteProperties.LoadSprite(sprite);
             SetStatus($"Editing Sprite: {sprite.Name}");
+            ToolTip.SetTip
         };
 
         // Skin selected

@@ -3,7 +3,6 @@
 			 x:Class="PaintPower.ProjectSystem.SpriteEditor.SpriteManagerView">
 
 	<Border Background="#303030" Padding="8">
-		<!-- Needs to be scrollable -->
 		<StackPanel Orientation="Vertical" Spacing="8">
 
 			<!-- Header -->
@@ -12,21 +11,10 @@
 					   FontSize="20"
 					   Margin="8"/>
 
-			<Grid RowDefinitions="*,Auto" RowSpacing="8">
-
-				<!-- Sprite List -->
-				<ListBox x:Name="SpriteList"
-						 Grid.Row="0"
-						 Background="#202020"
-						 BorderBrush="#404040"
-						 BorderThickness="1"
-						 Foreground="White"
-						 SelectionChanged="OnSpriteSelected"
-						 DoubleTapped="OnSpriteDoubleTapped"/>
-
+			<Grid RowDefinitions="Auto,*" RowSpacing="8">
 				<!-- Buttons -->
 				<StackPanel
-				Grid.Row="1"
+					Grid.Row="1"
 					Orientation="Vertical"
 					Spacing="6">
 
@@ -70,6 +58,18 @@
 								Click="OnDeleteSprite"/>
 					</StackPanel>
 				</StackPanel>
+
+				<!-- Sprite List -->
+				<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+					<ListBox x:Name="SpriteList"
+							 Grid.Row="0"
+							 Background="#202020"
+							 BorderBrush="#404040"
+							 BorderThickness="1"
+							 Foreground="White"
+							 SelectionChanged="OnSpriteSelected"
+							 DoubleTapped="OnSpriteDoubleTapped"/>
+				</ScrollViewer>
 			</Grid>
 		</StackPanel>
 	</Border>
