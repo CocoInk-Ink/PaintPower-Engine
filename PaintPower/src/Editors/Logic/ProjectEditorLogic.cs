@@ -63,7 +63,6 @@ public class ProjectEditorLogic
 
             _view.SpriteProperties.LoadSprite(sprite);
             SetStatus($"Editing Sprite: {sprite.Name}");
-            ToolTip.SetTip
         };
 
         // Skin selected
