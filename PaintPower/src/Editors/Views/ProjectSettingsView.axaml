@@ -1,33 +1,38 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:local="using:PaintPower.Editors"
+             xmlns:selection="using:Avalonia.Controls.Selection"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="PaintPower.Editors.Views.ProjectSettingsView">
 
-             <Grid>
-                <StackPanel>
-                    <TabControl>
-                        <TabItem Header="General">
-                            <StackPanel>
-                                <TextBlock Text="General Settings" />
-                            </StackPanel>
-                        </TabItem>
-                        <TabItem Header="Advanced">
-                            <StackPanel>
-                                <TextBlock Text="Advanced Settings" />
-                            </StackPanel>
-                        </TabItem>
-                        <TabItem Header="Plugins and Extensions">
-                            <StackPanel>
-                                <TextBlock Text="Plugins Settings" />
-                            </StackPanel>
-                        </TabItem>
-                        <TabItem Header="Help">
-                            <StackPanel>
-                                <TextBlock Text="Help Settings" />
-                            </StackPanel>
-                        </TabItem>
-                    </TabControl>
-                </StackPanel>
-             </Grid>
+    <Grid>
+        <StackPanel>
+            <TextBlock Text="Project Settings" FontSize="20" />
+            <Separator />
+            <TextBlock Text="General" FontSize="16" />
+            <TextBlock Text="Project Name" />
+            <TextBox />
+            <TextBlock Text="Project Description" />
+            <TextBox />
+            <TextBlock Text="Project Version" />
+            <TextBox />
+            <TextBlock Text="Project Author" />
+            <TextBox />
+            <Separator />
+            <TextBlock Text="Advanced" FontSize="16" />
+            <TextBlock Text="Stage Size" />
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Width" />
+                <TextBox />
+                <TextBlock Text="Height" />
+                <TextBox />
+            </StackPanel>
+            <Separator />
+            <TextBlock Text="PaintScript" FontSize="16" />
+            <TextBlock Text="PaintScript Version" />
+            <ComboBox SelectedIndex="0">
+                <ComboBoxItem Content="Version 0.1" />
+            </ComboBox>
+        </StackPanel>
+    </Grid>
 
 </UserControl>

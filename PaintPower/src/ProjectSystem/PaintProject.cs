@@ -17,6 +17,7 @@ public class PaintProject
     public string ProjectPath { get; set; } = ""; // Path to .xPaint file
     public TempWorkspace Workspace { get; }
     public ProjectMetadata Metadata { get; set; }
+    public static PaintProject Current { get; private set; }
 
     public List<PaintSprite> Sprites { get; private set; } = new();
 
@@ -24,6 +25,7 @@ public class PaintProject
     {
         Workspace = new TempWorkspace();
         Metadata = new ProjectMetadata();
+        Current = this;
     }
 
     // ------------------------------------------------------------
