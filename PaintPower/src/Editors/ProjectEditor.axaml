@@ -24,7 +24,7 @@
                     </Border>
                 </TabItem>
                 <TabItem Header="Project Settings">
-                    <views:ProjectSettingsView />
+                    <views:ProjectSettingsView x:Name="ProjectSettings" />
                 </TabItem>
             </TabControl>
 

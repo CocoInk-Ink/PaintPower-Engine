@@ -370,6 +370,7 @@ public class ProjectEditorLogic
         if (Project == null)
             return;
 
+        _view.ProjectSettings.SetProject(Project);
         _view.SpriteManager.Initialize(Project);
         // When sprite or skin changes, mark project dirty
         _view.SpriteProperties.SkinSelected += (_, _) => SaveNeeded = true;

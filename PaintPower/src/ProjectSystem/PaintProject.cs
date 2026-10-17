@@ -2,6 +2,7 @@
 using Avalonia.Platform.Storage;
 using PaintPower.Dialogs;
 using PaintPower.Editors.Logic;
+using PaintPower.Editors.Views;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,7 +18,7 @@ public class PaintProject
     public string ProjectPath { get; set; } = ""; // Path to .xPaint file
     public TempWorkspace Workspace { get; }
     public ProjectMetadata Metadata { get; set; }
-    public static PaintProject Current { get; private set; }
+    public static PaintProject? Current { get; private set; }
 
     public List<PaintSprite> Sprites { get; private set; } = new();
 
@@ -26,6 +27,7 @@ public class PaintProject
         Workspace = new TempWorkspace();
         Metadata = new ProjectMetadata();
         Current = this;
+        ProjectSettingsView._project = this;
     }
 
     // ------------------------------------------------------------
@@ -177,6 +179,12 @@ public class PaintProject
 // ------------------------------------------------------------
 public class ProjectMetadata
 {
+    public string MetadataVersion { get; set; } = "v1";
+    public string ProjectVersion { get; set; } = "1.0";
+    public string Author { get; set; } = "Unknown";
+    public string Description { get; set; } = "";
+    public string PaintPowerVersion { get; set; } = "Pre Alpha 2.0";
+    public string PaintScriptVersion { get; set; } = "Version 0.1";
     public string name { get; set; } = "Untitled Project";
     public string? OpenFile { get; set; }
 

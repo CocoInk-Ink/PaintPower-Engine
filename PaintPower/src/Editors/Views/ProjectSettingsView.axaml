@@ -5,31 +5,32 @@
              x:Class="PaintPower.Editors.Views.ProjectSettingsView">
 
     <Grid>
-        <StackPanel>
+        <StackPanel x:CompileBindings="False">
             <TextBlock Text="Project Settings" FontSize="20" />
             <Separator />
             <TextBlock Text="General" FontSize="16" />
             <TextBlock Text="Project Name" />
-            <TextBox />
+            <TextBox Text="{Binding ProjectName, Mode=TwoWay}" />
             <TextBlock Text="Project Description" />
-            <TextBox />
+            <TextBox Text="{Binding Description, Mode=TwoWay}" />
             <TextBlock Text="Project Version" />
-            <TextBox />
+            <TextBox Text="{Binding ProjectVersion, Mode=TwoWay}" />
             <TextBlock Text="Project Author" />
-            <TextBox />
+            <TextBox Text="{Binding Author, Mode=TwoWay}" />
             <Separator />
             <TextBlock Text="Advanced" FontSize="16" />
             <TextBlock Text="Stage Size" />
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Width" />
-                <TextBox />
+                <TextBox Text="{Binding StageWidth, Mode=TwoWay}" />
                 <TextBlock Text="Height" />
-                <TextBox />
+                <TextBox Text="{Binding StageHeight, Mode=TwoWay}" />
+                <Button Content="Reset" Click="ResetStageSize" />
             </StackPanel>
             <Separator />
             <TextBlock Text="PaintScript" FontSize="16" />
             <TextBlock Text="PaintScript Version" />
-            <ComboBox SelectedIndex="0">
+            <ComboBox SelectedIndex="0" Text="{Binding PaintScriptVersion, Mode=TwoWay}">
                 <ComboBoxItem Content="Version 0.1" />
             </ComboBox>
         </StackPanel>
