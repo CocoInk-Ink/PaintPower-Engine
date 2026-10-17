@@ -5,42 +5,43 @@
              xmlns:sprite="clr-namespace:PaintPower.ProjectSystem.SpriteEditor"
              xmlns:views="using:PaintPower.Editors.Views"
              x:Class="PaintPower.Editors.ProjectEditor">
+    <Grid>
+        <!-- NORMAL EDITOR AREA -->
+        <Grid x:Name="EditorArea" ColumnDefinitions="260,5,*">
 
-    <!-- NORMAL EDITOR AREA -->
-    <Grid x:Name="EditorArea" ColumnDefinitions="260,5,*">
+            <Grid.Background>
+                <DynamicResource ResourceKey="MainBackground" />
+            </Grid.Background>
 
-        <Grid.Background>
-            <DynamicResource ResourceKey="MainBackground" />
-        </Grid.Background>
+            <!-- LEFT PANEL -->
+            <TabControl Grid.Column="0">
+                <TabItem Header="Sprites">
+                    <sprite:SpriteManagerView Grid.Row="0" x:Name="SpriteManager" Margin="0,0,0,5" />
+                </TabItem>
+                <TabItem Header="Sprite Details">
+                    <Border Grid.Row="2" Background="{DynamicResource LeftPanelBackground}">
+                        <sprite:SpritePropertiesView x:Name="SpriteProperties" />
+                    </Border>
+                </TabItem>
+                <TabItem Header="Project Settings">
+                    <views:ProjectSettingsView />
+                </TabItem>
+            </TabControl>
 
-        <!-- LEFT PANEL -->
-        <TabControl Grid.Column="0">
-            <TabItem Header="Sprites">
-                <sprite:SpriteManagerView Grid.Row="0" x:Name="SpriteManager" Margin="0,0,0,5" />
-            </TabItem>
-            <TabItem Header="Sprite Details">
-                <Border Grid.Row="2" Background="{DynamicResource LeftPanelBackground}">
-                    <sprite:SpritePropertiesView x:Name="SpriteProperties" />
-                </Border>
-            </TabItem>
-            <TabItem Header="Project Settings">
-                <views:ProjectSettingsView />
-            </TabItem>
-        </TabControl>
+            <!-- SPLITTER -->
+            <GridSplitter Grid.Column="1" Width="5" Background="{DynamicResource SplitterColor}" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" />
 
-        <!-- SPLITTER -->
-        <GridSplitter Grid.Column="1" Width="5" Background="{DynamicResource SplitterColor}" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" />
+            <!-- CENTER PANEL -->
+            <Grid Grid.Column="2" RowDefinitions="30,*">
 
-        <!-- CENTER PANEL -->
-        <Grid Grid.Column="2" RowDefinitions="30,*">
+                <!-- Status Bar -->
+                <local:ActionBar Grid.Row="0" />
 
-            <!-- Status Bar -->
-            <local:ActionBar Grid.Row="0" />
+                <ContentControl Grid.Row="1" x:Name="CenterHost" />
 
-            <ContentControl Grid.Row="1" x:Name="CenterHost" />
+                <!-- Editor Host -->
 
-            <!-- Editor Host -->
-
+            </Grid>
         </Grid>
 
         <!-- FULLSCREEN VM PANEL (LOADING MODE) -->
