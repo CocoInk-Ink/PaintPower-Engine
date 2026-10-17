@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:PaintPower_VM.VMPanel;assembly=PaintPower_VM"
              xmlns:sprite="clr-namespace:PaintPower.ProjectSystem.SpriteEditor"
-             xmlns:views="clr-namespace:PaintPower.Editors.Views"
+             xmlns:views="using:PaintPower.Editors.Views"
              x:Class="PaintPower.Editors.ProjectEditor">
 
     <!-- NORMAL EDITOR AREA -->
@@ -22,6 +22,9 @@
                 <Border Grid.Row="2" Background="{DynamicResource LeftPanelBackground}">
                     <sprite:SpritePropertiesView x:Name="SpriteProperties" />
                 </Border>
+            </TabItem>
+            <TabItem Header="Project Settings">
+                <views:ProjectSettingsView />
             </TabItem>
         </TabControl>
 

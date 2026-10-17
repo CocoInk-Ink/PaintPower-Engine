@@ -11,10 +11,10 @@
 					   FontSize="20"
 					   Margin="8"/>
 
-			<Grid RowDefinitions="Auto,*" RowSpacing="8">
+			<Grid RowDefinitions="*,Auto" RowSpacing="8">
 				<!-- Buttons -->
 				<StackPanel
-					Grid.Row="1"
+					Grid.Row="0"
 					Orientation="Vertical"
 					Spacing="6">
 

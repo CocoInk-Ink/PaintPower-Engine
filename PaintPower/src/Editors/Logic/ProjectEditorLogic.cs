@@ -312,12 +312,12 @@ public class ProjectEditorLogic
         return false; // cancel
     }
 
-    public async Task CloseProject()
+    public void CloseProject()
     {
         SoundEffects.Click.Play();
 
-        if (!await AskSaveBeforeClosing())
-            return;
+        // if (!await AskSaveBeforeClosing())
+            // return;
 
         Project = null;
         EditorManager = null;
