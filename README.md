@@ -15,7 +15,7 @@ But PaintPower is the app itself.
 ## Code styles
 
 The PaintPower Engine is made with C#. It is also made to run on many devices,
-so it uses .NET 6, Avalonia 11.0 and C# 10.0 for compatibility.
+so it uses .NET 6, Avalonia 11.3 and C# 10.0 for compatibility.
 
 Avalonia looks modern by default, but I want xPaint to look a bit older,
 or at least unique. So for now I have a classic theme installed.
