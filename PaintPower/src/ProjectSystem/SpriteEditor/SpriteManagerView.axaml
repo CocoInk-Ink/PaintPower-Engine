@@ -3,7 +3,7 @@
 			 x:Class="PaintPower.ProjectSystem.SpriteEditor.SpriteManagerView">
 
 	<Border Background="#303030" Padding="8">
-		<StackPanel Orientation="Vertical" Spacing="8">
+		<Grid RowDefinitions="Auto,*" RowSpacing="8">
 
 			<!-- Header -->
 			<TextBlock Grid.Row="0" Text="Sprites"
@@ -11,7 +11,7 @@
 					   FontSize="20"
 					   Margin="8"/>
 
-			<Grid RowDefinitions="*,Auto" RowSpacing="8">
+			<Grid Grid.Row="1" RowDefinitions="Auto,*" RowSpacing="8">
 				<!-- Buttons -->
 				<StackPanel
 					Grid.Row="0"
@@ -62,7 +62,6 @@
 				<!-- Sprite List -->
 				<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
 					<ListBox x:Name="SpriteList"
-							 Grid.Row="0"
 							 Background="#202020"
 							 BorderBrush="#404040"
 							 BorderThickness="1"
@@ -71,6 +70,6 @@
 							 DoubleTapped="OnSpriteDoubleTapped"/>
 				</ScrollViewer>
 			</Grid>
-		</StackPanel>
+		</Grid>
 	</Border>
 </UserControl>
