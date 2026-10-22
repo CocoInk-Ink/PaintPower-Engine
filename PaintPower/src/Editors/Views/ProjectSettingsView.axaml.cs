@@ -28,7 +28,7 @@ public partial class ProjectSettingsView : UserControl
 
     public void SetProject(PaintProject project)
     {
-        _project = project;
+        _project = project; 
         DataContext = this;
     }
 
