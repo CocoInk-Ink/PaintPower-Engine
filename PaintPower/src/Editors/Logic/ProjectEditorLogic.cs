@@ -198,6 +198,25 @@ public class ProjectEditorLogic
         }
     }
 
+    public async void RunProject()
+    {
+        if (builder == null)
+        {
+            Log.QuickLog("No build to run.");
+            return;
+        }
+
+        if (!builder.IsOld)
+        {
+            Log.QuickLog("Build is too young.");
+            return;
+        }
+
+        Log.QuickLog("Running project");
+
+        ProjectEditor.CurrentProjectEditor.SetUIMode(EditorUIMode.ProjectPlayer);
+    }
+
     public async Task OpenProjectDialog()
     {
         var window = MainWindow.window;

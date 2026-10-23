@@ -86,8 +86,14 @@ public static class ResourceManifest
         /*==== Compilers ==== { */
             // Compiler 0.1.x {
                 ["Other.Paths.Compilers.PaintScriptCompiler.p0_1_0"] = "Binary/Compilers/PaintScript/p0.1.0.js",
-                ["Other.Paths.Compilers.PaintScriptCompiler.p0_1_1"] = "Binary/Compilers/PaintScript/p0.1.1.js"
+                ["Other.Paths.Compilers.PaintScriptCompiler.p0_1_1"] = "Binary/Compilers/PaintScript/p0.1.1.js",
             // }
+        // }
+
+        /*==== Runtimes ==== { */
+            // Runtime 0.1.x {
+                ["Other.Paths.Runtimes.r0_1_0"] = "Binary/Runtimes/r0.1.0.js",
+            //}
         // }
     };
 

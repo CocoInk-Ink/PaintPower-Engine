@@ -8,13 +8,18 @@
              VerticalAlignment="Center"
              StretchDirection="DownOnly">
 
-        <Grid RowDefinitions="Auto,*">
-            <vm:TopBarStagePart Grid.Row="0" />
-            <Grid Grid.Row="1">
-                <vm:Stage x:Name="StageControl" />
-                <vm:ProcessingPanel x:Name="LoadingPart" />
+        <StackPanel>
+            <Grid RowDefinitions="Auto,*">
+                <vm:TopBarStagePart Grid.Row="0" />
+                <Grid Grid.Row="1">
+                    <vm:Stage x:Name="StageControl" />
+                    <vm:ProcessingPanel x:Name="LoadingPart" />
+                </Grid>
             </Grid>
-        </Grid>
+            <StackPanel x:Name="ExtraControls">
+                <Button x:Name="ExitButton">Back</Button>
+            </StackPanel>
+        </StackPanel>
 
     </Viewbox>
 </UserControl>

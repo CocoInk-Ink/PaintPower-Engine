@@ -248,6 +248,11 @@ public static class ResourceKit
 					public static string p0_1_1 = string.Empty;
 				}
 			}
+
+			public static class Runtimes
+			{
+				public static string r0_1_0 = string.Empty;
+			}
 		}
 	}
 }

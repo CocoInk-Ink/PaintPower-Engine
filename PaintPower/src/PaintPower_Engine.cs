@@ -62,23 +62,8 @@ public partial class PaintPower_Engine : FileEditor
 
     public void BuildProject()
     {
-        var main = MainWindow.window.mainGui;
 
-        if (main == null)
-        {
-            Log.QuickLog("MainGUI does not exist here!");
-            return;
-        }
-
-        var editor = main.projectEditor;
-
-        if (editor == null)
-        {
-            Log.QuickLog("Editor does not exist here!");
-            return;
-        }
-
-        var logic = editor.Logic;
+        var logic = ProjectEditor.CurrentProjectEditor.Logic;
 
         if (logic == null)
         {
@@ -87,6 +72,17 @@ public partial class PaintPower_Engine : FileEditor
         }
 
         _ = logic.BuildProject();
+    }
+
+    public void BuildAndRun()
+    {
+        BuildProject();
+        RunProject();
+    }
+
+    public void RunProject()
+    {
+        ProjectEditor.CurrentProjectEditor.Logic.RunProject();
     }
 
     // --------------------------------------------------------------------

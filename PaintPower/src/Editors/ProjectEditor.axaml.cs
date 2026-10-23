@@ -15,12 +15,15 @@ public partial class ProjectEditor : Editor
 {
     public ProjectEditorLogic Logic { get; private set; }
     public MainWindow Window { get; private set; }
+    public static ProjectEditor CurrentProjectEditor;
 
     public EditorUIMode UIMode;
 
     public ProjectEditor()
     {
         InitializeComponent();
+
+        CurrentProjectEditor = this;
 
         Window = MainWindow.window;
         Logic = new ProjectEditorLogic(this);
@@ -33,6 +36,11 @@ public partial class ProjectEditor : Editor
 
             var spriteEditor = new SpriteEditorView(sprite, Logic.Workspace, Logic.EditorManager);
             Logic.OpenSpriteEditor(spriteEditor);
+        };
+
+        VmPanelControl.FindControl<StageAreaPart>("StageArea").FindControl<Button>("ExitButton").Click += (sender, e) =>
+        {
+            SetUIMode(EditorUIMode.ProjectEditor);
         };
     }
 
@@ -50,8 +58,7 @@ public partial class ProjectEditor : Editor
     {
         _isProjectLoading = isLoading;
 
-        EditorArea.IsVisible = !isLoading;
-        VmOnlyArea.IsVisible = isLoading;
+        SetUIMode(isLoading ? EditorUIMode.Loading : EditorUIMode.ProjectEditor);
 
         if (isLoading)
         {
@@ -141,6 +148,10 @@ public partial class ProjectEditor : Editor
         EditorArea.IsVisible = false;
         VmOnlyArea.IsVisible = false;
 
+        var StageArea = VmPanelControl.FindControl<StageAreaPart>("StageArea");
+
+        StageArea?.HideExtraControls();
+
         switch (mode)
         {
             case EditorUIMode.WebPlayer:
@@ -154,7 +165,21 @@ public partial class ProjectEditor : Editor
                 break;
         }
 
-        InvalidateVisual();
+        if (mode == EditorUIMode.Loading)
+        {
+            StageArea?.ShowProcessingPanel();
+        }
+        else
+        {
+            StageArea?.HideProcessingPanel();
+        }
+
+        if (mode == EditorUIMode.ProjectPlayer)
+        {
+            StageArea?.ShowExtraControls();
+        }
+
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => { InvalidateVisual(); });
     }
 
     public override HeaderDefinition GetHeaderDefinition()
