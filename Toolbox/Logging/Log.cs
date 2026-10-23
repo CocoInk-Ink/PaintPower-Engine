@@ -13,6 +13,7 @@ public static class Log
             case 1: Console.WriteLine(message); break;
         }
     }
+    
     // Made to just log something real quick
     public static void QuickLog(params object?[]? messages)
     {
