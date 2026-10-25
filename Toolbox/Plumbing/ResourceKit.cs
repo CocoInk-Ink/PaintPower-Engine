@@ -215,6 +215,7 @@ public static class ResourceKit
 		public static class Audio
 		{
 			public static string Click = string.Empty;
+			public static string Build = string.Empty;
 		}
 
 		public static class Fonts { }

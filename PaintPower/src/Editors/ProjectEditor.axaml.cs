@@ -206,13 +206,12 @@ public partial class ProjectEditor : Editor
 
                 ["Project"] = new()
                 {
-                    // Commented out until the logic is implemented
-                    /*new HeaderItem { Label = "Build Project", Command = () => Logic.Build() },
+                    new HeaderItem { Label = "Build Project", Command = () => Logic.BuildProject() },
                     new HeaderItem { IsSeparator = true },
-                    new HeaderItem { Label = "Play", Command = () => Logic.Play() },
-                    new HeaderItem { Label = "Build and Run", Command = () => Logic.BuildAndRun() },
-                    new HeaderItem { IsSeparator = true },
-                    new HeaderItem { Label = "Package Project", Command = () => Logic.Package() }*/
+                    new HeaderItem { Label = "Play", Command = () => Logic.RunProject() },
+                    new HeaderItem { Label = "Build and Run", Command = () => PaintPower_Engine.App.BuildAndRun() },
+                    //new HeaderItem { IsSeparator = true },
+                    //new HeaderItem { Label = "Package Project", Command = () => Logic.Package() }
                 },
 
                 ["Help"] = StandardHelpMenu(),

@@ -23,7 +23,7 @@ public class SoundEffect
         }
     }
 
-    public void Play()
+    public async void Play()
     {
         foreach (var media in MediaList)
         {

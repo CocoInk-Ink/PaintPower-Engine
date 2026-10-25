@@ -12,6 +12,7 @@ using PaintPower.Templates.FileTemplates;
 using Toolbox;
 using Toolbox.Logging;
 using Toolbox.Time;
+using Toolbox.SoundEffects;
 
 namespace PaintPower;
 
@@ -60,7 +61,7 @@ public partial class PaintPower_Engine : FileEditor
         App = this;
     }
 
-    public void BuildProject()
+    public async Task BuildProject()
     {
 
         var logic = ProjectEditor.CurrentProjectEditor.Logic;
@@ -71,12 +72,13 @@ public partial class PaintPower_Engine : FileEditor
             return;
         }
 
-        _ = logic.BuildProject();
+        await logic.BuildProject();
+        SoundEffects.Play(SoundEffects.Build);
     }
 
-    public void BuildAndRun()
+    public async Task BuildAndRun()
     {
-        BuildProject();
+        await BuildProject();
         RunProject();
     }
 
