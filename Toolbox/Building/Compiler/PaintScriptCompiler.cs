@@ -104,6 +104,8 @@ public class PaintScriptCompiler
         if (scripts.Length == 0)
         {
             Log.QuickLog($"No compiled sprite files found in session '{sessionKey}'.");
+            // Create an empty linked.json file
+            File.WriteAllText(output, "{}");
             return;
         }
 
