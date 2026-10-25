@@ -1,22 +1,24 @@
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
-using Toolbox.Accessibility.Translation;
+using PaintPower.Building;
 using PaintPower.Dialogs;
 using PaintPower.FileEditors;
-using Toolbox.Logging;
-using Toolbox.Networking;
 using PaintPower.ProjectSystem;
 using PaintPower.ProjectSystem.SpriteEditor;
-using Toolbox.SoundEffects;
-using PaintPower.Building;
+using PaintPower_VM.VMPanel;
+using Toolbox.Accessibility.Translation;
+using Toolbox.Logging;
+using Toolbox.Networking;
+using Toolbox.Runtime;
 using Toolbox.Sessions;
-using System.Threading;
-using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
+using Toolbox.SoundEffects;
 
 namespace PaintPower.Editors.Logic;
 
@@ -150,7 +152,9 @@ public class ProjectEditorLogic
                     Metadata = new ProjectMetadata { name = "Untitled", OpenFile = null }
                 };
 
-            } else {
+            }
+            else
+            {
                 // The project has failed to load, create a new one
                 await NewProject();
             }
@@ -165,7 +169,7 @@ public class ProjectEditorLogic
     public async Task BuildProject()
     {
         if (builder == null || builder.IsOld) builder = new Builder();
-        
+
         try
         {
             await _view.SetProjectLoading(true);
@@ -215,6 +219,34 @@ public class ProjectEditorLogic
         Log.QuickLog("Running project");
 
         ProjectEditor.CurrentProjectEditor.SetUIMode(EditorUIMode.ProjectPlayer);
+
+        // Initialize the runtime for the project
+        var runtime = new PaintProjectRuntime(Session.CurrentBuildSession);
+
+        // Start the project.
+        runtime.Start();
+
+        new Thread(async () =>
+        {
+
+            // Start the project loop
+            for (int i = 0; i < 20; i++)
+            {
+                await Task.Delay(16); // Roughly 60 FPS
+
+                // Update the project state first.
+                var state = runtime.Tick();
+
+                // Update the UI with the new state
+                _ = Dispatcher.UIThread.InvokeAsync(async () =>
+                {
+                    var d = ProjectEditor.CurrentProjectEditor.VmPanelControl.FindControl<StageAreaPart>("StageArea");
+                    if (d == null) throw new InvalidOperationException("StageAreaPart not found.");
+                    d.UpdateProjectState(state);
+                });
+
+            }
+        }).Start();
     }
 
     public async Task OpenProjectDialog()
@@ -336,7 +368,7 @@ public class ProjectEditorLogic
         SoundEffects.Click.Play();
 
         // if (!await AskSaveBeforeClosing())
-            // return;
+        // return;
 
         Project = null;
         EditorManager = null;

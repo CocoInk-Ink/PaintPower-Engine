@@ -104,8 +104,22 @@ public class PaintScriptCompiler
         if (scripts.Length == 0)
         {
             Log.QuickLog($"No compiled sprite files found in session '{sessionKey}'.");
-            // Create an empty linked.json file
-            File.WriteAllText(output, "{}");
+            var emptyProgram = new JsonObject
+            {
+                ["version"] = "0.1",
+                ["permissions"] = new JsonObject
+                {
+                    ["filesystem"] = false,
+                    ["networking"] = false
+                },
+                ["globals"] = new JsonObject
+                {
+                    ["variables"] = new JsonObject(),
+                    ["functions"] = new JsonObject()
+                },
+                ["targets"] = new JsonArray()
+            };
+            File.WriteAllText(output, emptyProgram.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
             return;
         }
 

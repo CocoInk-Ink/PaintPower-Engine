@@ -15,7 +15,7 @@ public class DIPlay
 {
     public GfxPane gfxPane;
 
-    public Point StageSize { get; private set; }
+    public Point StageSize;
 
     public List<DIItem> items = new();
 
@@ -28,13 +28,6 @@ public class DIPlay
         _stage = stage;
         gfxPane = new GfxPane(width, height);
         StageSize = new Point(stageWidth, stageHeight);
-    }
-
-    public void Start(Action<Bitmap> onFrame)
-    {
-        var timer = new System.Timers.Timer(1000.0 / 60.0);
-        timer.Elapsed += async (_, __) => Tick(onFrame);
-        timer.Start();
     }
 
     public async void Tick(Action<Bitmap> onFrame)

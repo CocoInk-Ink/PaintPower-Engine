@@ -8,7 +8,7 @@ namespace Toolbox.Sessions;
 public class Session
 {
 	public static Session Current { get; private set; } = null!;
-	public static BuildSession CurrentBuildSession { get; private set; } = null!;
+	public static BuildSession CurrentBuildSession = null!;
 
 	public Session(string version, string Core = "PaintPower-Engine")
 	{
@@ -135,6 +135,7 @@ public class BuildSession
 	public BuildSession(Session session)
 	{
 		parent = session;
+		Session.CurrentBuildSession = this;
 	}
 
 	public string BuildPath => Path.Join(parent.BuildsDir, SessionKey);

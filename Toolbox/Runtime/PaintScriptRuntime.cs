@@ -5,8 +5,10 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Jint;
+using Jint.Native;
 using PaintScript_Engine.Versions;
 using Toolbox.Logging;
 using Toolbox.Plumbing;
@@ -100,10 +102,14 @@ public class PaintScriptRuntime
 
 public class RuntimeState
 {
-	public class Targets { }
-	public Targets[] targets;
-	public bool RefreshNeeded;
-	public string[] NewLogs;
+	[JsonPropertyName("targets")]
+	public string[] Targets { get; set; } = Array.Empty<string>();
+
+	[JsonPropertyName("RefreshNeeded")]
+	public bool RefreshNeeded { get; set; }
+
+	[JsonPropertyName("NewLogs")]
+	public string[] NewLogs { get; set; } = Array.Empty<string>();
 }
 
 public class PaintProjectRuntime
@@ -111,7 +117,7 @@ public class PaintProjectRuntime
 	private static Dictionary<string, Dictionary<string, string>> Runtimes = null!;
 	private readonly Engine engine;
 
-	public PaintProjectRuntime(string runtimeVersion = "0.1", BuildSession? selectedBuild = null)
+	public PaintProjectRuntime(BuildSession selectedBuild, string runtimeVersion = "0.1")
 	{
 		engine = new Engine();
 
@@ -133,30 +139,59 @@ public class PaintProjectRuntime
 
 		}
 
-		var code = File.ReadAllText(Path.Combine(selectedBuild.BuildPath, "scripts", "linked.json"));
+		var linkedProgramPath = Path.Combine(selectedBuild.BuildPath, "scripts", "linked.json");
+		var code = File.ReadAllText(linkedProgramPath);
+		using (var linkedProgram = JsonDocument.Parse(code))
+		{
+			if (linkedProgram.RootElement.ValueKind != JsonValueKind.Object
+				|| !linkedProgram.RootElement.TryGetProperty("targets", out var targetDefinitions)
+				|| targetDefinitions.ValueKind != JsonValueKind.Array)
+			{
+				throw new InvalidDataException(
+					$"Linked PaintScript program '{linkedProgramPath}' must contain a 'targets' array. Rebuild the project and try again.");
+			}
+		}
 
 		// Load runtime.js
 		var runtimeJs = File.ReadAllText(SelectedVersionPath);
 		engine.Execute(runtimeJs);
+		engine.Execute(@"
+			globalThis.__paintScriptRuntimeInvoke = (name, ...args) => {
+				const fn = PaintScriptRuntime[name];
+				if (typeof fn !== ""function"") {
+					throw new Error(""PaintScript runtime function '"" + name + ""' is not available."");
+				}
+				const result = fn(...args);
+				return name === ""getCurrentState"" ? JSON.stringify(result) : result;
+			};
+			");
 
-		engine.Invoke("f", code);
-		engine.Invoke("setup");
+		InvokeRuntime("f", code);
+		InvokeRuntime("setup");
 	}
 
 	public void Start()
 	{
-		engine.Invoke("Start");
+		InvokeRuntime("Start");
 	}
 
 	public RuntimeState Tick()
 	{
-		engine.Invoke("Tick");
+		InvokeRuntime("Tick");
 
-		var result = engine.Invoke("").ToString();
+		var result = InvokeRuntime("getCurrentState").ToString();
 		var json = JsonSerializer.Deserialize<RuntimeState>(result);
 
 		if (json == null) throw new Exception("Invalid null return!");
 
 		return json;
+	}
+
+	private JsValue InvokeRuntime(string functionName, params object[] arguments)
+	{
+		var invocationArguments = new object[arguments.Length + 1];
+		invocationArguments[0] = functionName;
+		Array.Copy(arguments, 0, invocationArguments, 1, arguments.Length);
+		return engine.Invoke("__paintScriptRuntimeInvoke", invocationArguments);
 	}
 }
