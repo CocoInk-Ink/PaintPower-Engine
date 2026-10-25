@@ -41,6 +41,16 @@ public class Builder
 		return count;
 	}
 
+	public int CountProjectScripts(PaintProject project)
+	{
+		int count = 0;
+
+		foreach (var sprite in project.Sprites)
+			count += Directory.GetFiles(sprite.SpriteFolder, "*.pxs", SearchOption.AllDirectories).Length;
+
+		return count;
+	}
+
 	public async Task<string> BuildProject(PaintProject? project, Action<string, int, int>? onProgress = null)
 	{
 		if (IsOld) throw new Exception("Build session is expired!");
