@@ -16,13 +16,13 @@
 
 	<x:String x:Key="BrandName">xPaint</x:String>
 
-	<x:String x:Key="BrandVersion">Pre-Alpha 1.0.0.0</x:String>
+	<x:String x:Key="BrandVersion">Alpha 1.0.0.0</x:String>
 	<x:String x:Key="PoweredByText">powered by: </x:String>
 
 	<x:String x:Key="EngineName">PaintPower Engine</x:String>
 
 	<!-- Brand version (optional) -->
-	<x:String x:Key="EngineVersion">Pre-Alpha 2.1.0.0</x:String>
+	<x:String x:Key="EngineVersion">Pre-Alpha 3.0.0.0</x:String>
 
 	<!-- Brand logo (optional) -->
 	<!-- If xPaint overrides this with its own logo, the UI switches automatically -->
