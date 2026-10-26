@@ -16,7 +16,7 @@
                     <vm:ProcessingPanel x:Name="LoadingPart" />
                 </Grid>
             </Grid>
-            <StackPanel x:Name="ExtraControls">
+            <StackPanel IsVisible="False" x:Name="ExtraControls">
                 <Button x:Name="ExitButton">Back</Button>
             </StackPanel>
         </StackPanel>

@@ -18,6 +18,7 @@ public partial class Stage : TranslatableControl
         InitializeComponent();
 
         SetSize(stageWidth, stageHeight);
+        CreateRenderSystem();
     }
 
     public void SetSize(double width, double height)
@@ -37,6 +38,8 @@ public partial class Stage : TranslatableControl
     public void SetBitmap(Bitmap bmp)
     {
         StageImage.Source = bmp;
+        StageImage.InvalidateVisual();
+        InvalidateVisual();
     }
 
     public void CreateRenderSystem()

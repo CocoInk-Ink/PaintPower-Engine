@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
 using PaintPower.ProjectSystem;
 using PaintPower.Templates.FileTemplates;
@@ -65,18 +67,15 @@ public class Builder
 
 		// Preparation for compilation.
 
-		string path = Path.Join(session.BuildPath, DateTime.Now.ToString());
-		string outputPath = $"{path}build.xpe";
-
 		message = "";
 		processed = 0;
-		total = 0;
 
 		if (project == null) throw new Exception("Failed to build! No Project!");
 
 		Log.QuickLog("Building...");
 
-		total = CountProjectAssets(project);
+		total = CountProjectScripts(project);
+		BuildSprites(project);
 
 		// Compile
 		foreach (var Sprite in project.Sprites)
@@ -95,10 +94,59 @@ public class Builder
 
 		Log.QuickLog("Build was a success!");
 
-		return path;
+		return session.BuildPath;
 	}
 
-		private void CompileSprite(PaintSprite sprite, Action<string, int, int>? onProgress)
+	private void BuildSprites(PaintProject project)
+	{
+		string spritesPath = Path.Combine(session.BuildPath, "sprites");
+		Directory.CreateDirectory(spritesPath);
+
+		var manifest = new List<SpriteBuildManifestEntry>();
+		for (int i = 0; i < project.Sprites.Count; i++)
+		{
+			PaintSprite sprite = project.Sprites[i];
+			string folderName = i.ToString("D4");
+			string destination = Path.Combine(spritesPath, folderName);
+
+			CopyDirectory(sprite.SpriteFolder, destination);
+			manifest.Add(new SpriteBuildManifestEntry
+			{
+				Name = sprite.Name,
+				InstanceName = sprite.InstanceName,
+				Folder = folderName
+			});
+		}
+
+		string manifestPath = Path.Combine(session.BuildPath, "sprites.json");
+		File.WriteAllText(manifestPath, JsonSerializer.Serialize(
+			manifest,
+			new JsonSerializerOptions
+			{
+				WriteIndented = true,
+				PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+			}));
+	}
+
+	private static void CopyDirectory(string source, string destination)
+	{
+		Directory.CreateDirectory(destination);
+
+		foreach (string file in Directory.GetFiles(source))
+			File.Copy(file, Path.Combine(destination, Path.GetFileName(file)), overwrite: true);
+
+		foreach (string directory in Directory.GetDirectories(source))
+			CopyDirectory(directory, Path.Combine(destination, Path.GetFileName(directory)));
+	}
+
+	private sealed class SpriteBuildManifestEntry
+	{
+		public string Name { get; set; } = "";
+		public string InstanceName { get; set; } = "";
+		public string Folder { get; set; } = "";
+	}
+
+	private void CompileSprite(PaintSprite sprite, Action<string, int, int>? onProgress)
 	{
 		string[] scripts = Directory.GetFiles(sprite.SpriteFolder, "*.pxs", SearchOption.AllDirectories);
 		message += " " + ((sprite.InstanceName == null || string.IsNullOrWhiteSpace(sprite.InstanceName)) ? sprite.Name : sprite.InstanceName);
@@ -118,15 +166,8 @@ public class Builder
 
 	private void CompileScript(string path, PaintSprite sprite, Action<string, int, int>? onProgress)
 	{
-		try
-		{
-			PaintScriptCompiler.Compile(sprite.Name, sprite.InstanceName, path, key, session);
-			Log.QuickLog($"Successfully compiled {path}");
-		}
-		catch (Exception e)
-		{
-			Log.QuickLog($"Build failed!: {e.Message}");
-		}
+		PaintScriptCompiler.Compile(sprite.Name, sprite.InstanceName, path, key, session);
+		Log.QuickLog($"Successfully compiled {path}");
 
 		Log.QuickLog(StringTools.GetFilenameFromPath(path));
 		

@@ -1,5 +1,6 @@
 using System;
 using System;
+using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
 using System.Text.Json;
@@ -14,6 +15,7 @@ using Toolbox.Logging;
 using Toolbox.Plumbing;
 using Toolbox.Sessions;
 using Toolbox.Time;
+using Toolbox.Display.Sprites;
 
 namespace Toolbox.Runtime;
 
@@ -116,6 +118,9 @@ public class PaintProjectRuntime
 {
 	private static Dictionary<string, Dictionary<string, string>> Runtimes = null!;
 	private readonly Engine engine;
+	private readonly List<Sprite> sprites = new();
+
+	public IReadOnlyList<Sprite> Sprites => sprites;
 
 	public PaintProjectRuntime(BuildSession selectedBuild, string runtimeVersion = "0.1")
 	{
@@ -152,6 +157,8 @@ public class PaintProjectRuntime
 			}
 		}
 
+		LoadSprites(selectedBuild.BuildPath);
+
 		// Load runtime.js
 		var runtimeJs = File.ReadAllText(SelectedVersionPath);
 		engine.Execute(runtimeJs);
@@ -185,6 +192,48 @@ public class PaintProjectRuntime
 		if (json == null) throw new Exception("Invalid null return!");
 
 		return json;
+	}
+
+	private void LoadSprites(string buildPath)
+	{
+		string manifestPath = Path.Combine(buildPath, "sprites.json");
+		if (!File.Exists(manifestPath))
+		{
+			throw new FileNotFoundException(
+				$"Sprite manifest '{manifestPath}' is missing. Rebuild the project to include its sprites.",
+				manifestPath);
+		}
+
+		using JsonDocument manifest = JsonDocument.Parse(File.ReadAllText(manifestPath));
+		if (manifest.RootElement.ValueKind != JsonValueKind.Array)
+			throw new InvalidDataException($"Sprite manifest '{manifestPath}' must contain an array.");
+
+		foreach (JsonElement entry in manifest.RootElement.EnumerateArray())
+		{
+			string name = GetRequiredString(entry, "name", manifestPath);
+			string instanceName = GetRequiredString(entry, "instanceName", manifestPath);
+			string folder = GetRequiredString(entry, "folder", manifestPath);
+			string spriteFolder = Path.Combine(buildPath, "sprites", folder);
+
+			if (!Directory.Exists(spriteFolder))
+				throw new DirectoryNotFoundException(
+					$"Sprite folder '{spriteFolder}' from manifest '{manifestPath}' was not found.");
+
+			sprites.Add(Sprite.LoadFromBuildFolder(spriteFolder, name, instanceName));
+		}
+	}
+
+	private static string GetRequiredString(JsonElement entry, string propertyName, string manifestPath)
+	{
+		if (entry.ValueKind != JsonValueKind.Object
+			|| !entry.TryGetProperty(propertyName, out JsonElement property)
+			|| property.ValueKind != JsonValueKind.String)
+		{
+			throw new InvalidDataException(
+				$"Sprite manifest '{manifestPath}' contains an entry without a string '{propertyName}' property.");
+		}
+
+		return property.GetString()!;
 	}
 
 	private JsValue InvokeRuntime(string functionName, params object[] arguments)

@@ -37,8 +37,8 @@ public partial class GfxPane : Control
             new Rect(0, 0, Bounds.Width, Bounds.Height));
     }
 
-    public void Present()
+    public Bitmap Present()
     {
-        InvalidateVisual();
+        return _target.Bitmap;
     }
 }

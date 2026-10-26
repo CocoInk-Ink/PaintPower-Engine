@@ -30,7 +30,7 @@ public class DIPlay
         StageSize = new Point(stageWidth, stageHeight);
     }
 
-    public async void Tick(Action<Bitmap> onFrame)
+    public void Tick(Action<Bitmap> onFrame)
     {
         var pane = gfxPane;
 
@@ -41,9 +41,8 @@ public class DIPlay
             if (!item.IsVisible)
                 continue;
 
-            // Resolve safe position (old projects may have null x/y)
-            double ix = item.x;
-            double iy = item.y;
+            double ix = item.x + StageSize.x / 2;
+            double iy = item.y + StageSize.y / 2;
 
             // Snapshot-based sprites
             if (item is Sprite sprite)
@@ -98,12 +97,14 @@ public class DIPlay
 
         batch.Sort((a, b) => a.Z.CompareTo(b.Z));
 
-        pane.Renderer.Clear(0xFF202020);
+        pane.Renderer.Clear(0xFFFFFFFF); // White
         pane.Renderer.DrawBatch(batch);
+
+        var bitmap = pane.Present();
 
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
-            onFrame(CreateBitmapFromPane());
+            onFrame(bitmap);
         });
 
         _t++;

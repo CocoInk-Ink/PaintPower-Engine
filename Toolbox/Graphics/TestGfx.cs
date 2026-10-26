@@ -24,7 +24,7 @@ public partial class TestGfx : TranslatableControl
             pane.Renderer.Clear(0xFF202020); // ARGB
             pane.Renderer.DrawPixel(x, y, 0xFFFFCC00);
 
-            Avalonia.Threading.Dispatcher.UIThread.Post(pane.Present);
+            // Avalonia.Threading.Dispatcher.UIThread.Post(pane.Present);
 
             t++;
         };

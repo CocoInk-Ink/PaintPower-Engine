@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Toolbox;
+using Toolbox.Display.Sprites;
 using Toolbox.Logging;
 using Toolbox.Runtime;
 
@@ -13,10 +15,7 @@ public partial class StageAreaPart : TranslatableControl
     {
         InitializeComponent();
 
-        ExitButton.Click += (sender, e) =>
-        {
-
-        };
+        HideExtraControls();
     }
 
     public void ShowProcessingPanel()
@@ -59,5 +58,11 @@ public partial class StageAreaPart : TranslatableControl
         {
             StageControl.Diplay.Tick((Bitmap b) => { this.StageControl.SetBitmap(b); });
         }
+    }
+
+    public void SetRuntimeSprites(IEnumerable<Sprite> sprites)
+    {
+        StageControl.Diplay.items.Clear();
+        StageControl.Diplay.items.AddRange(sprites);
     }
 }

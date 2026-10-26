@@ -46,6 +46,11 @@ public partial class ProjectEditor : Editor
 
     public void DirtyProject() => Logic.DirtyProject();
 
+    public StageAreaPart? GetStageAreaPart()
+    {
+        return VmPanelControl.FindControl<StageAreaPart>("StageArea");
+    }
+
     public ProcessingPanel? GetProcessingPanel()
     {
         return VmPanelControl.FindControl<StageAreaPart>("StageArea")?.FindControl<ProcessingPanel>("LoadingPart");
@@ -64,6 +69,9 @@ public partial class ProjectEditor : Editor
         {
             if (GetProcessingPanel() is ProcessingPanel loader)
                 loader.Reset();
+
+            GetStageAreaPart()?.ShowProcessingPanel();
+            GetStageAreaPart()?.HideExtraControls();
         }
 
         // Force Avalonia to refresh layout

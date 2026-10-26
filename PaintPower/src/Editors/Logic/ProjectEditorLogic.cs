@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -35,6 +34,7 @@ public class ProjectEditorLogic
 
     public bool SaveNeeded { get; private set; }
     public bool IsNewProject { get; private set; } = true;
+    private DispatcherTimer? _runtimeTimer;
 
     public ProjectEditorLogic(ProjectEditor view)
     {
@@ -95,6 +95,7 @@ public class ProjectEditorLogic
     // ------------------------------------------------------------
     public async Task NewProject()
     {
+        StopRuntime();
         SoundEffects.Click.Play();
 
         Project = new PaintProject();
@@ -113,6 +114,7 @@ public class ProjectEditorLogic
 
     public async Task LoadProject(string path, bool isDefaultProject)
     {
+        StopRuntime();
         try
         {
             await _view.SetProjectLoading(true);
@@ -202,7 +204,7 @@ public class ProjectEditorLogic
         }
     }
 
-    public async void RunProject()
+    public void RunProject()
     {
         if (builder == null)
         {
@@ -220,33 +222,23 @@ public class ProjectEditorLogic
 
         ProjectEditor.CurrentProjectEditor.SetUIMode(EditorUIMode.ProjectPlayer);
 
+        StopRuntime();
+
         // Initialize the runtime for the project
         var runtime = new PaintProjectRuntime(Session.CurrentBuildSession);
+        var stage = ProjectEditor.CurrentProjectEditor.VmPanelControl.FindControl<StageAreaPart>("StageArea");
+        if (stage == null) throw new InvalidOperationException("StageAreaPart not found.");
 
+        stage.SetRuntimeSprites(runtime.Sprites);
         // Start the project.
         runtime.Start();
 
-        new Thread(async () =>
+        _runtimeTimer = new DispatcherTimer
         {
-
-            // Start the project loop
-            for (int i = 0; i < 20; i++)
-            {
-                await Task.Delay(16); // Roughly 60 FPS
-
-                // Update the project state first.
-                var state = runtime.Tick();
-
-                // Update the UI with the new state
-                _ = Dispatcher.UIThread.InvokeAsync(async () =>
-                {
-                    var d = ProjectEditor.CurrentProjectEditor.VmPanelControl.FindControl<StageAreaPart>("StageArea");
-                    if (d == null) throw new InvalidOperationException("StageAreaPart not found.");
-                    d.UpdateProjectState(state);
-                });
-
-            }
-        }).Start();
+            Interval = TimeSpan.FromMilliseconds(16)
+        };
+        _runtimeTimer.Tick += (_, _) => stage.UpdateProjectState(runtime.Tick());
+        _runtimeTimer.Start();
     }
 
     public async Task OpenProjectDialog()
@@ -366,6 +358,7 @@ public class ProjectEditorLogic
     public void CloseProject()
     {
         SoundEffects.Click.Play();
+        StopRuntime();
 
         // if (!await AskSaveBeforeClosing())
         // return;
@@ -467,5 +460,11 @@ public class ProjectEditorLogic
     {
         CloseCurrentEditor();
         _view.CenterHost.Content = editor;
+    }
+
+    private void StopRuntime()
+    {
+        _runtimeTimer?.Stop();
+        _runtimeTimer = null;
     }
 }
