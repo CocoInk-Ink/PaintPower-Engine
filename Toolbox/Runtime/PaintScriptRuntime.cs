@@ -102,10 +102,22 @@ public class PaintScriptRuntime
 	}
 }
 
+public class Target
+{
+	public string Name { get; set; } = string.Empty;
+	public Position Position { get; set; } = new Position();
+}
+
+public class Position
+{
+	public double X { get; set; }
+	public double Y { get; set; }
+}
+
 public class RuntimeState
 {
 	[JsonPropertyName("targets")]
-	public string[] Targets { get; set; } = Array.Empty<string>();
+	public Target[] Targets { get; set; } = Array.Empty<Target>();
 
 	[JsonPropertyName("RefreshNeeded")]
 	public bool RefreshNeeded { get; set; }
@@ -118,9 +130,11 @@ public class PaintProjectRuntime
 {
 	private static Dictionary<string, Dictionary<string, string>> Runtimes = null!;
 	private readonly Engine engine;
-	private readonly List<Sprite> sprites = new();
 
-	public IReadOnlyList<Sprite> Sprites => sprites;
+	//						// Instance name to sprite mapping
+	private readonly Dictionary<string, Sprite> sprites = new();
+
+	public IReadOnlyDictionary<string, Sprite> Sprites => sprites;
 
 	public PaintProjectRuntime(BuildSession selectedBuild, string runtimeVersion = "0.1")
 	{
@@ -219,7 +233,7 @@ public class PaintProjectRuntime
 				throw new DirectoryNotFoundException(
 					$"Sprite folder '{spriteFolder}' from manifest '{manifestPath}' was not found.");
 
-			sprites.Add(Sprite.LoadFromBuildFolder(spriteFolder, name, instanceName));
+			sprites.Add(instanceName, Sprite.LoadFromBuildFolder(spriteFolder, name, instanceName));
 		}
 	}
 

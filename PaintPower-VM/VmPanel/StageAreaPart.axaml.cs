@@ -11,6 +11,9 @@ namespace PaintPower_VM.VMPanel;
 
 public partial class StageAreaPart : TranslatableControl
 {
+
+    private readonly Dictionary<string, Sprite> _sprites = new();
+
     public StageAreaPart()
     {
         InitializeComponent();
@@ -51,7 +54,14 @@ public partial class StageAreaPart : TranslatableControl
         }
 
         // 2. Update positions of stage elements.
-        // Do nothing for now.
+        foreach (var target in state.Targets)
+        {
+            if (_sprites.TryGetValue(target.Name, out var sprite))
+            {
+                sprite.x = target.Position.X;
+                sprite.y = target.Position.Y;
+            }
+        }
 
         // 3. Refresh the stage display if needed
         if (state.RefreshNeeded)
@@ -60,9 +70,9 @@ public partial class StageAreaPart : TranslatableControl
         }
     }
 
-    public void SetRuntimeSprites(IEnumerable<Sprite> sprites)
+    public void SetRuntimeSprites(IReadOnlyDictionary<string, Sprite> sprites)
     {
         StageControl.Diplay.items.Clear();
-        StageControl.Diplay.items.AddRange(sprites);
+        StageControl.Diplay.items.AddRange(sprites.Values);
     }
 }
