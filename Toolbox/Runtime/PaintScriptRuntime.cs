@@ -104,13 +104,25 @@ public class PaintScriptRuntime
 
 public class Target
 {
+	[JsonPropertyName("name")]
 	public string Name { get; set; } = string.Empty;
+
+	[JsonPropertyName("instance")]
+	public string Instance { get; set; } = string.Empty;
+
+	[JsonPropertyName("position")]
 	public Position Position { get; set; } = new Position();
+
+	[JsonPropertyName("visible")]
+	public bool Visible { get; set; } = true;
 }
 
 public class Position
 {
+	[JsonPropertyName("x")]
 	public double X { get; set; }
+
+	[JsonPropertyName("y")]
 	public double Y { get; set; }
 }
 
@@ -233,7 +245,9 @@ public class PaintProjectRuntime
 				throw new DirectoryNotFoundException(
 					$"Sprite folder '{spriteFolder}' from manifest '{manifestPath}' was not found.");
 
-			sprites.Add(instanceName, Sprite.LoadFromBuildFolder(spriteFolder, name, instanceName));
+			string spriteKey = string.IsNullOrWhiteSpace(instanceName) ? name : instanceName;
+			if (!sprites.TryAdd(spriteKey, Sprite.LoadFromBuildFolder(spriteFolder, name, instanceName)))
+				throw new InvalidDataException($"Build contains multiple sprites with instance name '{spriteKey}'.");
 		}
 	}
 

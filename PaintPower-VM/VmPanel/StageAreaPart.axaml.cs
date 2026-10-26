@@ -56,10 +56,12 @@ public partial class StageAreaPart : TranslatableControl
         // 2. Update positions of stage elements.
         foreach (var target in state.Targets)
         {
-            if (_sprites.TryGetValue(target.Name, out var sprite))
+            string spriteKey = string.IsNullOrWhiteSpace(target.Instance) ? target.Name : target.Instance;
+            if (_sprites.TryGetValue(spriteKey, out var sprite))
             {
                 sprite.x = target.Position.X;
                 sprite.y = target.Position.Y;
+                sprite.IsVisible = target.Visible;
             }
         }
 
@@ -72,7 +74,16 @@ public partial class StageAreaPart : TranslatableControl
 
     public void SetRuntimeSprites(IReadOnlyDictionary<string, Sprite> sprites)
     {
+        _sprites.Clear();
         StageControl.Diplay.items.Clear();
-        StageControl.Diplay.items.AddRange(sprites.Values);
+
+        foreach (var (key, sprite) in sprites)
+        {
+            _sprites[key] = sprite;
+            _sprites[sprite.Name] = sprite;
+            if (!string.IsNullOrWhiteSpace(sprite.InstanceName))
+                _sprites[sprite.InstanceName] = sprite;
+            StageControl.Diplay.items.Add(sprite);
+        }
     }
 }
