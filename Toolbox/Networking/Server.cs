@@ -117,7 +117,7 @@ public class Server
     // ------------------------------------------------------------
     // Project Download
     // ------------------------------------------------------------
-    public async Task DownloadProject(string savePath, int id)
+    public async Task DownloadProjectSource(string savePath, int id)
     {
         if (!isConnected) return;
 
