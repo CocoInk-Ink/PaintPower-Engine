@@ -19,8 +19,8 @@
                         Spacing="10">
 
                 <Button x:Name="OverwriteButton"
-                        Content="Overwrite"
-                        Width="100"/>
+                        Content="Upload version"
+                        Width="110"/>
 
                 <Button x:Name="UnlinkButton"
                         Content="Unlink"

@@ -39,11 +39,52 @@ public class Routes
         return $"api/projects/{id}/upload/paintfile/";
     }
 
+    // Project version routes
+    public static string createVersion(string projectId)
+    {
+        return $"api/projects/{projectId}/versions";
+    }
+
+    public static string listVersions(string projectId)
+    {
+        return createVersion(projectId);
+    }
+
+    public static string updateVersionSource(string projectId, string versionId)
+    {
+        return $"api/projects/{projectId}/versions/{versionId}/source";
+    }
+
+    public static string deleteVersion(string projectId, string versionId)
+    {
+        return $"api/projects/{projectId}/versions/{versionId}";
+    }
+
+    public static string updateVersionBuild(string projectId, string versionId)
+    {
+        return $"api/projects/{projectId}/versions/{versionId}/build";
+    }
+
+    public static string selectVersion(string projectId, string versionId)
+    {
+        return $"api/projects/{projectId}/versions/{versionId}/select";
+    }
+
     // Download project routes
 
     public static string downloadProject(string id)
     {
         return $"api/projects/{id}/download";
+    }
+
+    public static string downloadLatestSource(string projectId)
+    {
+        return $"api/projects/{projectId}/file/latest/source";
+    }
+
+    public static string downloadVersionSource(string projectId, string versionId)
+    {
+        return $"api/projects/{projectId}/versions/{versionId}/source";
     }
 
     // Mystuff routes

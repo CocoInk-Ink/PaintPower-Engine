@@ -8,12 +8,16 @@ namespace PaintPower.Dialogs;
 
 public partial class DeletionConfirmationDialog : Window
 {
-    public DeletionConfirmationDialog()
+    public DeletionConfirmationDialog(string? itemName = null)
     {
         InitializeComponent();
         Title = Translator.Map("Delete this item?!");
-        PromptText.Text = Translator.Map("Are you sure you want to this item?");
-        PromptText2.Text = Translator.Map("(You may not be able to recover this after deletion!)");
+        PromptText.Text = string.IsNullOrWhiteSpace(itemName)
+            ? Translator.Map("Are you sure you want to this item?")
+            : $"Are you sure you want to delete {itemName}?";
+        PromptText2.Text = string.IsNullOrWhiteSpace(itemName)
+            ? Translator.Map("(You may not be able to recover this after deletion!)")
+            : "This cannot be recovered after deletion.";
     }
 
     public Task<string?> ShowAsync(Window parent)

@@ -32,7 +32,7 @@ public static class Net
 
             string body = await response.Content.ReadAsStringAsync();
             Log.QuickLog("GET Response:");
-            Log.QuickLog(body);
+            // Log.QuickLog(body);
 
             return body;
         }
@@ -71,24 +71,75 @@ public static class Net
         }
     }
 
+    public static async Task<string?> PerformDeleteRequest(string url)
+    {
+        try
+        {
+            using var response = await client.DeleteAsync(url);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.QuickLog($"DELETE request error: {ex.Message}");
+            return null;
+        }
+    }
+
     // ------------------------------------------------------------
     // File Download
     // ------------------------------------------------------------
     public static async Task<bool> DownloadFileAsync(string url, string destinationPath)
     {
+        string? temporaryPath = null;
         try
         {
             using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
             response.EnsureSuccessStatusCode();
 
             await using var stream = await response.Content.ReadAsStreamAsync();
-            await using var fileStream = File.Create(destinationPath);
+            string fullDestinationPath = Path.GetFullPath(destinationPath);
+            string destinationDirectory = Path.GetDirectoryName(fullDestinationPath)!;
+            temporaryPath = Path.Combine(
+                destinationDirectory,
+                $"{Path.GetFileName(fullDestinationPath)}.{Guid.NewGuid():N}.download"
+            );
+            Log.QuickLog($"Downloading file to temporary path: {temporaryPath}");
+            await using var fileStream = new FileStream(
+                temporaryPath,
+                FileMode.CreateNew,
+                FileAccess.Write,
+                FileShare.None
+            );
 
             byte[] buffer = new byte[81920];
             int read;
 
+            Log.QuickLog($"Starting download from {url} to {fullDestinationPath}");
+
             while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
                 await fileStream.WriteAsync(buffer, 0, read);
+
+            Log.QuickLog($"Download complete. Moving file to final destination: {fullDestinationPath}");
+
+            await fileStream.FlushAsync();
+            await fileStream.DisposeAsync();
+
+            Log.QuickLog($"Moving temporary file to final destination: {fullDestinationPath}");
+
+            Log.QuickLog($"Temp exists: {File.Exists(temporaryPath)}");
+            Log.QuickLog($"Dest exists: {File.Exists(fullDestinationPath)}");
+
+            // Move the temporary file to the final destination
+            try
+            {
+                File.Move(temporaryPath, fullDestinationPath, true);
+            }
+            catch (IOException ex)
+            {
+                Log.QuickLog($"Move failed: {ex}");
+                return false;
+            }
 
             return true;
         }
@@ -96,6 +147,20 @@ public static class Net
         {
             Log.QuickLog($"Download error: {ex.Message}");
             return false;
+        }
+        finally
+        {
+            if (temporaryPath != null && File.Exists(temporaryPath))
+            {
+                try
+                {
+                    File.Delete(temporaryPath);
+                }
+                catch (Exception ex)
+                {
+                    Log.QuickLog($"Download cleanup error: {ex.Message}");
+                }
+            }
         }
     }
 
@@ -126,6 +191,48 @@ public static class Net
         {
             Debug.WriteLine($"Upload error: {ex.Message}");
             return false;
+        }
+    }
+
+    public static async Task<string?> UploadFilesAsync(
+        string url,
+        IReadOnlyDictionary<string, string> files,
+        IReadOnlyDictionary<string, string>? fields = null)
+    {
+        var streams = new List<FileStream>();
+        try
+        {
+            using var form = new MultipartFormDataContent();
+            foreach (var (fieldName, filePath) in files)
+            {
+                var fileStream = File.OpenRead(filePath);
+                streams.Add(fileStream);
+
+                var fileContent = new StreamContent(fileStream);
+                fileContent.Headers.ContentType =
+                    new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+                form.Add(fileContent, fieldName, Path.GetFileName(filePath));
+            }
+
+            if (fields != null)
+            {
+                foreach (var (fieldName, value) in fields)
+                    form.Add(new StringContent(value, Encoding.UTF8), fieldName);
+            }
+
+            using var response = await client.PostAsync(url, form);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.QuickLog($"File upload error: {ex.Message}");
+            return null;
+        }
+        finally
+        {
+            foreach (var stream in streams)
+                await stream.DisposeAsync();
         }
     }
 

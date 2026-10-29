@@ -226,11 +226,12 @@ public partial class ProjectEditor : Editor
 
                 ["Server"] = new()
             {
-                new HeaderItem { Label = Translator.Map("Make Connection"), Command = () => {} },
-                new HeaderItem { Label = Translator.Map("Upload project to server!"), Command = () => {} },
-                new HeaderItem { Label = Translator.Map("Download project from server"), Command = () => {} },
-                new HeaderItem { Label = Translator.Map("Login"), Command = () => {} },
-                new HeaderItem { Label = Translator.Map("Logout"), Command = () => {} },
+                new HeaderItem { Label = Translator.Map("Make Connection"), Command = () => _ = Logic.MakeServerConnection() },
+                new HeaderItem { Label = Translator.Map("Upload project to server!"), Command = () => _ = Logic.UploadProjectToServer() },
+                new HeaderItem { Label = Translator.Map("Download project from server"), Command = () => _ = Logic.DownloadProjectFromServer() },
+                new HeaderItem { Label = Translator.Map("Manage server versions"), Command = () => _ = Logic.ManageServerVersions() },
+                new HeaderItem { Label = Translator.Map("Login"), Command = () => _ = Logic.Login() },
+                new HeaderItem { Label = Translator.Map("Logout"), Command = () => _ = Logic.Logout() },
             },
 
                 ["Language"] = LanguageMenu()

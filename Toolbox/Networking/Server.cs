@@ -14,6 +14,7 @@ public class Server
 
     public Domain CurrentDomain = new Domain("www.cocoink.ink/f/PaintPower");
     public string Username { get; private set; } = "";
+    public bool IsConnected => isConnected;
 
     // ------------------------------------------------------------
     // Domain Security
@@ -117,12 +118,153 @@ public class Server
     // ------------------------------------------------------------
     // Project Download
     // ------------------------------------------------------------
-    public async Task DownloadProjectSource(string savePath, int id)
+    public async Task<bool> DownloadProjectSource(string savePath, int id)
     {
-        if (!isConnected) return;
+        return await DownloadLatestProjectSource(savePath, id.ToString());
+    }
 
-        string url = MakeUrl($"{id}");
-        await Net.DownloadFileAsync(url, savePath);
+    public async Task<bool> DownloadLatestProjectSource(string savePath, string projectId)
+    {
+        if (!isConnected) return false;
+        return await Net.DownloadFileAsync(
+            MakeUrl(Routes.downloadLatestSource(projectId)),
+            savePath
+        );
+    }
+
+    public async Task<bool> DownloadProjectVersionSource(
+        string savePath,
+        string projectId,
+        string versionId)
+    {
+        if (!isConnected) return false;
+        return await Net.DownloadFileAsync(
+            MakeUrl(Routes.downloadVersionSource(projectId, versionId)),
+            savePath
+        );
+    }
+
+    // ------------------------------------------------------------
+    // Project Versions
+    // ------------------------------------------------------------
+    public async Task<string?> UploadNewVersion(
+        string projectId,
+        string sourcePath,
+        string? buildPath = null,
+        string? versionName = null,
+        bool isShared = false)
+    {
+        if (!isConnected || !await IsLoggedIn()) return null;
+        if (!File.Exists(sourcePath) ||
+            !string.Equals(Path.GetExtension(sourcePath), ".xpaint", StringComparison.OrdinalIgnoreCase))
+            return null;
+        if (!string.IsNullOrWhiteSpace(buildPath) &&
+            (!File.Exists(buildPath) ||
+             !string.Equals(Path.GetExtension(buildPath), ".xpe", StringComparison.OrdinalIgnoreCase)))
+            return null;
+
+        var files = new Dictionary<string, string> { ["source"] = sourcePath };
+        if (!string.IsNullOrWhiteSpace(buildPath))
+            files["build"] = buildPath;
+
+        var fields = new Dictionary<string, string> { ["isShared"] = isShared ? "true" : "false" };
+        if (!string.IsNullOrWhiteSpace(versionName))
+            fields["version"] = versionName;
+
+        string? response = await Net.UploadFilesAsync(
+            MakeUrl(Routes.createVersion(projectId)),
+            files,
+            fields
+        );
+        if (response == null) return null;
+
+        try
+        {
+            using var json = JsonDocument.Parse(response);
+            return json.RootElement
+                .GetProperty("version")
+                .GetProperty("id")
+                .GetString();
+        }
+        catch (Exception ex)
+        {
+            Log.QuickLog($"Failed to read created version ID: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<bool> UpdateProjectVersionSource(
+        string projectId,
+        string versionId,
+        string sourcePath)
+    {
+        if (!isConnected || !await IsLoggedIn()) return false;
+        if (!File.Exists(sourcePath) ||
+            !string.Equals(Path.GetExtension(sourcePath), ".xpaint", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        string? response = await Net.UploadFilesAsync(
+            MakeUrl(Routes.updateVersionSource(projectId, versionId)),
+            new Dictionary<string, string> { ["file"] = sourcePath }
+        );
+        return response != null;
+    }
+
+    public async Task<List<ProjectVersionInfo>?> ListProjectVersions(string projectId)
+    {
+        if (!isConnected || !await IsLoggedIn()) return null;
+
+        string? response = await Net.PerformGetRequest(
+            MakeUrl(Routes.listVersions(projectId))
+        );
+        if (response == null) return null;
+
+        try
+        {
+            return JsonSerializer.Deserialize<ProjectVersionInfoList>(response)!.versions;
+        }
+        catch (JsonException ex)
+        {
+            Log.QuickLog($"Failed to parse project versions JSON: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<bool> DeleteProjectVersion(string projectId, string versionId)
+    {
+        if (!isConnected || !await IsLoggedIn()) return false;
+
+        string? response = await Net.PerformDeleteRequest(
+            MakeUrl(Routes.deleteVersion(projectId, versionId))
+        );
+        return response != null;
+    }
+
+    public async Task<bool> UpdateProjectVersionBuild(
+        string projectId,
+        string versionId,
+        string buildPath)
+    {
+        if (!isConnected || !await IsLoggedIn()) return false;
+        if (!File.Exists(buildPath) ||
+            !string.Equals(Path.GetExtension(buildPath), ".xpe", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        string? response = await Net.UploadFilesAsync(
+            MakeUrl(Routes.updateVersionBuild(projectId, versionId)),
+            new Dictionary<string, string> { ["file"] = buildPath }
+        );
+        return response != null;
+    }
+
+    public async Task<bool> SelectProjectVersion(string projectId, string versionId)
+    {
+        if (!isConnected || !await IsLoggedIn()) return false;
+        string? response = await Net.PerformPostRequest(
+            MakeUrl(Routes.selectVersion(projectId, versionId)),
+            new { }
+        );
+        return response != null;
     }
 
     // ------------------------------------------------------------
@@ -145,23 +287,23 @@ public class Server
     // ------------------------------------------------------------
     // User Projects
     // ------------------------------------------------------------
-    public async Task<List<ProjectInfo>> ListUserProjects()
+    public async Task<List<ProjectInfo>?> ListUserProjects()
     {
-        if (!isConnected) return new();
+        if (!isConnected) return null;
 
         string url = MakeUrl(Routes.userProjectsRoute());
         string? response = await Net.PerformGetRequest(url);
 
-        if (response == null) return new();
+        if (response == null) return null;
 
         try
         {
-            return JsonSerializer.Deserialize<List<ProjectInfo>>(response) ?? new();
+            return JsonSerializer.Deserialize<List<ProjectInfo>>(response);
         }
-        catch
+        catch (JsonException ex)
         {
-            Log.QuickLog("Failed to parse project list JSON.");
-            return new();
+            Log.QuickLog($"Failed to parse project list JSON: {ex.Message}");
+            return null;
         }
     }
 
@@ -187,11 +329,20 @@ public class Server
 
         try
         {
-            var json = JsonSerializer.Deserialize<Dictionary<string, string>>(response);
-            return json?["id"];
+            using var json = JsonDocument.Parse(response);
+            if (json.RootElement.ValueKind == JsonValueKind.Object &&
+                json.RootElement.TryGetProperty("id", out var id) &&
+                id.ValueKind == JsonValueKind.String)
+            {
+                return id.GetString();
+            }
+
+            Log.QuickLog("Server project creation response did not contain a project ID.");
+            return null;
         }
-        catch
+        catch (JsonException ex)
         {
+            Log.QuickLog($"Failed to parse server project creation response: {ex.Message}");
             return null;
         }
     }
@@ -240,6 +391,13 @@ public class Server
 
     public Server()
     {
-        InitServer();
+        LoadDefaultDomains();
     }
 }
+
+
+class ProjectVersionInfoList
+{
+    public string status { get; set; } = "";
+    public List<ProjectVersionInfo> versions { get; set; } = new();
+};

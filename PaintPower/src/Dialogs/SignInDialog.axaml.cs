@@ -32,18 +32,30 @@ public partial class SignInDialog : Window
         }
 
         StatusText.Text = "Signing in...";
+        LoginButton.IsEnabled = false;
 
-        bool ok = await _server.Login(username, password);
-
-        if (ok)
+        try
         {
-            StatusText.Text = "Login successful!";
-            await Task.Delay(300);
-            Close(true);
+            bool ok = await _server.Login(username, password);
+            if (ok)
+            {
+                StatusText.Text = "Login successful!";
+                await Task.Delay(300);
+                Close(true);
+                return;
+            }
+
+            StatusText.Text = await _server.CheckConnection()
+                ? "Invalid username or password."
+                : "Could not reach the server. Please try again.";
         }
-        else
+        catch (System.Exception ex)
         {
-            StatusText.Text = "Invalid username or password.";
+            StatusText.Text = $"Sign-in failed: {ex.Message}";
+        }
+        finally
+        {
+            LoginButton.IsEnabled = true;
         }
     }
 }

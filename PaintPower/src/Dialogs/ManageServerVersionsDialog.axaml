@@ -1,0 +1,39 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PaintPower.Dialogs.ManageServerVersionsDialog"
+        Title="Manage Server Versions"
+        Width="620"
+        Height="420"
+        MinWidth="480"
+        MinHeight="320"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="18">
+        <StackPanel Spacing="6">
+            <TextBlock Text="Choose a version to replace or delete."
+                       FontSize="18"
+                       FontWeight="SemiBold"/>
+            <TextBlock Text="Replacing a version uploads the currently open project as its new source."
+                       TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <ListBox x:Name="VersionList"
+                 Grid.Row="1"
+                 Margin="0,14"
+                 SelectionMode="Single"/>
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Spacing="8">
+            <Button x:Name="ReplaceButton"
+                    Content="Replace source"
+                    IsEnabled="False"/>
+            <Button x:Name="DeleteButton"
+                    Content="Delete version"
+                    IsEnabled="False"/>
+            <Button x:Name="CancelButton"
+                    Content="Cancel"/>
+        </StackPanel>
+    </Grid>
+</Window>
