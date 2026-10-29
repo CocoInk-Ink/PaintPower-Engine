@@ -59,8 +59,8 @@ public partial class StageAreaPart : TranslatableControl
             string spriteKey = string.IsNullOrWhiteSpace(target.Instance) ? target.Name : target.Instance;
             if (_sprites.TryGetValue(spriteKey, out var sprite))
             {
-                sprite.x = target.Position.X;
-                sprite.y = target.Position.Y;
+                sprite.x = target.X;
+                sprite.y = target.Y;
                 sprite.IsVisible = target.Visible;
             }
         }

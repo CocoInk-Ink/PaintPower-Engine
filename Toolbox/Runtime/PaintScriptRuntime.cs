@@ -111,24 +111,16 @@ public class Target
 	public string Instance { get; set; } = string.Empty;
 
 	[JsonPropertyName("position")]
-	public Position Position { get; set; } = new Position();
+	public int X { get; set; }
+	public int Y { get; set; }
 
 	[JsonPropertyName("visible")]
 	public bool Visible { get; set; } = true;
 }
 
-public class Position
-{
-	[JsonPropertyName("x")]
-	public double X { get; set; }
-
-	[JsonPropertyName("y")]
-	public double Y { get; set; }
-}
 
 public class RuntimeState
 {
-	[JsonPropertyName("targets")]
 	public Target[] Targets { get; set; } = Array.Empty<Target>();
 
 	[JsonPropertyName("RefreshNeeded")]
