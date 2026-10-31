@@ -441,7 +441,7 @@ public class ProjectEditorLogic
     // ------------------------------------------------------------
     public void SetStatus(string text)
     {
-        MainGUI.mainGUI?.Header.SetStatus(text);
+        MainGUI.mainGUI?.SetStatus(text);
     }
 
     // ------------------------------------------------------------

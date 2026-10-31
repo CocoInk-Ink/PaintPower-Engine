@@ -23,11 +23,6 @@ public partial class Header : TranslatableControl
         //VersionInfoTextBlock.Text = version;
     }
 
-    public void SetStatus(string status)
-    {
-        ProjectStatus.Text = status;
-    }
-
     // ------------------------------------------------------------
     // Load menu definition from Editor
     // ------------------------------------------------------------

@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -247,4 +248,9 @@ public partial class ProjectEditor : Editor
         SpriteManager.TranslateGUI();
         Translator.refreshNeeded = false;
     }
+
+	public void SetStatus(string status)
+	{
+		Actionbar.StatusBarText.Text = status;
+	}
 }

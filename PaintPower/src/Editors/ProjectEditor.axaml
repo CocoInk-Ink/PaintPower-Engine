@@ -35,7 +35,7 @@
             <Grid Grid.Column="2" RowDefinitions="30,*">
 
                 <!-- Status Bar -->
-                <local:ActionBar Grid.Row="0" />
+                <local:ActionBar x:Name="Actionbar" Grid.Row="0" />
 
                 <ContentControl Grid.Row="1" x:Name="CenterHost" />
 

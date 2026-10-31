@@ -42,10 +42,6 @@
                         Margin="0,0,12,0"
                         Spacing="16">
 
-                <TextBlock x:Name="ProjectStatus"
-                           VerticalAlignment="Center"
-                           Foreground="{DynamicResource HeaderForeground}" />
-
                 <TextBlock x:Name="VersionInfoTextBlock"
                     VerticalAlignment="Center"
                     FontSize="10"

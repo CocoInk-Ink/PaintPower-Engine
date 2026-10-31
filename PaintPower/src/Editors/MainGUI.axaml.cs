@@ -41,6 +41,14 @@ public partial class MainGUI : TranslatableControl
         HeaderPart.Content = Header;
     }
 
+    public void SetStatus(string status)
+    {
+        if (CurrentEditor is ProjectEditor current)
+        {
+            current.SetStatus(status);
+        }
+    }
+
     // ------------------------------------------------------------
     // Editor switching
     // ------------------------------------------------------------
