@@ -124,7 +124,13 @@ public class ProjectEditorLogic
 
             Project = new PaintProject();
             EditorManager = new FileEditorManager(Project.Workspace);
+            if (CurrentEditor != null) CurrentEditor.Content = null;
             CurrentEditor = null;
+
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                RefreshUI();
+            });
 
             // Run heavy loading on background thread
             await Task.Run(async () =>
@@ -424,6 +430,11 @@ public class ProjectEditorLogic
         _view.SpriteProperties.SkinSelected += (_, _) => SaveNeeded = true;
         _window.Title = $"PaintPower - Project - {Project.Metadata.name}";
         SetStatus("Ready");
+    }
+
+    public void NewProjectStart()
+    {
+        
     }
 
     public void RefreshTranslations()
