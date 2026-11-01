@@ -116,8 +116,6 @@ public partial class ScriptEditor : FileEditor
             editor.TextArea.TextView.InvalidateVisual();
 
             _foldingStrategy.UpdateFoldings(_foldingManager, editor.Document);
-
-            Save();
         };
     }
 
@@ -146,4 +144,9 @@ public partial class ScriptEditor : FileEditor
         if (editor != null)
             editor.Text = _workspace.LoadText(FullPath);
     }
+
+    private void SaveButtonClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+	{
+		Save();
+	}
 }
