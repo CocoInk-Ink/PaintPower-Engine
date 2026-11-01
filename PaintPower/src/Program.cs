@@ -12,7 +12,11 @@ class Program
     // yet and stuff might break.
     [STAThread]
     public static void Main(string[] args) {
-        Session.InitializeSession<PaintPowerApp>(args, PaintPower_Engine.Version, "PaintPower-Engine");
+		#if DEBUG
+			Session.InitializeSession<PaintPowerApp>(args, "Testing", "PaintPower-Engine");
+		#else
+        	Session.InitializeSession<PaintPowerApp>(args, PaintPower_Engine.Version, "PaintPower-Engine");
+		#endif
     }
 
 

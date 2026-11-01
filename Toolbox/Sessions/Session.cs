@@ -21,9 +21,14 @@ public class Session
 	// "PaintPower-Engine", "xPaint", "xPaint Dev Edition"
 	public string Core { get; private set; } = "PaintPower-Engine";
 	public string SessionId { get; private set; } = Guid.NewGuid().ToString();
+	
 	public string UserHome => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-	public string AppDir => Path.Join(UserHome, "xPaint", Core, Version);
-	public string SessionDir => Path.Join(AppDir, "Sessions", SessionId);
+
+	public string AppDir() {
+		return Path.Join(UserHome, "xPaint", Core, Version);
+	}
+	
+	public string SessionDir => Path.Join(AppDir(), "Sessions", SessionId);
 	public string BuildsDir => Path.Join(SessionDir, "Builds");
 
 	public void Heartbeat()
