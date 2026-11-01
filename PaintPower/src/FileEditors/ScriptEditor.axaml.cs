@@ -26,6 +26,8 @@ public partial class ScriptEditor : FileEditor
     private FoldingManager _foldingManager;
     private CodeFoldingStrategy _foldingStrategy;
 
+	private TextEditor _editor;
+
     // For custom languages that need to be added directly.
     private string[] types = { ".as", ".mxml", ".jsfl", ".pxml", ".pss", ".psf", ".pxs" };
 
@@ -36,26 +38,56 @@ public partial class ScriptEditor : FileEditor
 
         AvaloniaXamlLoader.Load(this);
 
-        var editor = this.FindControl<TextEditor>("Editor");
+		var _ = this.FindControl<TextEditor>("Editor");
 
-        if (editor != null)
-        {
-            editor.Text = _workspace.LoadText(FullPath);
-            editor.Focus();
-        }
+        if (_ == null)
+		{
+			throw new Exception("Editor is null!");
+		}
+
+		_editor = _;
+
+		_ = null; GC.Collect();
+
+		// Add bracket colorizer
+        _bracketColorizer = new RainbowBracketColorizer(_editor.Document);
+        _editor.TextArea.TextView.LineTransformers.Add(_bracketColorizer);
+
+		// Add code folding support
+		_foldingManager = FoldingManager.Install(_editor.TextArea);
+        _foldingStrategy = new CodeFoldingStrategy();
+        _foldingStrategy.UpdateFoldings(_foldingManager, _editor.Document);
+        
+        _editor.Text = _workspace.LoadText(FullPath);
+        _editor.Focus();
 
         // 1. Create registry options with a theme
         _registryOptions = new RegistryOptions(ThemeName.LightPlus);
         var manager = new GrammarManager();
 
         // 2. Install TextMate
-        _textMateInstallation = editor.InstallTextMate(_registryOptions);
+        _textMateInstallation = _editor.InstallTextMate(_registryOptions);
 
         // 3. Set theme
         _textMateInstallation.SetTheme(_registryOptions.LoadTheme(ThemeName.DarkPlus));
 
-        // 4. Set grammar based on file extension
-        var ext = Path.GetExtension(relativePath);
+		SetGrammarFromExtension(Path.GetExtension(relativePath), _editor);
+
+        // Autosave
+        _editor.TextChanged += (_, __) =>
+        {
+            MarkDirty();
+
+            _bracketColorizer.Update(_editor.Document);
+            _editor.TextArea.TextView.InvalidateVisual();
+
+            _foldingStrategy.UpdateFoldings(_foldingManager, _editor.Document);
+        };
+    }
+
+	public void SetGrammarFromExtension(string ext, TextEditor editor)
+	{
+		// 4. Set grammar based on file extension
         var scope = _registryOptions.GetScopeByExtension(ext);
 
         // Add custom language support like .pxml, .pxs, .pss, etc.
@@ -79,15 +111,6 @@ public partial class ScriptEditor : FileEditor
         else if (ext == ".asc")
             scope = _registryOptions.GetScopeByExtension(".js");
 
-        // NOW add bracket colorizer
-        _bracketColorizer = new RainbowBracketColorizer(editor.Document);
-        editor.TextArea.TextView.LineTransformers.Add(_bracketColorizer);
-
-        _foldingManager = FoldingManager.Install(editor.TextArea);
-        _foldingStrategy = new CodeFoldingStrategy();
-        _foldingStrategy.UpdateFoldings(_foldingManager, editor.Document);
-
-
         if (scope != null)
         {
             _textMateInstallation.SetGrammar(scope);
@@ -95,7 +118,7 @@ public partial class ScriptEditor : FileEditor
         else if (types.Contains(ext))
         {
             var assetPipe = Plumber.MainPlumber.AssetPipe;
-            var grammarPath = assetPipe.LoadAsset($"Grammars/{getGrammarFile(ext)}");
+            var grammarPath = assetPipe.LoadAsset($"Grammars/{GetGrammarFile(ext)}");
 
             _textMateInstallation.SetGrammarFile(grammarPath);
         }
@@ -106,20 +129,9 @@ public partial class ScriptEditor : FileEditor
 
         // 5. Remove AvaloniaEdit built-in highlighting (must NOT be used)
         editor.SyntaxHighlighting = null;
+	}
 
-        // Autosave
-        editor.TextChanged += (_, __) =>
-        {
-            MarkDirty();
-
-            _bracketColorizer.Update(editor.Document);
-            editor.TextArea.TextView.InvalidateVisual();
-
-            _foldingStrategy.UpdateFoldings(_foldingManager, editor.Document);
-        };
-    }
-
-    private string getGrammarFile(string ext)
+    private string GetGrammarFile(string ext)
     {
         return ext switch
         {
@@ -134,15 +146,12 @@ public partial class ScriptEditor : FileEditor
 
     override public void Save()
     {
-        var editor = this.FindControl<TextEditor>("Editor");
-        _workspace.SaveFile(FullPath, editor.Text);
+        _workspace.SaveFile(FullPath, _editor.Text);
     }
 
     public override void Activate()
     {
-        var editor = this.FindControl<TextEditor>("Editor");
-        if (editor != null)
-            editor.Text = _workspace.LoadText(FullPath);
+        _editor.Text = _workspace.LoadText(FullPath);
     }
 
     private void SaveButtonClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
