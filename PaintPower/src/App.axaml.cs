@@ -10,9 +10,6 @@ namespace PaintPower;
 public partial class App : Application
 {
 
-	public Task StartupTask { get; private set; }
-	public Task FirstStartupTask { get; private set; }
-
 	public override void Initialize()
 	{
 		AvaloniaXamlLoader.Load(this);
@@ -23,33 +20,20 @@ public partial class App : Application
 		if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 		{
 
-			// First time launch task setup.
-			FirstStartupTask = new Task(() =>
-			{
-				// Perform first-time launch tasks here
-			});
+			desktop.MainWindow = new MainWindow();
 
-			// Normal setup task.
-			StartupTask = new Task(() =>
+			// NEW: handle startup file
+			if (desktop.Args is { Length: > 0 })
 			{
-				desktop.MainWindow = new MainWindow();
+				string file = desktop.Args[0];
 
-				// NEW: handle startup file
-				if (desktop.Args is { Length: > 0 })
+				if (File.Exists(file) && file.EndsWith(".xPaint", StringComparison.OrdinalIgnoreCase))
 				{
-					string file = desktop.Args[0];
-
-					if (File.Exists(file) && file.EndsWith(".xPaint", StringComparison.OrdinalIgnoreCase))
-					{
-						// Pass file to MainWindow
-						((MainWindow)desktop.MainWindow).StartupProjectPath = file;
-					}
+					// Pass file to MainWindow
+					((MainWindow)desktop.MainWindow).StartupProjectPath = file;
 				}
-			});
+			}
 		}
-
-		// Start the tasks
-		StartupTask.Start();
 
 		base.OnFrameworkInitializationCompleted();
 	}
