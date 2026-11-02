@@ -40,23 +40,12 @@ public partial class PaintPower_Engine : FileEditor
         Log.QuickLog(Version);
         Toolkit = new Toolkit();
 
-        if (Plumber.MainPlumber == null)
-        {
-            plumber = new Plumber();
-        } else
-        {
-            plumber = Plumber.MainPlumber;
-        }
-
-        plumber.MakeMainPlumber();
+        plumber = Plumber.MainPlumber;
 
         Translator.load("en");
 
         assetPipe = plumber.AssetPipe;
         pluginPipe = plumber.PluginPipe;
-
-        if (ResourceKit.Plumber == null) ResourceKit.Initialize(plumber);
-        ResourceKit.OnReadyToLoadResources?.Invoke();
 
         App = this;
     }

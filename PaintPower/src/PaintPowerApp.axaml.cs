@@ -3,57 +3,62 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using PaintPower.Theming;
 using Toolbox.Logging;
+using Toolbox.Sessions;
 
 namespace PaintPower;
 
 public class PaintPowerApp : Application
 {
-    public override void Initialize()
-    {
-        AvaloniaXamlLoader.Load(this);
-    }
 
-    public override void OnFrameworkInitializationCompleted()
-    {
-        Log.QuickLog("Starting Avalonia...");
-        // ------------------------------------------------------------
-        // 1. Standard Avalonia initialization
-        // ------------------------------------------------------------
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            // Create the main window
-            var window = new MainWindow();
+	public override void Initialize()
+	{
+		AvaloniaXamlLoader.Load(this);
+	}
 
-            // Handle startup file (double‑click / OS association)
-            if (desktop.Args is { Length: > 0 })
-            {
-                string file = desktop.Args[0];
-                if (System.IO.File.Exists(file) &&
-                    file.EndsWith(".xPaint", System.StringComparison.OrdinalIgnoreCase))
-                {
-                    window.StartupProjectPath = file;
-                }
-            }
+	public override void OnFrameworkInitializationCompleted()
+	{
+		Log.QuickLog("Starting Avalonia...");
+		Log.QuickLog("Registering themes...");
+		ThemeManager.RegisterBuiltInTheme("PaintPower", "PaintPowerTheme");
+		Log.QuickLog("Applying themes...");
+		ThemeManager.ApplyTheme("PaintPower");
 
-            desktop.MainWindow = window;
-        }
+		if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+		{
+			if (Session.Current.isFirstRunOrDamaged)
+			{
+				Log.QuickLog("First run or damaged data detected.");
+				var firstLaunchWindow = new FirstLaunchWindow();
+				firstLaunchWindow.ProceedRequested += () =>
+				{
+					var mainWindow = CreateMainWindow(desktop.Args);
+					desktop.MainWindow = mainWindow;
+					mainWindow.Show();
+					firstLaunchWindow.Close();
+				};
+				desktop.MainWindow = firstLaunchWindow;
+			}
+			else
+			{
+				Log.QuickLog("Normal startup detected.");
+				desktop.MainWindow = CreateMainWindow(desktop.Args);
+			}
+		}
 
-        Log.QuickLog("Registering themes...");
+		base.OnFrameworkInitializationCompleted();
+	}
 
-        // ------------------------------------------------------------
-        // 2. Register built‑in themes
-        // ------------------------------------------------------------
-        ThemeManager.RegisterBuiltInTheme(
-            "PaintPower",
-            "PaintPowerTheme"
-        );
+	private static MainWindow CreateMainWindow(string[] args)
+	{
+		var window = new MainWindow();
 
-        Log.QuickLog("Applying themes...");
-        // ------------------------------------------------------------
-        // 3. Apply default theme
-        // ------------------------------------------------------------
-        ThemeManager.ApplyTheme("PaintPower");
+		if (args.Length > 0 &&
+			System.IO.File.Exists(args[0]) &&
+			args[0].EndsWith(".xPaint", System.StringComparison.OrdinalIgnoreCase))
+		{
+			window.StartupProjectPath = args[0];
+		}
 
-        base.OnFrameworkInitializationCompleted();
-    }
+		return window;
+	}
 }

@@ -32,11 +32,14 @@ public static class ResourceKit
 	// Paths to various resources
 	static public readonly string AssetsPath = "avares://Assets/Resources/";
 
+	static ResourceKit()
+	{
+		OnReadyToLoadResources += Unpack;
+	}
+
 	public static void Initialize(Plumber plumber)
 	{
 		Plumber = plumber;
-
-		OnReadyToLoadResources += Unpack;
 	}
 
 	public static Action? OnReadyToLoadResources { get; set; }
