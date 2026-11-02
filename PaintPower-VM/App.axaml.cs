@@ -13,7 +13,6 @@ public partial class App : Application
         AvaloniaXamlLoader.Load(this);
         
         _ = new Toolkit();
-        ResourceKit.OnReadyToLoadResources?.Invoke();
     }
 
     public override void OnFrameworkInitializationCompleted()

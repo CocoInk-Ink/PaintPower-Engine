@@ -89,20 +89,18 @@ public class Session
 
 	public void StartupAppPack()
 	{
-		if (isAppPack)
-		{
-			// Check if AppPack is installed
-			if (!Directory.Exists(AppPackInstallDir))
-				throw new Exception("AppPack is not installed. Install AppPack or use the standalone version.");
+		// Check if AppPack is installed
+		if (!Directory.Exists(AppPackInstallDir))
+			throw new Exception("AppPack is not installed. Install AppPack or use the standalone version.");
 
-			// Ensure the AppPack directory exists
-			if (!Directory.Exists(AppPackDir))
-				throw new Exception("AppPack directory does not exist. Ensure AppPack is properly installed.");
+		// Ensure the AppPack directory exists
+		if (!Directory.Exists(AppPackDir))
+			throw new Exception("AppPack directory does not exist. Ensure AppPack is properly installed.");
 
-			// Ensure the AppPack data directory exists
-			if (!Directory.Exists(AppPackDataDir))
-				Directory.CreateDirectory(AppPackDataDir);
-		}
+		// Ensure the AppPack data directory exists
+		if (!Directory.Exists(AppPackDataDir))
+			Directory.CreateDirectory(AppPackDataDir);
+
 	}
 
 	public void Setup()
@@ -122,6 +120,8 @@ public class Session
 	public void Unpack()
 	{
 		ResourceKit.OnReadyToLoadResources?.Invoke();
+
+		File.WriteAllText(SettingsFileDir, "{}");
 	}
 
 	public string SessionDir => Path.Join(AppDir(), "Sessions", SessionId);

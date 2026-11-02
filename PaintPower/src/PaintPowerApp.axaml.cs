@@ -31,6 +31,8 @@ public class PaintPowerApp : Application
 				var firstLaunchWindow = new FirstLaunchWindow();
 				firstLaunchWindow.ProceedRequested += () =>
 				{
+					Session.Current.Unpack(); // Unpack resources on first run
+					
 					var mainWindow = CreateMainWindow(desktop.Args);
 					desktop.MainWindow = mainWindow;
 					mainWindow.Show();
