@@ -17,6 +17,7 @@ public partial class ProjectEditor : Editor
     public ProjectEditorLogic Logic { get; private set; }
     public MainWindow Window { get; private set; }
     public static ProjectEditor CurrentProjectEditor;
+	public SpriteEditorView? _spriteEditor;
 
     public EditorUIMode UIMode;
 
@@ -33,10 +34,8 @@ public partial class ProjectEditor : Editor
 
         SpriteManager.SpriteSelected += sprite =>
         {
-            SpriteProperties.LoadSprite(sprite);
-
-            var spriteEditor = new SpriteEditorView(sprite, Logic.Workspace, Logic.EditorManager);
-            Logic.OpenSpriteEditor(spriteEditor);
+            _spriteEditor = new SpriteEditorView(sprite, Logic.Workspace, Logic.EditorManager);
+            Logic.OpenSpriteEditor(_spriteEditor);
         };
 
         VmPanelControl.FindControl<StageAreaPart>("StageArea").FindControl<Button>("ExitButton").Click += (sender, e) =>
@@ -199,7 +198,7 @@ public partial class ProjectEditor : Editor
             {
                 ["File"] = new()
             {
-                new HeaderItem { Label = "New", Command = () => _ = Logic.NewProject() },
+                new HeaderItem { Label = "New", Command = () => Logic.NewProject() },
                 new HeaderItem { IsSeparator = true },
                 new HeaderItem { Label = "Open...", Command = () => _ = Logic.OpenProjectDialog() },
                 new HeaderItem { IsSeparator = true },

@@ -18,11 +18,6 @@
                 <TabItem Header="Sprites">
                     <sprite:SpriteManagerView Grid.Row="0" x:Name="SpriteManager" Margin="0,0,0,5" />
                 </TabItem>
-                <TabItem Header="Sprite Details">
-                    <Border Grid.Row="2" Background="{DynamicResource LeftPanelBackground}">
-                        <sprite:SpritePropertiesView x:Name="SpriteProperties" />
-                    </Border>
-                </TabItem>
                 <TabItem Header="Project Settings">
                     <views:ProjectSettingsView x:Name="ProjectSettings" />
                 </TabItem>

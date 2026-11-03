@@ -1,43 +1,53 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:explorer="clr-namespace:PaintPower.FileExplorer"
-             x:Class="PaintPower.ProjectSystem.SpriteEditor.SpriteEditorView">
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:explorer="clr-namespace:PaintPower.FileExplorer"
+			 x:Class="PaintPower.ProjectSystem.SpriteEditor.SpriteEditorView"
+			 xmlns:sprite="clr-namespace:PaintPower.ProjectSystem.SpriteEditor">
 
-    <Grid ColumnDefinitions="260,5,*">
+	<TabControl Grid.Column="2">
 
-        <!-- INNER LEFT: Explorer -->
-        <explorer:ExplorerView x:Name="Explorer"
-                               Grid.Column="0"/>
+		<TabItem Header="Sprite Details">
+			<Border Grid.Row="2" Background="{DynamicResource LeftPanelBackground}">
+				<sprite:SpritePropertiesView x:Name="SpriteProperties" />
+			</Border>
+		</TabItem>
 
-        <!-- SPLITTER -->
-        <GridSplitter Grid.Column="1"
-                      Width="5"
-                      Background="#505050"
-                      ResizeDirection="Columns"
-                      ResizeBehavior="PreviousAndNext"/>
+		<TabItem Header="Editor">
+			<Grid ColumnDefinitions="260,5,*">
 
+				<!-- INNER LEFT: Explorer -->
+				<explorer:ExplorerView x:Name="Explorer"
+									   Grid.Column="0"/>
 
-        <!-- INNER RIGHT: Editor Host -->
-        <Grid RowDefinitions="50,*" Grid.Column="2"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch" >
+				<!-- SPLITTER -->
+				<GridSplitter Grid.Column="1"
+							  Width="5"
+							  Background="#505050"
+							  ResizeDirection="Columns"
+							  ResizeBehavior="PreviousAndNext"/>
 
-            <Border Grid.Row="0" Background = "#7E8B96">
-                <TabStrip x:Name="EditorTabs" x:CompileBindings="False" SelectionChanged="TabStrip_SelectionChanged" >
-                    <TabStripItem x:Name="PaintTab">Paint</TabStripItem>
-                    <TabStripItem x:Name="ScriptTab">Script/Text</TabStripItem>
-                    <TabStripItem x:Name="AnimationTab">AnimationTab</TabStripItem>
-                    <TabStripItem x:Name="SoundTab">Audio</TabStripItem>
-                </TabStrip>
-            </Border>
+				<!-- INNER RIGHT: Editor Host -->
+				<Grid RowDefinitions="50,*"
+					  HorizontalAlignment="Stretch"
+					  VerticalAlignment="Stretch" >
 
-            <ContentControl x:Name="EditorHost"
-                            Grid.Row = "1"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch"
-                            x:CompileBindings="False"
-                            />
-        </Grid>
+					<Border Grid.Row="0" Background = "#7E8B96">
+						<TabStrip x:Name="EditorTabs" x:CompileBindings="False" SelectionChanged="TabStrip_SelectionChanged" >
+							<TabStripItem x:Name="PaintTab">Paint</TabStripItem>
+							<TabStripItem x:Name="ScriptTab">Script/Text</TabStripItem>
+							<TabStripItem x:Name="AnimationTab">AnimationTab</TabStripItem>
+							<TabStripItem x:Name="SoundTab">Audio</TabStripItem>
+						</TabStrip>
+					</Border>
 
-    </Grid>
+					<ContentControl x:Name="EditorHost"
+									Grid.Row = "1"
+									HorizontalAlignment="Stretch"
+									VerticalAlignment="Stretch"
+									x:CompileBindings="False"
+									/>
+				</Grid>
+			</Grid>
+		</TabItem>
+	</TabControl>
 </UserControl>

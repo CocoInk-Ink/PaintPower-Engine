@@ -32,6 +32,8 @@ public partial class SpriteEditorView : SpriteEditor
     {
         InitializeComponent();
 
+		SpriteProperties.LoadSprite(sprite);
+
         _sprite = sprite;
         _workspace = workspace;
         _editorManager = editorManager;

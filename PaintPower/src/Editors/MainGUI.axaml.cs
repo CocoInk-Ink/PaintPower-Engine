@@ -80,7 +80,6 @@ public partial class MainGUI : TranslatableControl
         projectEditor = editor;
         SetEditor(editor);
 
-        await editor.Logic.NewProject();
         ShowHeader();
     }
 

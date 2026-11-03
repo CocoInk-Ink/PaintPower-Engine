@@ -32,7 +32,7 @@ public class ProjectEditorLogic
     public PaintProject? Project { get; private set; }
     public Builder? builder;
     public TempWorkspace Workspace;
-    public FileEditorManager? EditorManager { get; private set; }
+    public FileEditorManager EditorManager { get; private set; }
     public FileEditor? CurrentEditor { get; private set; }
 
     public bool SaveNeeded { get; private set; }
@@ -46,6 +46,10 @@ public class ProjectEditorLogic
 
         HookSpriteEvents();
         HookTranslationEvents();
+
+		NewProject();
+
+		EditorManager = new FileEditorManager(Project.Workspace);
     }
 
     // Makes the project dirty (needs save)
@@ -65,13 +69,14 @@ public class ProjectEditorLogic
         _view.SpriteManager.SpriteSelected += sprite =>
         {
             if (Project == null) return;
+			if (_view._spriteEditor != null)
+				_view._spriteEditor.SpriteProperties.LoadSprite(sprite);
 
-            _view.SpriteProperties.LoadSprite(sprite);
             SetStatus($"Editing Sprite: {sprite.Name}");
         };
 
         // Skin selected
-        _view.SpriteProperties.SkinSelected += (sprite, skin) =>
+        if (_view._spriteEditor != null) _view._spriteEditor.SpriteProperties.SkinSelected += (sprite, skin) =>
         {
             if (Project == null) return;
 
@@ -96,7 +101,7 @@ public class ProjectEditorLogic
     // ------------------------------------------------------------
     // Project lifecycle
     // ------------------------------------------------------------
-    public async Task NewProject()
+    public async void NewProject()
     {
         StopRuntime();
         SoundEffects.Click.Play();
@@ -167,7 +172,7 @@ public class ProjectEditorLogic
             else
             {
                 // The project has failed to load, create a new one
-                await NewProject();
+                NewProject();
             }
         }
         finally
@@ -374,7 +379,6 @@ public class ProjectEditorLogic
         // return;
 
         Project = null;
-        EditorManager = null;
         CurrentEditor = null;
         SaveNeeded = false;
         IsNewProject = true;
@@ -426,8 +430,12 @@ public class ProjectEditorLogic
 
         _view.ProjectSettings.SetProject(Project);
         _view.SpriteManager.Initialize(Project);
-        // When sprite or skin changes, mark project dirty
-        _view.SpriteProperties.SkinSelected += (_, _) => SaveNeeded = true;
+
+		if (_view._spriteEditor != null) {
+        	// When sprite or skin changes, mark project dirty
+        	_view._spriteEditor.SpriteProperties.SkinSelected += (_, _) => DirtyProject();
+		}
+
         _window.Title = $"PaintPower - Project - {Project.Metadata.name}";
         SetStatus("Ready");
     }
