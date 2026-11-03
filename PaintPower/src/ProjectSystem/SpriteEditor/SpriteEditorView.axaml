@@ -6,16 +6,10 @@
 
 	<TabControl Grid.Column="2">
 
-		<TabItem Header="Sprite Details">
-			<Border Grid.Row="2" Background="{DynamicResource LeftPanelBackground}">
-				<sprite:SpritePropertiesView x:Name="SpriteProperties" />
-			</Border>
-		</TabItem>
-
-		<TabItem Header="Editor">
+		<TabItem Header="Sprite Explorer">
 			<Grid ColumnDefinitions="260,5,*">
 
-				<!-- INNER LEFT: Explorer -->
+				<!-- INNER LEFT: File Explorer -->
 				<explorer:ExplorerView x:Name="Explorer"
 									   Grid.Column="0"/>
 
@@ -48,6 +42,14 @@
 									/>
 				</Grid>
 			</Grid>
+		</TabItem>
+
+		<TabItem Header="Skins"></TabItem>
+
+		<TabItem Header="Sprite Details">
+			<Border Grid.Row="2" Background="{DynamicResource LeftPanelBackground}">
+				<sprite:SpritePropertiesView x:Name="SpriteProperties" />
+			</Border>
 		</TabItem>
 	</TabControl>
 </UserControl>
