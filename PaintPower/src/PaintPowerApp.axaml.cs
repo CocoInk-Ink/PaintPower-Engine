@@ -42,6 +42,7 @@ public class PaintPowerApp : Application
 			}
 			else
 			{
+				Session.Current.Unpack(); // Unpack resources on normal startup
 				Log.QuickLog("Normal startup detected.");
 				desktop.MainWindow = CreateMainWindow(desktop.Args);
 			}
