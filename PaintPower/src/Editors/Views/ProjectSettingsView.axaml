@@ -10,13 +10,13 @@
             <Separator />
             <TextBlock Text="General" FontSize="16" />
             <TextBlock Text="Project Name" />
-            <TextBox Text="{Binding ProjectName, Mode=TwoWay}" />
+            <TextBox Text="{Binding ProjectName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
             <TextBlock Text="Project Description" />
-            <TextBox Text="{Binding Description, Mode=TwoWay}" />
+            <TextBox Text="{Binding Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
             <TextBlock Text="Project Version" />
-            <TextBox Text="{Binding ProjectVersion, Mode=TwoWay}" />
+            <TextBox Text="{Binding ProjectVersion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
             <TextBlock Text="Project Author" />
-            <TextBox Text="{Binding Author, Mode=TwoWay}" />
+            <TextBox Text="{Binding Author, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
             <Separator />
             <TextBlock Text="Advanced" FontSize="16" />
             <TextBlock Text="Stage Size" />
