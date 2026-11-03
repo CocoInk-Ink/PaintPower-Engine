@@ -22,9 +22,9 @@
             <TextBlock Text="Stage Size" />
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Width" />
-                <TextBox Text="{Binding StageWidth, Mode=TwoWay}" />
+                <NumericUpDown Text="{Binding StageWidth, Mode=TwoWay}" />
                 <TextBlock Text="Height" />
-                <TextBox Text="{Binding StageHeight, Mode=TwoWay}" />
+                <NumericUpDown Text="{Binding StageHeight, Mode=TwoWay}" />
                 <Button Content="Reset" Click="ResetStageSize" />
             </StackPanel>
             <Separator />
