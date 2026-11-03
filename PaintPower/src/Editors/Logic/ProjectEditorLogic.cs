@@ -12,7 +12,6 @@ using PaintPower.Building;
 using PaintPower.Dialogs;
 using PaintPower.FileEditors;
 using PaintPower.ProjectSystem;
-using PaintPower.ProjectSystem.SpriteEditor;
 using PaintPower_VM.VMPanel;
 using Toolbox.Accessibility.Translation;
 using Toolbox.Logging;
@@ -75,22 +74,6 @@ public class ProjectEditorLogic
             SetStatus($"Editing Sprite: {sprite.Name}");
         };
 
-        // Skin selected
-        if (_view._spriteEditor != null) _view._spriteEditor.SpriteProperties.SkinSelected += (sprite, skin) =>
-        {
-            if (Project == null) return;
-
-            // Open the skin editor through MainGUI
-            double w = Project.Metadata.StageWidth ?? 640;
-            double h = Project.Metadata.StageHeight ?? 450;
-
-            var editor = new SkinEditorView(sprite, skin, w, h);
-            OpenSpriteEditor(editor);
-
-
-            SaveNeeded = true;
-            SetStatus($"Editing Skin: {skin.Name}");
-        };
     }
 
     private void HookTranslationEvents()
@@ -430,11 +413,6 @@ public class ProjectEditorLogic
 
         _view.ProjectSettings.SetProject(Project);
         _view.SpriteManager.Initialize(Project);
-
-		if (_view._spriteEditor != null) {
-        	// When sprite or skin changes, mark project dirty
-        	_view._spriteEditor.SpriteProperties.SkinSelected += (_, _) => DirtyProject();
-		}
 
         _window.Title = $"PaintPower - Project - {Project.Metadata.name}";
         SetStatus("Ready");

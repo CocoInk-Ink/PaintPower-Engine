@@ -20,6 +20,7 @@ namespace PaintPower.ProjectSystem.SpriteEditor;
 
 public partial class SkinEditorView : SpriteEditor
 {
+    public event Action? SkinChanged;
 
     private double _stageWidth = 640;
     private double _stageHeight = 450;
@@ -163,7 +164,7 @@ public partial class SkinEditorView : SpriteEditor
 
             _selectedElement = null;
 
-            _sprite.SaveSkins();
+            SaveSkinChanges();
             RefreshElementList();
             LoadPropertiesFromElement();
             Redraw();
@@ -348,7 +349,7 @@ public partial class SkinEditorView : SpriteEditor
         {
             if (e.Source is TextBox)
             {
-                _sprite.SaveSkins();
+                SaveSkinChanges();
                 LoadPropertiesFromElement();
                 return;
             }
@@ -772,7 +773,13 @@ public partial class SkinEditorView : SpriteEditor
         if (_selectedElement == null)
             return;
 
-        _sprite?.SaveSkins();
+        SaveSkinChanges();
+    }
+
+    private void SaveSkinChanges()
+    {
+        _sprite.SaveSkins();
+        SkinChanged?.Invoke();
     }
 
     // ---------------------------------------------------------
@@ -932,7 +939,7 @@ public partial class SkinEditorView : SpriteEditor
 
         _skin.Elements.Add(elem);
 
-        _sprite.SaveSkins();
+        SaveSkinChanges();
 
         PushHistory(
             undo: () => _skin.Elements.Remove(elem),

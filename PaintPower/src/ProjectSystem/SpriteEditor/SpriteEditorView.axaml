@@ -4,7 +4,12 @@
 			 x:Class="PaintPower.ProjectSystem.SpriteEditor.SpriteEditorView"
 			 xmlns:sprite="clr-namespace:PaintPower.ProjectSystem.SpriteEditor">
 
-	<TabControl Grid.Column="2">
+	<TabControl>
+		<TabItem Header="Sprite Properties">
+			<Border Background="{DynamicResource LeftPanelBackground}">
+				<sprite:SpritePropertiesView x:Name="SpriteProperties" />
+			</Border>
+		</TabItem>
 
 		<TabItem Header="Sprite Explorer">
 			<Grid ColumnDefinitions="260,5,*">
@@ -21,7 +26,8 @@
 							  ResizeBehavior="PreviousAndNext"/>
 
 				<!-- INNER RIGHT: Editor Host -->
-				<Grid RowDefinitions="50,*"
+				<Grid Grid.Column="2"
+					  RowDefinitions="50,*"
 					  HorizontalAlignment="Stretch"
 					  VerticalAlignment="Stretch" >
 
@@ -44,12 +50,35 @@
 			</Grid>
 		</TabItem>
 
-		<TabItem Header="Skins"></TabItem>
+		<TabItem Header="Skins">
+			<Grid ColumnDefinitions="240,5,*">
+				<Grid Grid.Column="0" RowDefinitions="Auto,*,Auto" Background="#252525" Margin="8">
+					<TextBlock Grid.Row="0" Text="Skins" Foreground="White" FontSize="16" Margin="8" />
+					<ListBox Grid.Row="1"
+							 x:Name="SkinList"
+							 Background="#202020"
+							 Foreground="White"
+							 BorderBrush="#404040"
+							 BorderThickness="1"
+							 SelectionChanged="OnSkinSelected" />
+					<StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="6" Margin="0,8,0,0">
+						<Button Content="Add" Classes="white" Click="OnAddSkin" />
+						<Button Content="Remove" Classes="white" Click="OnRemoveSkin" />
+						<Button Content="Rename" Classes="white" Click="OnRenameSkin" />
+					</StackPanel>
+				</Grid>
 
-		<TabItem Header="Sprite Details">
-			<Border Grid.Row="2" Background="{DynamicResource LeftPanelBackground}">
-				<sprite:SpritePropertiesView x:Name="SpriteProperties" />
-			</Border>
+				<GridSplitter Grid.Column="1"
+							  Width="5"
+							  Background="#505050"
+							  ResizeDirection="Columns"
+							  ResizeBehavior="PreviousAndNext" />
+
+				<ContentControl x:Name="SkinEditorHost"
+								Grid.Column="2"
+								HorizontalAlignment="Stretch"
+								VerticalAlignment="Stretch" />
+			</Grid>
 		</TabItem>
 	</TabControl>
 </UserControl>

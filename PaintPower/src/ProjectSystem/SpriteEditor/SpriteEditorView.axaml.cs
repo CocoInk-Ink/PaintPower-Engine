@@ -1,11 +1,14 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Interactivity;
 using PaintPower.FileEditors;
 using PaintPower.ProjectSystem;
 using Toolbox.Accessibility.Translation;
 using Toolbox.Logging;
 using Toolbox.SoundEffects;
+using System.Linq;
 
 namespace PaintPower.ProjectSystem.SpriteEditor;
 
@@ -25,18 +28,30 @@ public partial class SpriteEditorView : SpriteEditor
     private readonly PaintSprite _sprite;
     private readonly TempWorkspace _workspace;
     private readonly FileEditorManager _editorManager;
+    private readonly double _stageWidth;
+    private readonly double _stageHeight;
     private FileEditor? Editor;
     private string? path = null;
 
-    public SpriteEditorView(PaintSprite sprite, TempWorkspace workspace, FileEditorManager editorManager)
+    public event Action? SkinChanged;
+
+    public SpriteEditorView(
+        PaintSprite sprite,
+        TempWorkspace workspace,
+        FileEditorManager editorManager,
+        double stageWidth = 640,
+        double stageHeight = 450)
     {
         InitializeComponent();
 
-		SpriteProperties.LoadSprite(sprite);
+        SpriteProperties.LoadSprite(sprite);
 
         _sprite = sprite;
         _workspace = workspace;
         _editorManager = editorManager;
+        _stageWidth = stageWidth;
+        _stageHeight = stageHeight;
+        SkinList.ItemsSource = _sprite.Skins;
 
         // NEW: Initialize Explorer directly with the sprite folder
         Explorer.Initialize(_sprite.ItemsFolder, false);
@@ -145,5 +160,71 @@ public partial class SpriteEditorView : SpriteEditor
 
             if (editor is FileEditor) OpenEditor(editor, path);
         }
+    }
+
+    private void OnSkinSelected(object? sender, SelectionChangedEventArgs e)
+    {
+        if (SkinList.SelectedItem is not SkinDefinition skin)
+        {
+            SkinEditorHost.Content = null;
+            return;
+        }
+
+        SpriteProperties.ShowSkinThumbnail(skin);
+
+        var editor = new SkinEditorView(_sprite, skin, _stageWidth, _stageHeight);
+        editor.SkinChanged += () => SkinChanged?.Invoke();
+        SkinEditorHost.Content = editor;
+    }
+
+    private void OnAddSkin(object? sender, RoutedEventArgs e)
+    {
+        string baseName = "New Skin";
+        string name = baseName;
+        int counter = 1;
+
+        while (_sprite.Skins.Any(skin => skin.Name == name))
+        {
+            name = $"{baseName} {counter}";
+            counter++;
+        }
+
+        var skin = new SkinDefinition { Name = name };
+        _sprite.Skins.Add(skin);
+        _sprite.SaveSkins();
+        SkinChanged?.Invoke();
+        RefreshSkinList(skin);
+    }
+
+    private void OnRemoveSkin(object? sender, RoutedEventArgs e)
+    {
+        if (SkinList.SelectedItem is not SkinDefinition skin)
+            return;
+
+        _sprite.Skins.Remove(skin);
+        _sprite.SaveSkins();
+        SkinChanged?.Invoke();
+        RefreshSkinList(_sprite.Skins.FirstOrDefault());
+    }
+
+    private void OnRenameSkin(object? sender, RoutedEventArgs e)
+    {
+        if (SkinList.SelectedItem is not SkinDefinition skin)
+            return;
+
+        skin.Name += " Renamed";
+        _sprite.SaveSkins();
+        SkinChanged?.Invoke();
+        RefreshSkinList(skin);
+    }
+
+    private void RefreshSkinList(SkinDefinition? selectedSkin)
+    {
+		if (SkinList == null)
+			return;
+
+        SkinList.ItemsSource = null;
+        SkinList.ItemsSource = _sprite.Skins;
+        SkinList.SelectedItem = selectedSkin;
     }
 }

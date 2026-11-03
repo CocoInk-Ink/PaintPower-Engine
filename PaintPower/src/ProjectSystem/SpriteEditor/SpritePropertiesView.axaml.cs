@@ -4,7 +4,6 @@ using PaintPower.ProjectSystem;
 using Toolbox.Display.Sprites;
 using System;
 using System.IO;
-using System.Linq;
 using Toolbox;
 
 namespace PaintPower.ProjectSystem.SpriteEditor
@@ -12,21 +11,13 @@ namespace PaintPower.ProjectSystem.SpriteEditor
     public partial class SpritePropertiesView : TranslatableControl
     {
         private PaintSprite? _sprite;
-        private bool _suppressSelection = false;
-
-        // Notify ProjectEditorLogic
-        public event Action<PaintSprite, SkinDefinition>? SkinSelected;
 
         public SpritePropertiesView()
         {
             InitializeComponent();
 
-            AddSkinButton.Click += OnAddSkin;
-            RemoveSkinButton.Click += OnRemoveSkin;
-            RenameSkinButton.Click += OnRenameSkin;
             NameBox.LostFocus += OnNameChanged;
             InstanceNameBox.LostFocus += OnInstanceNameChanged;
-            SkinsList.SelectionChanged += OnSkinSelected;
         }
 
         // ---------------------------------------------------------
@@ -38,11 +29,6 @@ namespace PaintPower.ProjectSystem.SpriteEditor
 
             NameBox.Text = sprite.Name;
             InstanceNameBox.Text = sprite.InstanceName ?? "";
-
-            _suppressSelection = true;
-            SkinsList.ItemsSource = sprite.Skins.ToList();
-            SkinsList.SelectedItem = null;
-            _suppressSelection = false;
 
             LoadThumbnail();
         }
@@ -74,19 +60,6 @@ namespace PaintPower.ProjectSystem.SpriteEditor
         }
 
         // ---------------------------------------------------------
-        // Refresh List
-        // ---------------------------------------------------------
-        private void RefreshList()
-        {
-            if (_sprite == null) return;
-
-            _suppressSelection = true;
-            SkinsList.ItemsSource = _sprite.Skins.ToList();
-            SkinsList.SelectedItem = null;
-            _suppressSelection = false;
-        }
-
-        // ---------------------------------------------------------
         // Rename Sprite
         // ---------------------------------------------------------
         private void OnNameChanged(object? sender, EventArgs e)
@@ -94,7 +67,6 @@ namespace PaintPower.ProjectSystem.SpriteEditor
             if (_sprite == null) return;
 
             _sprite.Name = NameBox.Text ?? "";
-            RefreshList();
         }
         // ---------------------------------------------------------
         // Rename Instance Name
@@ -104,83 +76,12 @@ namespace PaintPower.ProjectSystem.SpriteEditor
             if (_sprite == null) return;
 
             _sprite.InstanceName = InstanceNameBox.Text ?? "";
-            RefreshList();
-        }
-        // ---------------------------------------------------------
-        // Add Skin
-        // ---------------------------------------------------------
-        private void OnAddSkin(object? sender, EventArgs e)
-        {
-            if (_sprite == null) return;
-
-            string baseName = "New Skin";
-            string name = baseName;
-            int counter = 1;
-
-            while (_sprite.Skins.Any(s => s.Name == name))
-            {
-                name = $"{baseName} {counter}";
-                counter++;
-            }
-
-            _sprite.Skins.Add(new SkinDefinition
-            {
-                Name = name,
-                ScriptPath = "",
-                Elements = new()
-            });
-
-            _sprite.SaveSkins();
-            RefreshList();
-        }
-
-        // ---------------------------------------------------------
-        // Remove Skin
-        // ---------------------------------------------------------
-        private void OnRemoveSkin(object? sender, EventArgs e)
-        {
-            if (_sprite == null) return;
-            if (SkinsList.SelectedItem is not SkinDefinition skin) return;
-
-            _sprite.Skins.Remove(skin);
-            _sprite.SaveSkins();
-
-            RefreshList();
-        }
-
-        // ---------------------------------------------------------
-        // Rename Skin
-        // ---------------------------------------------------------
-        private void OnRenameSkin(object? sender, EventArgs e)
-        {
-            if (_sprite == null) return;
-            if (SkinsList.SelectedItem is not SkinDefinition skin) return;
-
-            skin.Name = skin.Name + " Renamed";
-            _sprite.SaveSkins();
-
-            RefreshList();
-        }
-
-        // ---------------------------------------------------------
-        // Skin Selected → Notify Logic + Generate Thumbnail
-        // ---------------------------------------------------------
-        private void OnSkinSelected(object? sender, SelectionChangedEventArgs e)
-        {
-            if (_suppressSelection) return;
-            if (_sprite == null) return;
-            if (SkinsList.SelectedItem is not SkinDefinition skin) return;
-
-            GenerateThumbnailFromSkin(skin);
-
-            // Notify ProjectEditorLogic
-            SkinSelected?.Invoke(_sprite, skin);
         }
 
         // ---------------------------------------------------------
         // Thumbnail Generation
         // ---------------------------------------------------------
-        private void GenerateThumbnailFromSkin(SkinDefinition skin)
+        public void ShowSkinThumbnail(SkinDefinition skin)
         {
             if (_sprite == null) return;
 

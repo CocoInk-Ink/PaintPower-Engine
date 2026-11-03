@@ -34,7 +34,14 @@ public partial class ProjectEditor : Editor
 
         SpriteManager.SpriteSelected += sprite =>
         {
-            _spriteEditor = new SpriteEditorView(sprite, Logic.Workspace, Logic.EditorManager);
+            var project = Logic.Project;
+            _spriteEditor = new SpriteEditorView(
+                sprite,
+                Logic.Workspace,
+                Logic.EditorManager,
+                project?.Metadata.StageWidth ?? 640,
+                project?.Metadata.StageHeight ?? 450);
+            _spriteEditor.SkinChanged += Logic.DirtyProject;
             Logic.OpenSpriteEditor(_spriteEditor);
         };
 
