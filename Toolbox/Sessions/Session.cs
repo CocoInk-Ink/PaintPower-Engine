@@ -121,7 +121,13 @@ public class Session
 	{
 		ResourceKit.OnReadyToLoadResources?.Invoke();
 
-		File.WriteAllText(SettingsFileDir, "{}");
+		if (!File.Exists(SettingsFileDir)) File.WriteAllText(SettingsFileDir,
+		@"{
+			Language: ""en"",
+			SafeSyntaxEnabled: true,
+			UserToken: null,
+			Telemetry: false
+		}");
 	}
 
 	public string SessionDir => Path.Join(AppDir(), "Sessions", SessionId);
