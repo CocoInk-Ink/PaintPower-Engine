@@ -201,6 +201,7 @@ public partial class SpriteEditorView : SpriteEditor
         if (SkinList.SelectedItem is not SkinDefinition skin)
             return;
 
+        SkinList.SelectedItem = null;
         _sprite.Skins.Remove(skin);
         _sprite.SaveSkins();
         SkinChanged?.Invoke();
