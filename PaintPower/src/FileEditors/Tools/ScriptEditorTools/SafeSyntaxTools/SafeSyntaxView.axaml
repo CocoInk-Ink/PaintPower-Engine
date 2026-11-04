@@ -2,11 +2,72 @@
 	x:Class="PaintPower.FileEditors.Tools.ScriptEditorTools.SafeSyntaxTools.SafeSyntaxView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-	<Border Background="#83202020">
-		<StackPanel>
-			<TextBlock Foreground="White">
-				Simple Syntax is disabled
-			</TextBlock>
-		</StackPanel>
+	<Border
+		Padding="8"
+		Background="#83202020">
+		<Grid RowDefinitions="Auto,*,Auto">
+			<StackPanel
+				Grid.Row="0"
+				Margin="0,0,0,8"
+				Spacing="4">
+				<TextBlock
+					FontSize="16"
+					FontWeight="Bold"
+					Foreground="White"
+					Text="PaintScript blocks" />
+				<TextBlock
+					Foreground="LightGray"
+					Text="Click Add or drag a block. Statements go on an empty line inside an event or function. In safe mode, click a variable or function name to rename it."
+					TextWrapping="Wrap" />
+			</StackPanel>
+
+			<ScrollViewer Grid.Row="1">
+				<StackPanel
+					x:Name="SnippetList"
+					Spacing="10" />
+			</ScrollViewer>
+
+			<Border
+				Grid.Row="2"
+				Margin="0,8,0,0"
+				Padding="6"
+				Background="#50202020">
+				<StackPanel Spacing="6">
+					<TextBlock
+						FontWeight="Bold"
+						Foreground="White"
+						Text="Variables" />
+					<ScrollViewer MaxHeight="90">
+						<StackPanel
+							x:Name="VariableList"
+							Spacing="2" />
+					</ScrollViewer>
+					<TextBox
+						x:Name="VariableNameBox"
+						Watermark="Variable name" />
+					<ComboBox
+						x:Name="VariableScopeSelector"
+						SelectedIndex="0">
+						<ComboBoxItem Content="Local" Tag="local" />
+						<ComboBoxItem Content="Public" Tag="public" />
+						<ComboBoxItem Content="Private" Tag="private" />
+						<ComboBoxItem Content="Global" Tag="global" />
+						<ComboBoxItem Content="Constant" Tag="const" />
+					</ComboBox>
+					<ComboBox
+						x:Name="VariableTypeSelector"
+						SelectedIndex="0"
+						SelectionChanged="VariableTypeChanged">
+						<ComboBoxItem Content="Number" />
+						<ComboBoxItem Content="String" />
+						<ComboBoxItem Content="Boolean" />
+						<ComboBoxItem Content="*" />
+					</ComboBox>
+					<Button
+						Content="Add variable"
+						Click="AddVariableClicked" />
+				</StackPanel>
+			</Border>
+		</Grid>
 	</Border>
 </UserControl>
