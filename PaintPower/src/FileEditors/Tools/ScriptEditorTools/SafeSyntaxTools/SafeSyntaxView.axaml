@@ -1,0 +1,12 @@
+<UserControl
+	x:Class="PaintPower.FileEditors.Tools.ScriptEditorTools.SafeSyntaxTools.SafeSyntaxView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+	<Border Grid.Row="1" Background="#AB202020">
+		<StackPanel>
+			<TextBlock Foreground="White">
+				Simple Syntax is disabled
+			</TextBlock>
+		</StackPanel>
+	</Border>
+</UserControl>

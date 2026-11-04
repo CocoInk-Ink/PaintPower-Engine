@@ -1,33 +1,55 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-			 xmlns:ae="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
-			 x:Class="PaintPower.FileEditors.ScriptEditor">
+<UserControl
+	x:Class="PaintPower.FileEditors.ScriptEditor"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:ae="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+	xmlns:safeSyntax="clr-namespace:PaintPower.FileEditors.Tools.ScriptEditorTools.SafeSyntaxTools">
 
-		<Grid Background="{DynamicResource MainBackground}" RowDefinitions="Auto,*,Auto">
+	<Grid Background="{DynamicResource MainBackground}" RowDefinitions="Auto,*,Auto">
 
-			<StackPanel Background="#008CFF" x:Name="ScriptControlsPanel" Orientation="Horizontal" Grid.Row="0">
-				<Button Click="SaveButtonClick">Save</Button>
-				<Button>Check Syntax</Button>
-			</StackPanel>
+		<StackPanel
+			x:Name="ScriptControlsPanel"
+			Grid.Row="0"
+			Background="#008CFF"
+			Orientation="Horizontal">
+			<Button Click="SaveButtonClick">Save</Button>
+			<Button>Check Syntax</Button>
+		</StackPanel>
 
-			<Border Grid.Row="1" Background="#70202020">
-				<ae:TextEditor x:Name="Editor"
-							   Foreground="White"
-							   ShowLineNumbers="True"
-							   FontFamily="Consolas"
-							   FontSize="14"
-							   MinHeight="200"
-							   MinWidth="300"
-							   HorizontalScrollBarVisibility="Auto"
-							   VerticalScrollBarVisibility="Auto"
-							   HorizontalAlignment="Stretch"
-							   VerticalAlignment="Stretch"
-							   />
-			</Border>
+		<Border Grid.Row="1" Background="#70202020">
+			<Grid ColumnDefinitions="Auto,*,Auto">
+				<ae:TextEditor
+					x:Name="Editor"
+					Grid.Column="0"
+					MinWidth="300"
+					MinHeight="200"
+					HorizontalAlignment="Stretch"
+					VerticalAlignment="Stretch"
+					FontFamily="Consolas"
+					FontSize="14"
+					Foreground="White"
+					HorizontalScrollBarVisibility="Auto"
+					ShowLineNumbers="True"
+					VerticalScrollBarVisibility="Auto" />
 
-			<StackPanel Background="Gray" Grid.Row="2" x:Name="ScriptOptionsPanel">
-				<TextBlock>Safe Syntax: disabled</TextBlock>
-			</StackPanel>
-		</Grid>
+				<GridSplitter
+					Grid.Row="1"
+					Grid.Column="1"
+					Width="4"
+					Background="#505050"
+					ResizeDirection="Columns"
+					 />
+
+				<safeSyntax:SafeSyntaxView Grid.Column="2" />
+			</Grid>
+		</Border>
+
+		<StackPanel
+			x:Name="ScriptOptionsPanel"
+			Grid.Row="2"
+			Background="Gray">
+			<TextBlock>Safe Syntax: disabled</TextBlock>
+		</StackPanel>
+	</Grid>
 
 </UserControl>

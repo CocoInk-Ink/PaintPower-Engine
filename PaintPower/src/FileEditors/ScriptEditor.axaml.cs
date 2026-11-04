@@ -34,9 +34,9 @@ public partial class ScriptEditor : FileEditor
     public ScriptEditor(string relativePath, TempWorkspace workspace)
     {
 
-        _workspace = workspace;
+		InitializeComponent();
 
-        AvaloniaXamlLoader.Load(this);
+        _workspace = workspace;
 
 		var _ = this.FindControl<TextEditor>("Editor");
 
