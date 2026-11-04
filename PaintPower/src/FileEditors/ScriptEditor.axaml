@@ -17,10 +17,11 @@
 		</StackPanel>
 
 		<Border Grid.Row="1" Background="#70202020">
-			<Grid ColumnDefinitions="Auto,Auto,Auto">
+			<Grid ColumnDefinitions="*,4,240">
 				<ae:TextEditor
 					x:Name="Editor"
-					Grid.Column="2"
+					Grid.Column="0"
+					Grid.ColumnSpan="3"
 					MinWidth="300"
 					MinHeight="200"
 					HorizontalAlignment="Stretch"
@@ -33,14 +34,11 @@
 					VerticalScrollBarVisibility="Auto" />
 
 				<GridSplitter
-					Grid.Row="1"
 					Grid.Column="1"
-					Width="4"
 					Background="#505050"
-					ResizeDirection="Columns"
-					 />
+					ResizeDirection="Columns" />
 
-				<safeSyntax:SafeSyntaxView Grid.Column="0" />
+				<safeSyntax:SafeSyntaxView Grid.Column="2" />
 			</Grid>
 		</Border>
 
