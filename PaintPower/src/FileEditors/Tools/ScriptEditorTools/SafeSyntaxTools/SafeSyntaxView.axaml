@@ -2,7 +2,7 @@
 	x:Class="PaintPower.FileEditors.Tools.ScriptEditorTools.SafeSyntaxTools.SafeSyntaxView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-	<Border Background="#AB202020">
+	<Border Background="#83202020">
 		<StackPanel>
 			<TextBlock Foreground="White">
 				Simple Syntax is disabled
