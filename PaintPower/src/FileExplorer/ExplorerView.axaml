@@ -31,8 +31,7 @@
             <TextBox x:Name="SearchBox" Grid.Row="1" Watermark="Search..." Margin="0,6,0,6" KeyUp="OnSearchChanged" />
             <!-- CUSTOM EXPLORER LIST -->
             <Border Grid.Row="3" Background="#252526" Padding="4">
-                <Canvas>
-                    <TextBlock x:Name="DragGhost" IsVisible="False" Foreground="White" Background="#2A2A2A" Padding="4" ZIndex="999" Opacity="0.85" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                <Grid>
                     <ListBox x:Name="FileList" Background="#1E1E1E" BorderThickness="0" ItemsSource="{Binding Rows}" SelectionMode="Single">
                         <ListBox.ItemTemplate>
                             <DataTemplate DataType="explorer:ExplorerRow">
@@ -82,7 +81,10 @@
                             </Style>
                         </ListBox.Styles>
                     </ListBox>
-                </Canvas>
+                    <Canvas IsHitTestVisible="False">
+                        <TextBlock x:Name="DragGhost" IsVisible="False" Foreground="White" Background="#2A2A2A" Padding="4" ZIndex="999" Opacity="0.85" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                    </Canvas>
+                </Grid>
             </Border>
         </Grid>
     </Border>
