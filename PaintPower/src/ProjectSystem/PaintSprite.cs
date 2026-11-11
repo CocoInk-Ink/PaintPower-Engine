@@ -153,7 +153,7 @@ public class PaintSprite
     // ------------------------------------------------------------
     // Convert to runtime sprite
     // ------------------------------------------------------------
-    public Sprite ToRuntimeSprite(SkinDefinition? skinToRender = null)
+    public Sprite ToRuntimeSprite(SkinDefinition? skinToRender = null, bool autoPlayVideos = true)
     {
         var runtime = new Sprite();
 
@@ -187,7 +187,10 @@ public class PaintSprite
                 else if (elem is SkinVideoElement vid)
                 {
                     string full = Path.Combine(SpriteFolder, vid.AssetPath);
-                    var player = VideoPlayer.Load(full);
+                    var player = VideoPlayer.Load(
+                        full,
+                        vid.Loop,
+                        autoPlayVideos && vid.AutoPlay && runtime.Skins.Count == runtime.CurrentSkinIndex);
 
                     rSkin.Elements.Add(new RuntimeVideoElement
                     {

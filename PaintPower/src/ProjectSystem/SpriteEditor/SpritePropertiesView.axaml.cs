@@ -91,7 +91,7 @@ namespace PaintPower.ProjectSystem.SpriteEditor
 
             try
             {
-                var runtimeSprite = _sprite.ToRuntimeSprite(skin);
+                var runtimeSprite = _sprite.ToRuntimeSprite(skin, autoPlayVideos: false);
                 runtimeSprite.SetSkin(0);
                 runtimeSprite.RenderSnapshot();
 

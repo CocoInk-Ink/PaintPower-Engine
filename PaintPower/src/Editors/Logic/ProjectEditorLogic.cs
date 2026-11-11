@@ -37,6 +37,7 @@ public class ProjectEditorLogic
     public bool SaveNeeded { get; private set; }
     public bool IsNewProject { get; private set; } = true;
     private DispatcherTimer? _runtimeTimer;
+    private PaintProjectRuntime? _activeRuntime;
 
     public ProjectEditorLogic(ProjectEditor view)
     {
@@ -223,6 +224,7 @@ public class ProjectEditorLogic
 
         // Initialize the runtime for the project
         var runtime = new PaintProjectRuntime(Session.CurrentBuildSession);
+        _activeRuntime = runtime;
         var stage = ProjectEditor.CurrentProjectEditor.VmPanelControl.FindControl<StageAreaPart>("StageArea");
         if (stage == null) throw new InvalidOperationException("StageAreaPart not found.");
 
@@ -891,5 +893,11 @@ public class ProjectEditorLogic
     {
         _runtimeTimer?.Stop();
         _runtimeTimer = null;
+        if (_activeRuntime != null)
+        {
+            foreach (var sprite in _activeRuntime.Sprites.Values.Distinct())
+                sprite.Dispose();
+            _activeRuntime = null;
+        }
     }
 }

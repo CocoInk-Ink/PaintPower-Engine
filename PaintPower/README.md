@@ -60,6 +60,10 @@ Requires the **C# Dev Kit** extension.
 If you trust the builds, you can download them here:\
 https://github.com/CocoBox84/PaintPower-Engine/releases/
 
+### Skin video playback
+
+Skin video assets are decoded by FFmpeg. Install both `ffmpeg` and `ffprobe` and make them available on `PATH`, or place both executables beside the application. Skin videos support common FFmpeg-readable formats such as MP4, WebM, MOV, MKV, and AVI.
+
 ---
 
 ## Documentation

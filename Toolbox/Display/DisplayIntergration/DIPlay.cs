@@ -47,6 +47,9 @@ public class DIPlay
             // Snapshot-based sprites
             if (item is Sprite sprite)
             {
+                if (sprite.HasPlayingVideo)
+                    sprite.SnapshotDirty = true;
+
                 if (sprite.SnapshotDirty)
                     sprite.RenderSnapshot();
 

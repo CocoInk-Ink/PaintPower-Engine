@@ -10,7 +10,7 @@ using System.Xml.Linq;
 
 namespace Toolbox.Display.Sprites
 {
-    public class Sprite : DIItem
+    public class Sprite : DIItem, IDisposable
     {
         public string Name { get; set; } = "";
         public string InstanceName { get; set; } = "";
@@ -24,6 +24,10 @@ namespace Toolbox.Display.Sprites
 
         // Whether the snapshot needs to be rebuilt
         public bool SnapshotDirty { get; set; } = true;
+        public bool HasPlayingVideo =>
+            CurrentSkin?.Elements
+                .OfType<RuntimeVideoElement>()
+                .Any(element => element.Player?.IsPlaying == true) == true;
 
         public RuntimeSkin? CurrentSkin
         {
@@ -61,9 +65,36 @@ namespace Toolbox.Display.Sprites
         {
             if (index >= 0 && index < Skins.Count)
             {
+                if (index == CurrentSkinIndex)
+                {
+                    SnapshotDirty = true;
+                    return;
+                }
+
+                if (CurrentSkin is { } previousSkin)
+                {
+                    foreach (var video in previousSkin.Elements.OfType<RuntimeVideoElement>())
+                        video.Player?.Stop();
+                }
+
                 CurrentSkinIndex = index;
+                if (CurrentSkin is { } currentSkin)
+                {
+                    foreach (var video in currentSkin.Elements.OfType<RuntimeVideoElement>())
+                    {
+                        if (video.AutoPlay)
+                            video.Player?.Play();
+                    }
+                }
+
                 SnapshotDirty = true;
             }
+        }
+
+        public void Dispose()
+        {
+            foreach (var video in Skins.SelectMany(skin => skin.Elements).OfType<RuntimeVideoElement>())
+                video.Player?.Dispose();
         }
 
         public static Sprite LoadFromBuildFolder(string spriteFolder, string name, string instanceName)
@@ -111,11 +142,13 @@ namespace Toolbox.Display.Sprites
                     else if (elementNode.Name.LocalName == "Video")
                     {
                         string fullPath = Path.Combine(spriteFolder, assetPath);
+                        bool loop = (bool?)elementNode.Attribute("loop") ?? true;
+                        bool autoPlay = (bool?)elementNode.Attribute("autoplay") ?? true;
                         element = new RuntimeVideoElement
                         {
-                            Player = VideoPlayer.Load(fullPath),
-                            Loop = (bool?)elementNode.Attribute("loop") ?? true,
-                            AutoPlay = (bool?)elementNode.Attribute("autoplay") ?? true
+                            Player = VideoPlayer.Load(fullPath, loop, autoPlay && sprite.Skins.Count == sprite.CurrentSkinIndex),
+                            Loop = loop,
+                            AutoPlay = autoPlay
                         };
                     }
 
@@ -182,9 +215,7 @@ namespace Toolbox.Display.Sprites
                 }
                 else if (elem is RuntimeVideoElement vid)
                 {
-                    var frame = vid.Player?.GetCurrentFrame();
-                    if (frame != null)
-                    {
+                    vid.Player?.WithCurrentFrame(frame =>
                         renderer.DrawGraphic(
                             frame,
                             (int)finalX,
@@ -192,8 +223,7 @@ namespace Toolbox.Display.Sprites
                             (float)elem.Rotation,
                             (float)elem.ScaleX,
                             (float)elem.ScaleY
-                        );
-                    }
+                        ));
                 }
             }
 

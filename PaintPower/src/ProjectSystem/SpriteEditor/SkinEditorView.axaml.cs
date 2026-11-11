@@ -6,6 +6,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using Toolbox.Display.Sprites;
 using Toolbox.Display.DisplayIntegration;
 using Toolbox.Logging;
 using PaintPower.ProjectSystem;
@@ -79,6 +80,9 @@ public partial class SkinEditorView : SpriteEditor
     private bool _syncingZoomSlider;
     private bool _isCompactLayout;
     private bool? _isShortCompactLayout;
+    private readonly Dictionary<SkinElement, VideoPlayer> _videoPreviewPlayers = new();
+    private readonly Dictionary<SkinElement, (Graphic Frame, Bitmap Bitmap)> _videoPreviewBitmaps = new();
+    private readonly DispatcherTimer _videoPreviewTimer = new() { Interval = TimeSpan.FromMilliseconds(33) };
 
     private record HistoryAction(Action Undo, Action Redo);
 
@@ -98,6 +102,16 @@ public partial class SkinEditorView : SpriteEditor
 
         _sprite = sprite;
         _skin = skin;
+
+        _videoPreviewTimer.Tick += OnVideoPreviewTick;
+        Root.AttachedToVisualTree += (_, _) =>
+        {
+            InitializeVideoPreviews();
+            if (_videoPreviewPlayers.Values.Any(player => player.IsPlaying))
+                _videoPreviewTimer.Start();
+            Redraw();
+        };
+        Root.DetachedFromVisualTree += (_, _) => DisposeVideoPreviews();
 
         AssetExplorer.Initialize(_sprite.ItemsFolder, true);
         AssetExplorer.FileDragStarted += OnAssetPointerPressed;
@@ -132,6 +146,55 @@ public partial class SkinEditorView : SpriteEditor
         UpdateHistoryButtons();
         Redraw();
         InvalidateVisual();
+    }
+
+    private void OnVideoPreviewTick(object? sender, EventArgs e)
+    {
+        if (!_videoPreviewPlayers.Values.Any(player => player.IsPlaying))
+        {
+            _videoPreviewTimer.Stop();
+            return;
+        }
+
+        if (_videoPreviewPlayers.Any(pair =>
+            pair.Value.IsPlaying &&
+            (!_videoPreviewBitmaps.TryGetValue(pair.Key, out var cached) ||
+             cached.Frame != pair.Value.GetCurrentFrame())))
+            Redraw();
+    }
+
+    private void InitializeVideoPreviews()
+    {
+        foreach (var video in _skin.Elements.OfType<SkinVideoElement>())
+        {
+            if (_videoPreviewPlayers.ContainsKey(video))
+                continue;
+
+            string path = Path.Combine(_sprite.SpriteFolder, video.AssetPath);
+            try
+            {
+                var player = VideoPlayer.Load(path, video.Loop, video.AutoPlay);
+                _videoPreviewPlayers.Add(video, player);
+                if (player.IsPlaying)
+                    _videoPreviewTimer.Start();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex);
+            }
+        }
+    }
+
+    private void DisposeVideoPreviews()
+    {
+        _videoPreviewTimer.Stop();
+        foreach (var player in _videoPreviewPlayers.Values)
+            player.Dispose();
+        _videoPreviewPlayers.Clear();
+
+        foreach (var preview in _videoPreviewBitmaps.Values)
+            preview.Bitmap.Dispose();
+        _videoPreviewBitmaps.Clear();
     }
 
     private void UpdateResponsiveLayout(double width, double height)
@@ -914,7 +977,7 @@ public partial class SkinEditorView : SpriteEditor
         _dragAssetPath = fullPath;
         _draggingAsset = true;
 
-        var image = LoadAssetImage(_dragAssetPath);
+        var image = IsVideoAsset(_dragAssetPath) ? null : LoadAssetImage(_dragAssetPath);
         var displayWidth = image is Bitmap bitmap
             ? Math.Max(16, bitmap.PixelSize.Width * 0.5) * _zoom
             : 96 * _zoom;
@@ -957,8 +1020,7 @@ public partial class SkinEditorView : SpriteEditor
             .Replace(Path.DirectorySeparatorChar, '/')
             .Replace(Path.AltDirectorySeparatorChar, '/');
 
-        bool isVideo = Path.GetExtension(fullPath).Equals(".mp4", StringComparison.OrdinalIgnoreCase)
-            || Path.GetExtension(fullPath).Equals(".webm", StringComparison.OrdinalIgnoreCase);
+        bool isVideo = IsVideoAsset(fullPath);
 
         double worldX = dropPos.X - _stageWidth / 2.0;
         double worldY = dropPos.Y - _stageHeight / 2.0;
@@ -974,6 +1036,8 @@ public partial class SkinEditorView : SpriteEditor
         var elem = newElem;
 
         _skin.Elements.Add(elem);
+        if (elem is SkinVideoElement video)
+            InitializeVideoPreview(video);
 
         SaveSkinChanges();
 
@@ -992,7 +1056,14 @@ public partial class SkinEditorView : SpriteEditor
         double width = element is SkinVideoElement ? 96 : 64;
         double height = element is SkinVideoElement ? 96 : 64;
 
-        if (TryLoadElementAssetImage(element, out var assetImage) && assetImage is Bitmap bitmap)
+        if (element is SkinVideoElement &&
+            _videoPreviewPlayers.TryGetValue(element, out var player) &&
+            player.GetCurrentFrame() is { } videoFrame)
+        {
+            width = Math.Max(16, videoFrame.Width * 0.5);
+            height = Math.Max(16, videoFrame.Height * 0.5);
+        }
+        else if (TryLoadElementAssetImage(element, out var assetImage) && assetImage is Bitmap bitmap)
         {
             width = Math.Max(16, bitmap.PixelSize.Width * 0.5);
             height = Math.Max(16, bitmap.PixelSize.Height * 0.5);
@@ -1001,6 +1072,25 @@ public partial class SkinEditorView : SpriteEditor
         width = Math.Max(16, width * Math.Max(0.1, element.Transform.ScaleX));
         height = Math.Max(16, height * Math.Max(0.1, element.Transform.ScaleY));
         return (width, height);
+    }
+
+    private void InitializeVideoPreview(SkinVideoElement video)
+    {
+        if (_videoPreviewPlayers.ContainsKey(video))
+            return;
+
+        string path = Path.Combine(_sprite.SpriteFolder, video.AssetPath);
+        try
+        {
+            var player = VideoPlayer.Load(path, video.Loop, video.AutoPlay);
+            _videoPreviewPlayers.Add(video, player);
+            if (player.IsPlaying)
+                _videoPreviewTimer.Start();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex);
+        }
     }
 
     private bool TryLoadElementAssetImage(SkinElement element, out IImage? image)
@@ -1040,6 +1130,26 @@ public partial class SkinEditorView : SpriteEditor
     {
         if (element is SkinVideoElement)
         {
+            if (_videoPreviewPlayers.TryGetValue(element, out var player))
+            {
+                Bitmap? previewBitmap = null;
+                player.WithCurrentFrame(frame =>
+                {
+                    if (!_videoPreviewBitmaps.TryGetValue(element, out var cached) ||
+                        !ReferenceEquals(cached.Frame, frame))
+                    {
+                        cached.Bitmap?.Dispose();
+                        cached = (frame, frame.ToAvaloniaBitmap());
+                        _videoPreviewBitmaps[element] = cached;
+                    }
+
+                    previewBitmap = cached.Bitmap;
+                });
+
+                if (previewBitmap != null)
+                    return new Image { Source = previewBitmap, Stretch = Stretch.Uniform };
+            }
+
             return new Border
             {
                 Background = new SolidColorBrush(Color.FromArgb(220, 25, 25, 35)),
@@ -1065,6 +1175,9 @@ public partial class SkinEditorView : SpriteEditor
 
         return null;
     }
+
+    private static bool IsVideoAsset(string path) =>
+        Path.GetExtension(path).ToLowerInvariant() is ".mp4" or ".webm" or ".mov" or ".mkv" or ".avi";
 
     private List<Point> GetElementHandlePoints(SkinElement elem, double cx, double cy, double screenW, double screenH, double rotationHandleDistance)
     {
