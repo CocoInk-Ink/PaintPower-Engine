@@ -1,38 +1,99 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-			 xmlns:explorer="clr-namespace:PaintPower.FileExplorer"
-			 x:Class="PaintPower.ProjectSystem.SpriteEditor.SpriteEditorView"
-			 xmlns:sprite="clr-namespace:PaintPower.ProjectSystem.SpriteEditor">
+<UserControl
+	x:Class="PaintPower.ProjectSystem.SpriteEditor.SpriteEditorView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:explorer="clr-namespace:PaintPower.FileExplorer"
+	xmlns:sprite="clr-namespace:PaintPower.ProjectSystem.SpriteEditor">
 
 	<TabControl x:Name="MainTabs" SelectionChanged="MainTab_SelectionChanged">
-		<TabItem Header="Sprite Properties">
-			<Border Background="{DynamicResource LeftPanelBackground}">
-				<sprite:SpritePropertiesView x:Name="SpriteProperties" />
-			</Border>
+		<TabItem Header="Sprite Properties/Skins">
+			<Grid ColumnDefinitions="240,*">
+				<Border Grid.Column="0" Background="{DynamicResource LeftPanelBackground}">
+					<sprite:SpritePropertiesView x:Name="SpriteProperties" />
+				</Border>
+				<Grid Grid.Column="1" ColumnDefinitions="240,5,*">
+					<Grid
+						Grid.Column="0"
+						Margin="8"
+						Background="#252525"
+						RowDefinitions="Auto,*,Auto">
+						<TextBlock
+							Grid.Row="0"
+							Margin="8"
+							FontSize="16"
+							Foreground="White"
+							Text="Skins" />
+						<ListBox
+							x:Name="SkinList"
+							Grid.Row="1"
+							Background="#202020"
+							BorderBrush="#404040"
+							BorderThickness="1"
+							Foreground="White"
+							SelectionChanged="OnSkinSelected" />
+						<StackPanel
+							Grid.Row="2"
+							Margin="0,8,0,0"
+							Orientation="Horizontal"
+							Spacing="6">
+							<Button
+								Classes="white"
+								Click="OnAddSkin"
+								Content="Add" />
+							<Button
+								Classes="white"
+								Click="OnRemoveSkin"
+								Content="Remove" />
+							<Button
+								Classes="white"
+								Click="OnRenameSkin"
+								Content="Rename" />
+						</StackPanel>
+					</Grid>
+
+					<GridSplitter
+						Grid.Column="1"
+						Width="5"
+						Background="#505050"
+						ResizeBehavior="PreviousAndNext"
+						ResizeDirection="Columns" />
+
+					<ContentControl
+						x:Name="SkinEditorHost"
+						Grid.Column="2"
+						HorizontalAlignment="Stretch"
+						VerticalAlignment="Stretch" />
+				</Grid>
+			</Grid>
+
 		</TabItem>
 
 		<TabItem Header="Sprite Explorer">
 			<Grid ColumnDefinitions="260,5,*">
 
-				<!-- INNER LEFT: File Explorer -->
-				<explorer:ExplorerView x:Name="Explorer"
-									   Grid.Column="0"/>
+				<!--  INNER LEFT: File Explorer  -->
+				<explorer:ExplorerView x:Name="Explorer" Grid.Column="0" />
 
-				<!-- SPLITTER -->
-				<GridSplitter Grid.Column="1"
-							  Width="5"
-							  Background="#505050"
-							  ResizeDirection="Columns"
-							  ResizeBehavior="PreviousAndNext"/>
+				<!--  SPLITTER  -->
+				<GridSplitter
+					Grid.Column="1"
+					Width="5"
+					Background="#505050"
+					ResizeBehavior="PreviousAndNext"
+					ResizeDirection="Columns" />
 
-				<!-- INNER RIGHT: Editor Host -->
-				<Grid Grid.Column="2"
-					  RowDefinitions="50,*"
-					  HorizontalAlignment="Stretch"
-					  VerticalAlignment="Stretch" >
+				<!--  INNER RIGHT: Editor Host  -->
+				<Grid
+					Grid.Column="2"
+					HorizontalAlignment="Stretch"
+					VerticalAlignment="Stretch"
+					RowDefinitions="50,*">
 
-					<Border Grid.Row="0" Background = "#7E8B96">
-						<TabStrip x:Name="EditorTabs" x:CompileBindings="False" SelectionChanged="TabStrip_SelectionChanged" >
+					<Border Grid.Row="0" Background="#7E8B96">
+						<TabStrip
+							x:Name="EditorTabs"
+							x:CompileBindings="False"
+							SelectionChanged="TabStrip_SelectionChanged">
 							<TabStripItem x:Name="PaintTab">Paint</TabStripItem>
 							<TabStripItem x:Name="ScriptTab">Script/Text</TabStripItem>
 							<TabStripItem x:Name="AnimationTab">AnimationTab</TabStripItem>
@@ -41,45 +102,15 @@
 						</TabStrip>
 					</Border>
 
-					<ContentControl x:Name="EditorHost"
-									Grid.Row = "1"
-									HorizontalAlignment="Stretch"
-									VerticalAlignment="Stretch"
-									x:CompileBindings="False"
-									/>
+					<ContentControl
+						x:Name="EditorHost"
+						Grid.Row="1"
+						HorizontalAlignment="Stretch"
+						VerticalAlignment="Stretch"
+						x:CompileBindings="False" />
 				</Grid>
 			</Grid>
 		</TabItem>
 
-		<TabItem Header="Skins">
-			<Grid ColumnDefinitions="240,5,*">
-				<Grid Grid.Column="0" RowDefinitions="Auto,*,Auto" Background="#252525" Margin="8">
-					<TextBlock Grid.Row="0" Text="Skins" Foreground="White" FontSize="16" Margin="8" />
-					<ListBox Grid.Row="1"
-							 x:Name="SkinList"
-							 Background="#202020"
-							 Foreground="White"
-							 BorderBrush="#404040"
-							 BorderThickness="1"
-							 SelectionChanged="OnSkinSelected" />
-					<StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="6" Margin="0,8,0,0">
-						<Button Content="Add" Classes="white" Click="OnAddSkin" />
-						<Button Content="Remove" Classes="white" Click="OnRemoveSkin" />
-						<Button Content="Rename" Classes="white" Click="OnRenameSkin" />
-					</StackPanel>
-				</Grid>
-
-				<GridSplitter Grid.Column="1"
-							  Width="5"
-							  Background="#505050"
-							  ResizeDirection="Columns"
-							  ResizeBehavior="PreviousAndNext" />
-
-				<ContentControl x:Name="SkinEditorHost"
-								Grid.Column="2"
-								HorizontalAlignment="Stretch"
-								VerticalAlignment="Stretch" />
-			</Grid>
-		</TabItem>
 	</TabControl>
 </UserControl>
