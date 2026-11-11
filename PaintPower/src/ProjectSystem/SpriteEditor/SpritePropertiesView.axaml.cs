@@ -5,6 +5,7 @@ using Toolbox.Display.Sprites;
 using System;
 using System.IO;
 using Toolbox;
+using Toolbox.Logging;
 
 namespace PaintPower.ProjectSystem.SpriteEditor
 {
@@ -85,18 +86,19 @@ namespace PaintPower.ProjectSystem.SpriteEditor
         {
             if (_sprite == null) return;
 
-            var runtimeSprite = _sprite.ToRuntimeSprite();
             int index = _sprite.Skins.IndexOf(skin);
             if (index < 0) return;
 
-            runtimeSprite.SetSkin(index);
-            runtimeSprite.SnapshotDirty = true;
-            runtimeSprite.RenderSnapshot();
-
-            var g = runtimeSprite.SnapshotGraphic;
-
             try
             {
+                var runtimeSprite = _sprite.ToRuntimeSprite(skin);
+                runtimeSprite.SetSkin(0);
+                runtimeSprite.RenderSnapshot();
+
+                var g = runtimeSprite.SnapshotGraphic;
+                if (g == null || g.Pixels.Length != g.Width * g.Height * 4)
+                    throw new InvalidDataException("The generated skin preview has invalid pixel data.");
+
                 int stride = g.Width * 4;
 
                 unsafe
@@ -118,9 +120,9 @@ namespace PaintPower.ProjectSystem.SpriteEditor
 
                 ThumbnailImage.Source = new Bitmap(_sprite.ThumbnailPath);
             }
-            catch
+            catch (Exception ex)
             {
-                ThumbnailImage.Source = null;
+                Log.Error(ex);
             }
         }
     }

@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using Toolbox.Display.DisplayIntegration;
 using Toolbox.Logging;
 using PaintPower.ProjectSystem;
@@ -33,13 +34,21 @@ public partial class SkinEditorView : SpriteEditor
 
     // Viewport state
     private double _zoom = 1.0;
-    private Point _lastMouse;
 
     private SkinElement? _selectedElement;
     private bool _suppressPropertyEvents = false;
 
     // Gizmos
-    private enum GizmoMode { None, Move, Rotate, Scale }
+    private enum GizmoMode
+    {
+        None,
+        MoveHorizontal,
+        Rotate,
+        ScaleTopLeft,
+        ScaleTopRight,
+        ScaleBottomLeft,
+        ScaleBottomRight
+    }
     private GizmoMode _gizmoMode = GizmoMode.None;
 
     private const double HandleSize = 10;
@@ -48,21 +57,19 @@ public partial class SkinEditorView : SpriteEditor
     private bool _draggingGizmo = false;
     private bool _movingElement = false;
     private Point _gizmoStartMouse;
-    private double _gizmoStartRotation;
-    private double _gizmoStartScaleX;
-    private double _gizmoStartScaleY;
     private double _moveStartX;
     private double _moveStartY;
+    private double _gestureStartX;
+    private double _gestureStartY;
+    private double _gestureStartRotation;
+    private double _gestureStartScaleX;
+    private double _gestureStartScaleY;
+    private double _gestureBaseWidth;
+    private double _gestureBaseHeight;
 
-    private double GetCenterX()
-    {
-        return (Viewport.Bounds.Width / 2.0);
-    }
+    private double GetCenterX() => _stageWidth / 2.0;
 
-    private double GetCenterY()
-    {
-        return (Viewport.Bounds.Height / 2.0);
-    }
+    private double GetCenterY() => _stageHeight / 2.0;
 
 
     // Manual drag from asset list
@@ -70,6 +77,8 @@ public partial class SkinEditorView : SpriteEditor
     private string? _dragAssetPath;
     private Border? _dragGhost;
     private bool _syncingZoomSlider;
+    private bool _isCompactLayout;
+    private bool? _isShortCompactLayout;
 
     private record HistoryAction(Action Undo, Action Redo);
 
@@ -79,6 +88,7 @@ public partial class SkinEditorView : SpriteEditor
     public SkinEditorView(PaintSprite sprite, SkinDefinition skin, double stageWidth, double stageHeight)
     {
         InitializeComponent();
+        DataContext = this;
 
         _stageWidth = stageWidth;
         _stageHeight = stageHeight;
@@ -109,17 +119,85 @@ public partial class SkinEditorView : SpriteEditor
 
         Root.Focusable = true;
         Root.AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
-        Viewport.AttachedToVisualTree += (_, __) => Redraw();
+        Viewport.AttachedToVisualTree += (_, __) =>
+            Dispatcher.UIThread.Post(Redraw, DispatcherPriority.Render);
+        Viewport.SizeChanged += (_, e) =>
+        {
+            if (e.NewSize.Width > 0 && e.NewSize.Height > 0)
+                Redraw();
+        };
+        MainLayout.SizeChanged += (_, e) => UpdateResponsiveLayout(e.NewSize.Width, e.NewSize.Height);
 
         RefreshElementList();
+        UpdateHistoryButtons();
+        Redraw();
         InvalidateVisual();
+    }
+
+    private void UpdateResponsiveLayout(double width, double height)
+    {
+        var compact = width < 850;
+        var shortCompact = height < 520;
+
+        if (_isCompactLayout == compact &&
+            (!compact || _isShortCompactLayout == shortCompact))
+            return;
+
+        _isCompactLayout = compact;
+        _isShortCompactLayout = shortCompact;
+
+        if (compact)
+        {
+            MainLayout.ColumnDefinitions = ColumnDefinitions.Parse("*,*");
+            MainLayout.RowDefinitions = RowDefinitions.Parse(shortCompact ? "*,160" : "*,220");
+
+            Grid.SetRow(ViewportScrollViewer, 0);
+            Grid.SetColumn(ViewportScrollViewer, 0);
+            Grid.SetColumnSpan(ViewportScrollViewer, 2);
+
+            Grid.SetRow(ElementsPanel, 1);
+            Grid.SetColumn(ElementsPanel, 0);
+            Grid.SetRow(AssetsPanel, 1);
+            Grid.SetColumn(AssetsPanel, 1);
+
+            LeftSplitter.IsVisible = false;
+            RightSplitter.IsVisible = false;
+        }
+        else
+        {
+            MainLayout.ColumnDefinitions = ColumnDefinitions.Parse("260,5,*,5,260");
+            MainLayout.RowDefinitions = RowDefinitions.Parse("*");
+
+            Grid.SetRow(ViewportScrollViewer, 0);
+            Grid.SetColumn(ViewportScrollViewer, 2);
+            Grid.SetColumnSpan(ViewportScrollViewer, 1);
+
+            Grid.SetRow(ElementsPanel, 0);
+            Grid.SetColumn(ElementsPanel, 0);
+            Grid.SetRow(AssetsPanel, 0);
+            Grid.SetColumn(AssetsPanel, 4);
+
+            LeftSplitter.IsVisible = true;
+            RightSplitter.IsVisible = true;
+        }
     }
 
     private void PushHistory(Action undo, Action redo)
     {
         _undoStack.Push(new HistoryAction(undo, redo));
         _redoStack.Clear();
+        UpdateHistoryButtons();
     }
+
+    private void UpdateHistoryButtons()
+    {
+        UndoButton.IsEnabled = _undoStack.Count > 0;
+        RedoButton.IsEnabled = _redoStack.Count > 0;
+    }
+
+    private void OnUndoClick(object? sender, RoutedEventArgs e) => Undo();
+
+    private void OnRedoClick(object? sender, RoutedEventArgs e) => Redo();
 
     private void Undo()
     {
@@ -130,8 +208,11 @@ public partial class SkinEditorView : SpriteEditor
         action.Undo();
 
         _redoStack.Push(action);
-
+        RefreshElementList();
+        LoadPropertiesFromElement();
+        SaveSkinChanges();
         Redraw();
+        UpdateHistoryButtons();
     }
 
     private void Redo()
@@ -143,8 +224,11 @@ public partial class SkinEditorView : SpriteEditor
         action.Redo();
 
         _undoStack.Push(action);
-
+        RefreshElementList();
+        LoadPropertiesFromElement();
+        SaveSkinChanges();
         Redraw();
+        UpdateHistoryButtons();
     }
 
 
@@ -163,8 +247,16 @@ public partial class SkinEditorView : SpriteEditor
             _skin.Elements.Remove(deleted);
 
             PushHistory(
-                undo: () => _skin.Elements.Add(deleted),
-                redo: () => _skin.Elements.Remove(deleted)
+                undo: () =>
+                {
+                    _skin.Elements.Add(deleted);
+                    _selectedElement = deleted;
+                },
+                redo: () =>
+                {
+                    _skin.Elements.Remove(deleted);
+                    _selectedElement = null;
+                }
             );
 
             _selectedElement = null;
@@ -199,20 +291,18 @@ public partial class SkinEditorView : SpriteEditor
 
             ctx.Clear(Colors.Transparent);
 
-            foreach (var elem in _skin.Elements)
+            foreach (var elem in _skin.Elements.OrderBy(element => element.ZIndex))
             {
                 if (elem == null)
                     continue;
 
                 var (w, h) = GetElementDisplaySize(elem);
 
-                double sx = (Viewport.Bounds.Width / 2.0) + elem.Transform.X;
-                double sy = (Viewport.Bounds.Height / 2.0) + elem.Transform.Y;
+                double sx = GetCenterX() + elem.Transform.X;
+                double sy = GetCenterY() + elem.Transform.Y;
 
                 var screenW = w;
                 var screenH = h;
-                var assetImage = LoadElementAssetImage(elem);
-
                 var previewControl = CreateElementPreview(elem);
                 if (previewControl is Image imageControl)
                 {
@@ -261,10 +351,9 @@ public partial class SkinEditorView : SpriteEditor
 
         var handles = GetElementHandlePoints(elem, cx, cy, screenW, screenH, rotationHandleDistance);
 
+        ctx.DrawRect(cx + screenW / 2, cy - 1, RotationHandleDistance, 2, Colors.Cyan, 1);
         foreach (var handle in handles)
-        {
             DrawHandle(ctx, handle.X, handle.Y);
-        }
     }
 
     private void DrawHandle(DrawingContextWrapper ctx, double x, double y)
@@ -287,10 +376,13 @@ public partial class SkinEditorView : SpriteEditor
         if (IsInsideHandle(mouse, handles[4].X, handles[4].Y))
             return GizmoMode.Rotate;
 
-        if (IsInsideHandle(mouse, handles[0].X, handles[0].Y)) return GizmoMode.Scale;
-        if (IsInsideHandle(mouse, handles[1].X, handles[1].Y)) return GizmoMode.Scale;
-        if (IsInsideHandle(mouse, handles[2].X, handles[2].Y)) return GizmoMode.Scale;
-        if (IsInsideHandle(mouse, handles[3].X, handles[3].Y)) return GizmoMode.Scale;
+        if (IsInsideHandle(mouse, handles[5].X, handles[5].Y))
+            return GizmoMode.MoveHorizontal;
+
+        if (IsInsideHandle(mouse, handles[0].X, handles[0].Y)) return GizmoMode.ScaleTopLeft;
+        if (IsInsideHandle(mouse, handles[1].X, handles[1].Y)) return GizmoMode.ScaleTopRight;
+        if (IsInsideHandle(mouse, handles[2].X, handles[2].Y)) return GizmoMode.ScaleBottomLeft;
+        if (IsInsideHandle(mouse, handles[3].X, handles[3].Y)) return GizmoMode.ScaleBottomRight;
 
         return GizmoMode.None;
     }
@@ -407,6 +499,9 @@ public partial class SkinEditorView : SpriteEditor
         var pos = e.GetPosition(Viewport);
         Root.Focus();
 
+        if (!e.GetCurrentPoint(Viewport).Properties.IsLeftButtonPressed)
+            return;
+
         if (_selectedElement != null)
         {
             var gizmo = HitTestGizmo(pos, _selectedElement);
@@ -415,11 +510,8 @@ public partial class SkinEditorView : SpriteEditor
                 _gizmoMode = gizmo;
                 _draggingGizmo = true;
                 _gizmoStartMouse = pos;
-
-                _gizmoStartRotation = _selectedElement.Transform.Rotation;
-                _gizmoStartScaleX = _selectedElement.Transform.ScaleX;
-                _gizmoStartScaleY = _selectedElement.Transform.ScaleY;
-
+                BeginTransformGesture(_selectedElement);
+                e.Pointer.Capture(Viewport);
                 return;
             }
         }
@@ -432,6 +524,8 @@ public partial class SkinEditorView : SpriteEditor
             _moveStartX = _selectedElement.Transform.X;
             _moveStartY = _selectedElement.Transform.Y;
             _gizmoStartMouse = pos;
+            BeginTransformGesture(_selectedElement);
+            e.Pointer.Capture(Viewport);
             LoadPropertiesFromElement();
             Redraw();
             return;
@@ -440,79 +534,49 @@ public partial class SkinEditorView : SpriteEditor
         _selectedElement = null;
         LoadPropertiesFromElement();
         Redraw();
-        _lastMouse = pos;
     }
 
     private void OnPointerMove(object? sender, PointerEventArgs e)
     {
-        if (Viewport == null)
+        if (Viewport == null || !e.GetCurrentPoint(Viewport).Properties.IsLeftButtonPressed)
             return;
 
         var pos = e.GetPosition(Viewport);
 
         if (_draggingGizmo && _selectedElement != null)
         {
+            double cx = GetCenterX() + _gestureStartX;
+            double cy = GetCenterY() + _gestureStartY;
+            double rotationRadians = (_gestureStartRotation - 90) * Math.PI / 180.0;
+
             if (_gizmoMode == GizmoMode.Rotate)
             {
-                double cx = (_selectedElement.Transform.X);
-                double cy = (_selectedElement.Transform.Y);
-
                 double angle1 = Math.Atan2(_gizmoStartMouse.Y - cy, _gizmoStartMouse.X - cx);
                 double angle2 = Math.Atan2(pos.Y - cy, pos.X - cx);
-
-                double delta = (angle2 - angle1) * (180 / Math.PI);
-
-                double newRotation = _gizmoStartRotation + delta;
-
-                double oldRotation = _selectedElement.Transform.Rotation;
-
-                _selectedElement.Transform.Rotation = newRotation;
-
-                var elem = _selectedElement;
-
-                PushHistory(
-                    undo: () =>
-                    {
-                        elem.Transform.Rotation = oldRotation;
-                    },
-
-                    redo: () =>
-                    {
-                        elem.Transform.Rotation = newRotation;
-                    }
-                );
+                double delta = Math.Atan2(Math.Sin(angle2 - angle1), Math.Cos(angle2 - angle1));
+                _selectedElement.Transform.Rotation =
+                    _gestureStartRotation + delta * 180.0 / Math.PI;
             }
-            else if (_gizmoMode == GizmoMode.Scale)
+            else if (_gizmoMode == GizmoMode.MoveHorizontal)
             {
-                double dx = (pos.X - _gizmoStartMouse.X);
-                double dy = (pos.Y - _gizmoStartMouse.Y);
+                double limitX = (_stageWidth / 2) + 500;
+                _selectedElement.Transform.X = Math.Clamp(
+                    _gestureStartX + pos.X - _gizmoStartMouse.X, -limitX, limitX);
+            }
+            else
+            {
+                var worldDelta = new Point(pos.X - _gizmoStartMouse.X, pos.Y - _gizmoStartMouse.Y);
+                var localDelta = RotatePoint(worldDelta, new Point(0, 0), -rotationRadians);
 
-                double oldSX = _selectedElement.Transform.ScaleX;
-                double oldSY = _selectedElement.Transform.ScaleY;
+                double scaleDirectionX = _gizmoMode is GizmoMode.ScaleTopLeft or GizmoMode.ScaleBottomLeft ? -1 : 1;
+                double scaleDirectionY = _gizmoMode is GizmoMode.ScaleTopLeft or GizmoMode.ScaleTopRight ? -1 : 1;
 
-                double newSX = Math.Max(0.1, _gizmoStartScaleX + dx * 0.01);
-                double newSY = Math.Max(0.1, _gizmoStartScaleY + dy * 0.01);
-
-                _selectedElement.Transform.ScaleX = newSX;
-                _selectedElement.Transform.ScaleY = newSY;
-
-                var elem = _selectedElement;
-
-                PushHistory(
-                    undo: () =>
-                    {
-                        elem.Transform.ScaleX = oldSX;
-                        elem.Transform.ScaleY = oldSY;
-                    },
-                    redo: () =>
-                    {
-                        elem.Transform.ScaleX = newSX;
-                        elem.Transform.ScaleY = newSY;
-                    }
-                );
+                _selectedElement.Transform.ScaleX = Math.Max(
+                    0.1, _gestureStartScaleX + localDelta.X * scaleDirectionX / _gestureBaseWidth);
+                _selectedElement.Transform.ScaleY = Math.Max(
+                    0.1, _gestureStartScaleY + localDelta.Y * scaleDirectionY / _gestureBaseHeight);
             }
 
-            SaveBackToSkinDefinition();
             LoadPropertiesFromElement();
             Redraw();
             return;
@@ -526,42 +590,72 @@ public partial class SkinEditorView : SpriteEditor
             double limitX = (_stageWidth / 2) + 500;
             double limitY = (_stageHeight / 2) + 500;
 
-            double oldX = _selectedElement.Transform.X;
-            double oldY = _selectedElement.Transform.Y;
-
             double newX = Math.Clamp(_moveStartX + dx, -limitX, limitX);
             double newY = Math.Clamp(_moveStartY + dy, -limitY, limitY);
-
-            var elem = _selectedElement;
-            
-            elem.Transform.X = newX;
-            elem.Transform.Y = newY;
-
-            PushHistory(
-                undo: () =>
-                {
-                    elem.Transform.X = oldX;
-                    elem.Transform.Y = oldY;
-                },
-                redo: () =>
-                {
-                    elem.Transform.X = newX;
-                    elem.Transform.Y = newY;
-                }
-            );
-
-            SaveBackToSkinDefinition();
+            _selectedElement.Transform.X = newX;
+            _selectedElement.Transform.Y = newY;
             LoadPropertiesFromElement();
             Redraw();
             return;
         }
     }
 
+    private void BeginTransformGesture(SkinElement element)
+    {
+        _gestureStartX = element.Transform.X;
+        _gestureStartY = element.Transform.Y;
+        _gestureStartRotation = element.Transform.Rotation;
+        _gestureStartScaleX = element.Transform.ScaleX;
+        _gestureStartScaleY = element.Transform.ScaleY;
+        var (width, height) = GetElementDisplaySize(element);
+        _gestureBaseWidth = width / Math.Max(0.1, _gestureStartScaleX);
+        _gestureBaseHeight = height / Math.Max(0.1, _gestureStartScaleY);
+    }
+
     private void OnPointerUp(object? sender, PointerReleasedEventArgs e)
     {
+        if ((_draggingGizmo || _movingElement) && _selectedElement != null)
+        {
+            var element = _selectedElement;
+            double startX = _gestureStartX;
+            double startY = _gestureStartY;
+            double startRotation = _gestureStartRotation;
+            double startScaleX = _gestureStartScaleX;
+            double startScaleY = _gestureStartScaleY;
+            double endX = element.Transform.X;
+            double endY = element.Transform.Y;
+            double endRotation = element.Transform.Rotation;
+            double endScaleX = element.Transform.ScaleX;
+            double endScaleY = element.Transform.ScaleY;
+
+            if (endX != _gestureStartX ||
+                endY != _gestureStartY ||
+                endRotation != _gestureStartRotation ||
+                endScaleX != _gestureStartScaleX ||
+                endScaleY != _gestureStartScaleY)
+            {
+                PushHistory(
+                    undo: () => SetTransform(element, startX, startY, startRotation, startScaleX, startScaleY),
+                    redo: () => SetTransform(element, endX, endY, endRotation, endScaleX, endScaleY));
+                SaveSkinChanges();
+                LoadPropertiesFromElement();
+                Redraw();
+            }
+        }
+
         _draggingGizmo = false;
         _movingElement = false;
         _gizmoMode = GizmoMode.None;
+        e.Pointer.Capture(null);
+    }
+
+    private static void SetTransform(SkinElement element, double x, double y, double rotation, double scaleX, double scaleY)
+    {
+        element.Transform.X = x;
+        element.Transform.Y = y;
+        element.Transform.Rotation = rotation;
+        element.Transform.ScaleX = scaleX;
+        element.Transform.ScaleY = scaleY;
     }
 
     // ---------------------------------------------------------
@@ -659,19 +753,14 @@ public partial class SkinEditorView : SpriteEditor
                 continue;
 
             var (w, h) = GetElementDisplaySize(elem);
-            var screenW = w;
-            var screenH = h;
             var cx = GetCenterX() + (elem.Transform.X);
             var cy = GetCenterY() + (elem.Transform.Y);
-            var points = GetElementHandlePoints(elem, cx, cy, screenW, screenH, RotationHandleDistance);
+            var local = RotatePoint(
+                new Point(mouse.X - cx, mouse.Y - cy),
+                new Point(0, 0),
+                -(elem.Transform.Rotation - 90) * Math.PI / 180.0);
 
-            var left = points.Min(p => p.X);
-            var right = points.Max(p => p.X);
-            var top = points.Min(p => p.Y);
-            var bottom = points.Max(p => p.Y);
-
-            if (mouse.X >= left && mouse.X <= right &&
-                mouse.Y >= top && mouse.Y <= bottom)
+            if (Math.Abs(local.X) <= w / 2 && Math.Abs(local.Y) <= h / 2)
             {
                 return elem;
             }
@@ -685,9 +774,10 @@ public partial class SkinEditorView : SpriteEditor
     // ---------------------------------------------------------
     private void RefreshElementList()
     {
-        ElementsList.SelectedIndex = -1;
+        var selected = _selectedElement;
         if (ElementsList.ItemsSource != null) ElementsList.ItemsSource = null;
         ElementsList.ItemsSource = _skin.Elements;
+        ElementsList.SelectedItem = selected != null && _skin.Elements.Contains(selected) ? selected : null;
     }
 
     private void OnElementSelected(object? sender, SelectionChangedEventArgs e)
@@ -698,8 +788,7 @@ public partial class SkinEditorView : SpriteEditor
             return;
         }
 
-        _selectedElement = _skin.Elements
-            .FirstOrDefault(x => x.InstanceName == elem.InstanceName);
+        _selectedElement = _skin.Elements.Contains(elem) ? elem : null;
 
         LoadPropertiesFromElement();
         Redraw();
@@ -979,7 +1068,7 @@ public partial class SkinEditorView : SpriteEditor
 
     private List<Point> GetElementHandlePoints(SkinElement elem, double cx, double cy, double screenW, double screenH, double rotationHandleDistance)
     {
-        var points = new List<Point>
+        var rotatedHandles = new List<Point>
         {
             new Point(-screenW / 2, -screenH / 2),
             new Point(screenW / 2, -screenH / 2),
@@ -988,9 +1077,11 @@ public partial class SkinEditorView : SpriteEditor
             new Point(0, -screenH / 2 - rotationHandleDistance)
         };
 
-        return points.Select(local => RotatePoint(local, new Point(0, 0), (elem.Transform.Rotation - 90) * Math.PI / 180.0))
+        var handles = rotatedHandles.Select(local => RotatePoint(local, new Point(0, 0), (elem.Transform.Rotation - 90) * Math.PI / 180.0))
             .Select(rotated => new Point(cx + rotated.X, cy + rotated.Y))
             .ToList();
+        handles.Add(new Point(cx + screenW / 2 + rotationHandleDistance, cy));
+        return handles;
     }
 
     private Point RotatePoint(Point point, Point origin, double radians)

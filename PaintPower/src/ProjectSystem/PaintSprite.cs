@@ -153,11 +153,11 @@ public class PaintSprite
     // ------------------------------------------------------------
     // Convert to runtime sprite
     // ------------------------------------------------------------
-    public Sprite ToRuntimeSprite()
+    public Sprite ToRuntimeSprite(SkinDefinition? skinToRender = null)
     {
         var runtime = new Sprite();
 
-        foreach (var skinDef in Skins)
+        foreach (var skinDef in Skins.Where(skin => skinToRender == null || ReferenceEquals(skin, skinToRender)))
         {
             var rSkin = new RuntimeSkin
             {

@@ -306,7 +306,11 @@ public partial class SpriteEditorView : SpriteEditor
             SpriteProperties.ShowSkinThumbnail(skin);
 
         var editor = new SkinEditorView(_sprite, skin, _stageWidth, _stageHeight);
-        editor.SkinChanged += () => SkinChanged?.Invoke();
+        editor.SkinChanged += () =>
+        {
+            SpriteProperties.ShowSkinThumbnail(skin);
+            SkinChanged?.Invoke();
+        };
         SkinEditorHost.Content = editor;
     }
 
