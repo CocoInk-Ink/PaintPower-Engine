@@ -48,7 +48,7 @@ namespace Toolbox.Display.Sprites
 
             if (y != null)
                 this.y = (double)y;
-             else
+            else
                 this.y = Toolbox.Math.Random.calc((StageHeight / 2) * -1, (StageHeight / 2));
 
             if (skin != null)

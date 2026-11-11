@@ -30,7 +30,7 @@ public partial class SpriteManagerView : TranslatableControl
         return Translator.Map(s);
     }
 
-    public void TranslateGUI()
+    public override void TranslateGUI()
     {
         DeleteSpriteButton.Content = translate("Delete");
         ExportSpriteButton.Content = translate("Export");
@@ -77,7 +77,13 @@ public partial class SpriteManagerView : TranslatableControl
         Directory.CreateDirectory(folder);
 
         // Create default files
-        File.WriteAllText(Path.Combine(folder, "Sprite.json"), "{}");
+        File.WriteAllText(Path.Combine(folder, "Sprite.json"),
+		@"{
+			""x"": 0,
+			""y"": 0,
+			""z"": 0,
+			""name"": ""{name}""
+		}".Replace("{name}", name));
         File.WriteAllText(Path.Combine(folder, "Sprite.pss"), "");
         File.WriteAllBytes(Path.Combine(folder, "Sprite.png"), Array.Empty<byte>());
         File.WriteAllBytes(Path.Combine(folder, "Sprite.wxa"), Array.Empty<byte>());
