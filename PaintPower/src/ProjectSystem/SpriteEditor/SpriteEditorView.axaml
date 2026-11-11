@@ -4,7 +4,7 @@
 			 x:Class="PaintPower.ProjectSystem.SpriteEditor.SpriteEditorView"
 			 xmlns:sprite="clr-namespace:PaintPower.ProjectSystem.SpriteEditor">
 
-	<TabControl>
+	<TabControl x:Name="MainTabs" SelectionChanged="MainTab_SelectionChanged">
 		<TabItem Header="Sprite Properties">
 			<Border Background="{DynamicResource LeftPanelBackground}">
 				<sprite:SpritePropertiesView x:Name="SpriteProperties" />
@@ -37,6 +37,7 @@
 							<TabStripItem x:Name="ScriptTab">Script/Text</TabStripItem>
 							<TabStripItem x:Name="AnimationTab">AnimationTab</TabStripItem>
 							<TabStripItem x:Name="SoundTab">Audio</TabStripItem>
+							<TabStripItem x:Name="VideoTab">Video</TabStripItem>
 						</TabStrip>
 					</Border>
 

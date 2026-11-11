@@ -8,8 +8,8 @@ using Avalonia.Media.Imaging;
 using Toolbox.Display.DisplayIntegration;
 using Toolbox.Logging;
 using PaintPower.ProjectSystem;
+using PaintPower.FileExplorer;
 using Toolbox.Graphics;
-using SixLabors.ImageSharp.ColorSpaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -67,9 +67,9 @@ public partial class SkinEditorView : SpriteEditor
 
     // Manual drag from asset list
     private bool _draggingAsset = false;
-    private AssetEntry? _dragAssetEntry;
+    private string? _dragAssetPath;
     private Border? _dragGhost;
-    private readonly Point _dragGhostOffset = new Point(-16, -16);
+    private bool _syncingZoomSlider;
 
     private record HistoryAction(Action Undo, Action Redo);
 
@@ -89,8 +89,15 @@ public partial class SkinEditorView : SpriteEditor
         _sprite = sprite;
         _skin = skin;
 
-        ViewportBorder.Width = _stageWidth * _zoom;
-        ViewportBorder.Height = _stageHeight * _zoom;
+        AssetExplorer.Initialize(_sprite.ItemsFolder, true);
+        AssetExplorer.FileDragStarted += OnAssetPointerPressed;
+        ZoomSlider.ValueChanged += (_, e) =>
+        {
+            if (!_syncingZoomSlider)
+                SetZoom(e.NewValue);
+        };
+
+        UpdateViewportZoom();
 
         NameBox.LostFocus += OnPropertyChanged;
         XBox.LostFocus += OnPropertyChanged;
@@ -105,8 +112,6 @@ public partial class SkinEditorView : SpriteEditor
         Viewport.AttachedToVisualTree += (_, __) => Redraw();
 
         RefreshElementList();
-        RefreshAssetList();
-
         InvalidateVisual();
     }
 
@@ -179,8 +184,8 @@ public partial class SkinEditorView : SpriteEditor
         // Create context
         var ctx = new DrawingContextWrapper(Viewport);
 
-        ViewportBorder.RenderTransform = new ScaleTransform(_zoom, _zoom);
-        ViewportBorder.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+        Viewport.RenderTransform = new ScaleTransform(_zoom, _zoom);
+        Viewport.RenderTransformOrigin = new RelativePoint(0, 0, RelativeUnit.Relative);
 
         // This function creates the skin, this gets passed to render overlays
         // to be drawn after the under overlays.
@@ -336,8 +341,8 @@ public partial class SkinEditorView : SpriteEditor
 
         double size = 16;
 
-        double cx = ViewportBorder.Bounds.Width / 2.0;
-        double cy = ViewportBorder.Bounds.Height / 2.0;
+        double cx = GetCenterX();
+        double cy = GetCenterY();
 
         ctx.DrawRect(cx - size, cy - 1, size * 2, 2, Colors.Blue, 2);
         ctx.DrawRect(cx - 1, cy - size, 2, size * 2, Colors.Blue, 2);
@@ -568,8 +573,8 @@ public partial class SkinEditorView : SpriteEditor
             return;
 
         var pos = e.GetPosition(Root);
-        Canvas.SetLeft(_dragGhost, pos.X + _dragGhostOffset.X);
-        Canvas.SetTop(_dragGhost, pos.Y + _dragGhostOffset.Y);
+        Canvas.SetLeft(_dragGhost, pos.X - _dragGhost.Width / 2);
+        Canvas.SetTop(_dragGhost, pos.Y - _dragGhost.Height / 2);
     }
 
     private void OnRootPointerUp(object? sender, PointerReleasedEventArgs e)
@@ -584,22 +589,21 @@ public partial class SkinEditorView : SpriteEditor
             _dragGhost = null;
         }
 
-
-
         // Drop onto viewport if inside bounds
-        if (_dragAssetEntry != null && Viewport != null)
+        if (_dragAssetPath != null && Viewport != null)
         {
             var pos = e.GetPosition(Viewport);
             var bounds = new Rect(0, 0, Viewport.Bounds.Width, Viewport.Bounds.Height);
 
             if (bounds.Contains(pos))
             {
-                AddAssetToSkin(_dragAssetEntry.FullPath, pos);
+                AddAssetToSkin(_dragAssetPath, pos);
             }
         }
 
+        e.Pointer.Capture(null);
         _draggingAsset = false;
-        _dragAssetEntry = null;
+        _dragAssetPath = null;
     }
 
     // ---------------------------------------------------------
@@ -607,11 +611,39 @@ public partial class SkinEditorView : SpriteEditor
     // ---------------------------------------------------------
     private void OnZoom(object? sender, PointerWheelEventArgs e)
     {
+        if (!e.KeyModifiers.HasFlag(KeyModifiers.Control))
+            return;
+
         double delta = e.Delta.Y > 0 ? 1.1 : 0.9;
-        _zoom *= delta;
-        if (_zoom > 3.0) _zoom = 3.0;
-        if (_zoom < 0.5) _zoom = 0.5;
+        SetZoom(_zoom * delta);
+        e.Handled = true;
+    }
+
+    private void OnZoomIn(object? sender, RoutedEventArgs e) => SetZoom(_zoom * 1.1);
+
+    private void OnZoomOut(object? sender, RoutedEventArgs e) => SetZoom(_zoom / 1.1);
+
+    private void SetZoom(double zoom)
+    {
+        _zoom = Math.Clamp(zoom, 0.5, 3.0);
+        if (Math.Abs(ZoomSlider.Value - _zoom) > 0.001)
+        {
+            _syncingZoomSlider = true;
+            ZoomSlider.Value = _zoom;
+            _syncingZoomSlider = false;
+        }
+
+        ZoomLabel.Text = $"{_zoom:P0}";
+        UpdateViewportZoom();
         Redraw();
+    }
+
+    private void UpdateViewportZoom()
+    {
+        ViewportBorder.Width = _stageWidth * _zoom;
+        ViewportBorder.Height = _stageHeight * _zoom;
+        Viewport.RenderTransform = new ScaleTransform(_zoom, _zoom);
+        Viewport.RenderTransformOrigin = new RelativePoint(0, 0, RelativeUnit.Relative);
     }
 
     // ---------------------------------------------------------
@@ -785,147 +817,62 @@ public partial class SkinEditorView : SpriteEditor
     // ---------------------------------------------------------
     // Asset list + placement
     // ---------------------------------------------------------
-    private void BuildAssetList(string dir, int depth, List<AssetEntry> list)
+    private void OnAssetPointerPressed(string fullPath, PointerPressedEventArgs e)
     {
-        foreach (var folder in Directory.GetDirectories(dir))
-        {
-            list.Add(new AssetEntry
-            {
-                Name = Path.GetFileName(folder),
-                FullPath = folder,
-                IsDirectory = true,
-                Depth = depth
-            });
-
-            BuildAssetList(folder, depth + 1, list);
-        }
-
-        foreach (var file in Directory.GetFiles(dir))
-        {
-            list.Add(new AssetEntry
-            {
-                Name = Path.GetFileName(file),
-                FullPath = file,
-                IsDirectory = false,
-                Depth = depth
-            });
-        }
-    }
-
-    private void RefreshAssetList()
-    {
-        AssetGrid.Children.Clear();
-
-        if (!Directory.Exists(_sprite.ItemsFolder))
+        if (!File.Exists(fullPath) || !e.GetCurrentPoint(AssetExplorer).Properties.IsLeftButtonPressed)
             return;
 
-        var list = new List<AssetEntry>();
-        BuildAssetList(_sprite.ItemsFolder, 0, list);
-
-        foreach (var entry in list)
-        {
-            if (entry.IsDirectory)
-                continue; // folders not shown in grid
-
-            var thumb = LoadThumbnail(entry.FullPath, 96);
-
-            var tile = new Border
-            {
-                Width = 96,
-                Height = 120,
-                Background = new SolidColorBrush(Color.FromArgb(40, 255, 255, 255)),
-                BorderBrush = Brushes.Gray,
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(4),
-                Padding = new Thickness(4),
-                Tag = entry
-            };
-
-            var stack = new StackPanel
-            {
-                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
-            };
-
-            stack.Children.Add(
-                thumb != null
-                    ? new Image { Source = thumb, Width = 80, Height = 80 }
-                    : new Image { Source = LoadFallbackImage().Source, Width = 96, Height = 96 }
-            );
-
-            stack.Children.Add(new TextBlock
-            {
-                Text = entry.Name,
-                Foreground = Brushes.White,
-                TextAlignment = TextAlignment.Center,
-                TextWrapping = TextWrapping.Wrap,
-                MaxWidth = 80
-            });
-
-            tile.Child = stack;
-
-            tile.PointerPressed += OnAssetPointerPressed;
-
-            AssetGrid.Children.Add(tile);
-        }
-    }
-
-    private Image LoadFallbackImage()
-    {
-        return new Image { Source = new Bitmap(ResourceKit.Images.Fallback) };
-    }
-
-    private void OnAssetPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (sender is not Border tile || tile.Tag is not AssetEntry entry)
-            return;
-
+        _dragAssetPath = fullPath;
         _draggingAsset = true;
-        _dragAssetEntry = entry;
 
-        var thumb = LoadThumbnail(entry.FullPath, 96);
+        var image = LoadAssetImage(_dragAssetPath);
+        var displayWidth = image is Bitmap bitmap
+            ? Math.Max(16, bitmap.PixelSize.Width * 0.5) * _zoom
+            : 96 * _zoom;
+        var displayHeight = image is Bitmap bitmapForHeight
+            ? Math.Max(16, bitmapForHeight.PixelSize.Height * 0.5) * _zoom
+            : 96 * _zoom;
 
         _dragGhost = new Border
         {
+            Width = displayWidth,
+            Height = displayHeight,
             Background = new SolidColorBrush(Color.FromArgb(180, 30, 30, 30)),
             BorderBrush = Brushes.White,
             BorderThickness = new Thickness(1),
-            Padding = new Thickness(4),
-            Child = new StackPanel
-            {
-                Spacing = 4,
-                Children =
+            Child = image != null
+                ? new Image { Source = image, Stretch = Stretch.Uniform }
+                : new TextBlock
                 {
-                    thumb != null
-                        ? new Image { Source = thumb, Width = 96, Height = 96 }
-                        : new Image { Source = LoadFallbackImage().Source, Width = 96, Height = 96 },
-
-                    new TextBlock
-                    {
-                        Text = entry.Name,
-                        Foreground = Brushes.White
-                    }
-                }
-            },
-            Opacity = 0.85
+                    Text = Path.GetFileName(fullPath),
+                    Foreground = Brushes.White,
+                    TextWrapping = TextWrapping.Wrap,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                },
+            Opacity = 0.85,
+            IsHitTestVisible = false
         };
 
         Overlay.Children.Add(_dragGhost);
 
         var pos = e.GetPosition(Root);
-        Canvas.SetLeft(_dragGhost, pos.X + _dragGhostOffset.X);
-        Canvas.SetTop(_dragGhost, pos.Y + _dragGhostOffset.Y);
+        Canvas.SetLeft(_dragGhost, pos.X - displayWidth / 2);
+        Canvas.SetTop(_dragGhost, pos.Y - displayHeight / 2);
+        e.Pointer.Capture(Root);
     }
 
     private void AddAssetToSkin(string fullPath, Point dropPos)
     {
-        string file = Path.GetFileName(fullPath);
-        string relative = "items/" + file;
+        string relative = Path.GetRelativePath(_sprite.SpriteFolder, fullPath)
+            .Replace(Path.DirectorySeparatorChar, '/')
+            .Replace(Path.AltDirectorySeparatorChar, '/');
 
-        bool isVideo = file.EndsWith(".mp4") || file.EndsWith(".webm");
+        bool isVideo = Path.GetExtension(fullPath).Equals(".mp4", StringComparison.OrdinalIgnoreCase)
+            || Path.GetExtension(fullPath).Equals(".webm", StringComparison.OrdinalIgnoreCase);
 
-        double worldX = (dropPos.X);
-        double worldY = (dropPos.Y);
+        double worldX = dropPos.X - _stageWidth / 2.0;
+        double worldY = dropPos.Y - _stageHeight / 2.0;
 
         SkinElement newElem = isVideo
             ? new SkinVideoElement { AssetPath = relative, Loop = true, AutoPlay = true }
@@ -1056,17 +1003,12 @@ public partial class SkinEditorView : SpriteEditor
         return new Point(origin.X + (dx * cos - dy * sin), origin.Y + (dx * sin + dy * cos));
     }
 
-    private IImage? LoadThumbnail(string path, int size = 64)
+    private IImage? LoadAssetImage(string path)
     {
         try
         {
-            using var fs = File.OpenRead(path);
-            var bmp = new Avalonia.Media.Imaging.Bitmap(fs);
-            double scale = Math.Min(size / (double)bmp.PixelSize.Width, size / (double)bmp.PixelSize.Height);
-            int w = (int)(bmp.PixelSize.Width * scale);
-            int h = (int)(bmp.PixelSize.Height * scale);
-
-            return bmp.CreateScaledBitmap(new PixelSize(w, h));
+            var asset = GraphicLoader.LoadCached(path);
+            return asset is Graphic graphic ? graphic.ToAvaloniaBitmap() : null;
         }
         catch
         {

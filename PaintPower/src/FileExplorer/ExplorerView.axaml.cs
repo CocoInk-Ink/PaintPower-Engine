@@ -31,6 +31,7 @@ public partial class ExplorerView : TranslatableControl
     private bool _clipboardIsCut = false;
 
     public event Action<string>? FileOpened;
+    public event Action<string, PointerPressedEventArgs>? FileDragStarted;
     public event Action<string>? FolderOpened;
     public event Action? ProjectDirty;
     public event Action<string>? FileRemoved;
@@ -296,6 +297,17 @@ public partial class ExplorerView : TranslatableControl
 
         if (!e.GetCurrentPoint(c).Properties.IsLeftButtonPressed)
             return;
+
+        if (isReadOnly)
+        {
+            if (!row.Item.IsDirectory)
+            {
+                FileDragStarted?.Invoke(row.Item.FullPath, e);
+                e.Handled = true;
+            }
+
+            return;
+        }
 
         _isDragging = true;
         _dragRow = row;

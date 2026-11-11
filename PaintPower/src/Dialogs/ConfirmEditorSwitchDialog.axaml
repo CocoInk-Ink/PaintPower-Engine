@@ -1,0 +1,16 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PaintPower.Dialogs.ConfirmEditorSwitchDialog"
+        Width="460" Height="190"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+    <StackPanel Margin="16" Spacing="16">
+        <TextBlock Text="Switch editor?" FontSize="16" FontWeight="Bold" />
+        <TextBlock Text="Switching or reloading editors may cause data loss. Make sure to save the current file by clicking the 'Save' button in the current editor. Do you want to continue?"
+                   TextWrapping="Wrap" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Content="Cancel" Click="OnCancel" IsDefault="True" />
+            <Button Content="Switch" Click="OnSwitch" />
+        </StackPanel>
+    </StackPanel>
+</Window>
