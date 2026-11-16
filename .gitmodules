@@ -1,3 +1,6 @@
 [submodule "PaintScript Engine"]
 	path = PaintScript Engine
 	url = https://github.com/CocoInk-Ink/PaintScript-Engine.git
+[submodule "WXV"]
+	path = WXV
+	url = https://github.com/CocoBox84/WetPaintVideo
