@@ -4,6 +4,6 @@
 [submodule "PaintScript Standard"]
 	path = PaintScript Standard
 	url = https://github.com/CocoInk-Ink/PaintScript-Standard.git
-[submodule "WXA"]
-	path = WXA
+[submodule "WXV"]
+	path = WXV
 	url = https://github.com/CocoBox84/WetPaintVideo

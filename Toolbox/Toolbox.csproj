@@ -26,6 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Assets\Assets.csproj" />
     <ProjectReference Include="..\PaintScript Engine\PaintScript Engine.csproj" />
+	<ProjectReference Include="..\WXV\WetPaintVideo\WetPaintVideo.csproj" />
   </ItemGroup>
 
   <!-- Packages -->
