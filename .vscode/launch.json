@@ -1,27 +1,57 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Debug PaintPower Editor",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "PaintPower Editor: build (Debug)",
-            "program": "${workspaceFolder}/PaintPower/bin/Debug/net6.0/PaintPower-Engine.dll",
-            "args": [],
-            "cwd": "${workspaceFolder}",
-            "console": "integratedTerminal",
-            "stopAtEntry": false
-        },
-        {
-            "name": "Debug PaintPower VM",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "PaintPower VM: build (Debug)",
-            "program": "${workspaceFolder}/PaintPower-VM/bin/Debug/net6.0/PaintPower_VM.dll",
-            "args": [],
-            "cwd": "${workspaceFolder}",
-            "console": "integratedTerminal",
-            "stopAtEntry": false
-        }
-    ]
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Debug PaintPower Editor",
+			"type": "coreclr",
+			"request": "launch",
+			"preLaunchTask": "PaintPower Editor: build (Debug)",
+			"program": "${workspaceFolder}/PaintPower/bin/Debug/net6.0/PaintPower-Engine.dll",
+			"args": [],
+			"cwd": "${workspaceFolder}",
+			"console": "integratedTerminal",
+			"stopAtEntry": false
+		},
+		{
+			"name": "Debug PaintPower VM",
+			"type": "coreclr",
+			"request": "launch",
+			"preLaunchTask": "PaintPower VM: build (Debug)",
+			"program": "${workspaceFolder}/PaintPower-VM/bin/Debug/net6.0/PaintPower_VM.dll",
+			"args": [],
+			"cwd": "${workspaceFolder}",
+			"console": "integratedTerminal",
+			"stopAtEntry": false
+		},
+		{
+			"name": "C#: PXVVideo Debug",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "${workspaceFolder}/WXV/PXVVideo/PXVVideo/PXVVideo.csproj"
+		},
+		{
+			"name": "C#: PXVideoTest Debug",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "${workspaceFolder}/WXV/PXVVideo/PXVideoTest/PXVideoTest.csproj"
+		},
+		{
+			"name": "C#: PXVAudio Debug",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "${workspaceFolder}/WXV/PXVAudio/PXVAudio.csproj"
+		},
+		{
+			"name": "C#: WetPaint Video Debug",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "${workspaceFolder}/WXV/WetPaintVideo/WetPaintVideo.csproj"
+		},
+		{
+			"name": "C#: WetPaint Video Test Debug",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "${workspaceFolder}/WXV/WXVVideoTest/WXVVideoTest.csproj"
+		}
+	]
 }
